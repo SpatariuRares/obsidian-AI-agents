@@ -21,7 +21,19 @@ export class App {
     getAbstractFileByPath: jest.fn().mockReturnValue(null),
     read: jest.fn().mockResolvedValue(""),
   };
-  workspace = {};
+  workspace = {
+    detachLeavesOfType: jest.fn(),
+    getLeavesOfType: jest.fn().mockReturnValue([]),
+    getRightLeaf: jest.fn().mockReturnValue({
+      setViewState: jest.fn().mockResolvedValue(undefined),
+    }),
+    revealLeaf: jest.fn(),
+  };
+}
+
+/** Stub for WorkspaceLeaf. */
+export class WorkspaceLeaf {
+  view: unknown = null;
 }
 
 /** normalizePath — cleans up vault-relative paths. */
@@ -175,6 +187,33 @@ export class PluginSettingTab {
 }
 
 /**
+ * ItemView — base class for sidebar/tab views.
+ */
+export class ItemView {
+  app: App;
+  containerEl: HTMLElement;
+  leaf: WorkspaceLeaf;
+
+  constructor(leaf: WorkspaceLeaf) {
+    this.leaf = leaf;
+    this.app = new App();
+    this.containerEl = document.createElement("div");
+    // Obsidian uses children[1] as the content container
+    this.containerEl.appendChild(document.createElement("div")); // [0] header
+    this.containerEl.appendChild(document.createElement("div")); // [1] content
+  }
+
+  getViewType(): string { return ""; }
+  getDisplayText(): string { return ""; }
+  getIcon(): string { return ""; }
+  async onOpen(): Promise<void> {}
+  async onClose(): Promise<void> {}
+}
+
+/** setIcon — sets a Lucide icon on an element. Stubbed as no-op. */
+export function setIcon(_el: HTMLElement, _icon: string): void {}
+
+/**
  * Plugin — base class for Obsidian plugins.
  * Methods are mocked with jest.fn() so tests can assert they were called.
  */
@@ -183,6 +222,7 @@ export class Plugin {
   addCommand = jest.fn();
   addSettingTab = jest.fn();
   addRibbonIcon = jest.fn().mockReturnValue({});
+  registerView = jest.fn();
   registerMarkdownCodeBlockProcessor = jest.fn();
   loadData = jest.fn().mockResolvedValue({});
   saveData = jest.fn().mockResolvedValue(undefined);
