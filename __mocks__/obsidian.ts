@@ -17,13 +17,21 @@ export class App {
   vault = {
     getAllLoadedFiles: jest.fn().mockReturnValue([]),
     getMarkdownFiles: jest.fn().mockReturnValue([]),
+    getAbstractFileByPath: jest.fn().mockReturnValue(null),
+    read: jest.fn().mockResolvedValue(""),
   };
   workspace = {};
+}
+
+/** normalizePath — cleans up vault-relative paths. */
+export function normalizePath(path: string): string {
+  return path.replace(/\\/g, "/").replace(/\/+/g, "/").replace(/\/$/, "");
 }
 
 /** Stub for TFolder — represents a vault folder. */
 export class TFolder {
   path: string;
+  children: (TFolder | TFile)[] = [];
   constructor(path = "") {
     this.path = path;
   }
@@ -199,24 +207,13 @@ export class MarkdownRenderChild {
 
 /**
  * parseYaml — parse a YAML string into a plain object.
- *
- * The real Obsidian implementation uses js-yaml under the hood.
- * This lightweight mock handles simple `key: value` pairs,
- * which is all the ExampleView tests need.
- *
- * Replace with a proper YAML library (e.g. `js-yaml`) in tests that
- * need more complex YAML parsing.
+ * Uses js-yaml (same library Obsidian uses internally) for full YAML support.
  */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const jsYaml = require("js-yaml");
 export const parseYaml = jest
   .fn()
   .mockImplementation((text: string): Record<string, unknown> => {
-    const result: Record<string, unknown> = {};
-    if (!text?.trim()) return result;
-    for (const line of text.split("\n")) {
-      const match = line.match(/^(\w+)\s*:\s*(.+)$/);
-      if (match) {
-        result[match[1]] = match[2].trim();
-      }
-    }
-    return result;
+    if (!text?.trim()) return {};
+    return jsYaml.load(text) as Record<string, unknown>;
   });
