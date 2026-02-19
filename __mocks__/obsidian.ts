@@ -17,6 +17,7 @@ export class App {
   vault = {
     getAllLoadedFiles: jest.fn().mockReturnValue([]),
     getMarkdownFiles: jest.fn().mockReturnValue([]),
+    getFiles: jest.fn().mockReturnValue([]),
     getAbstractFileByPath: jest.fn().mockReturnValue(null),
     read: jest.fn().mockResolvedValue(""),
   };

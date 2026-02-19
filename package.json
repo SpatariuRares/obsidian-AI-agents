@@ -25,6 +25,7 @@
   "devDependencies": {
     "@eslint/json": "^0.14.0",
     "@types/jest": "^30.0.0",
+    "@types/micromatch": "^4.0.10",
     "@types/node": "^16.18.126",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
@@ -35,6 +36,7 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-obsidianmd": "^0.1.9",
     "glob": "^11.0.0",
+    "husky": "^9.1.7",
     "jest": "^30.2.0",
     "jest-environment-obsidian": "^0.0.1",
     "obsidian": "latest",
@@ -44,7 +46,9 @@
     "ts-jest": "^29.4.5",
     "tslib": "2.4.0",
     "typescript": "~5.7.0",
-    "typescript-eslint": "^8.46.1",
-    "husky": "^9.1.7"
+    "typescript-eslint": "^8.46.1"
+  },
+  "dependencies": {
+    "micromatch": "^4.0.8"
   }
 }
