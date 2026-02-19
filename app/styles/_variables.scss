@@ -1,0 +1,41 @@
+// =============================================================================
+// OBSIDIAN CSS VARIABLES REFERENCE
+// =============================================================================
+// Use these Obsidian-provided CSS variables in your styles.
+// Never hardcode colors or font sizes — use these variables so your plugin
+// automatically respects the user's chosen theme (light, dark, custom).
+//
+// HOW TO USE:
+//   .my-element { background: var(--background-primary); }
+//
+// BACKGROUND
+//   --background-primary          Main background (editor, sidebars)
+//   --background-secondary        Slightly offset background (panels, headers)
+//   --background-modifier-border  Border color (between panels, around inputs)
+//   --background-modifier-hover   Hover state background
+//   --background-modifier-active  Active/selected state background
+//
+// TEXT
+//   --text-normal    Default readable text color
+//   --text-muted     Subdued/secondary text color
+//   --text-faint     Very subdued labels and placeholders
+//   --text-accent    Themed accent text (links, highlights)
+//   --text-on-accent Text color when placed on an accent-colored background
+//   --text-error     Error messages and validation failures
+//
+// INTERACTIVE
+//   --interactive-normal   Default interactive element color
+//   --interactive-hover    Hover state for buttons/links
+//   --interactive-accent   Primary call-to-action / accent color
+//   --interactive-accent-hover  Accent color hover state
+//
+// TYPOGRAPHY
+//   --font-text-size    Base font size for body text
+//   --font-ui-small     Small UI label font size
+//   --font-ui-medium    Medium UI font size
+//   --font-ui-large     Large UI heading font size
+//   --font-monospace    Monospace font family (code blocks)
+//
+// SPACING (if needed, use multiples of 4 or 8 px manually)
+//
+// =============================================================================

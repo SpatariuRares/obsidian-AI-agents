@@ -1,0 +1,43 @@
+// =============================================================================
+// BASE STYLES
+// =============================================================================
+// Root styles for the plugin. All plugin-specific elements should be nested
+// inside .obsidian-plugin-template to avoid leaking styles into other plugins.
+//
+// Add your own component styles in separate partials and import them in
+// styles.source.scss using @use "app/styles/your-partial".
+// =============================================================================
+
+.obsidian-plugin-template {
+  // Use Obsidian CSS variables for all colors and typography
+  color: var(--text-normal);
+  background: var(--background-primary);
+  font-size: var(--font-text-size);
+
+  // Example: a simple content wrapper
+  &__content {
+    padding: 16px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-secondary);
+  }
+
+  // Example: a muted label
+  &__label {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+  }
+
+  // Example: an accent button-like element
+  &__action {
+    color: var(--text-on-accent);
+    background: var(--interactive-accent);
+    border-radius: 4px;
+    padding: 4px 12px;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--interactive-accent-hover);
+    }
+  }
+}

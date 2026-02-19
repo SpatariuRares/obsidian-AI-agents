@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx jest:*)",
+      "Bash(wc:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run build:*)",
+      "Bash(grep:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(cd:*)",
+      "Bash(dir:*)",
+      "Bash(ls:*)",
+      "Bash(node:*)"
+    ],
+    "deny": []
+  }
+}

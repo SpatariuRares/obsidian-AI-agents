@@ -1,0 +1,50 @@
+{
+  "name": "obsidian-plugin-template",
+  "version": "1.0.0",
+  "description": "Obsidian plugin template with TypeScript, esbuild, Jest, ESLint, SCSS, and i18n",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node build-css.mjs && node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node build-css.mjs && node esbuild.config.mjs production",
+    "version": "node version-bump.mjs && git add manifest.json versions.json",
+    "test": "jest",
+    "typecheck": "tsc -noEmit -skipLibCheck",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky"
+  },
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "template"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/json": "^0.14.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^16.18.126",
+    "@typescript-eslint/eslint-plugin": "^8.46.1",
+    "@typescript-eslint/parser": "^8.46.1",
+    "builtin-modules": "3.3.0",
+    "esbuild": "^0.25.11",
+    "esbuild-postcss": "^0.0.4",
+    "eslint": "^9.39.1",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-obsidianmd": "^0.1.9",
+    "glob": "^11.0.0",
+    "jest": "^30.2.0",
+    "jest-environment-obsidian": "^0.0.1",
+    "obsidian": "latest",
+    "postcss": "^8.5.6",
+    "postcss-import": "^16.1.1",
+    "sass": "^1.94.2",
+    "ts-jest": "^29.4.5",
+    "tslib": "2.4.0",
+    "typescript": "~5.7.0",
+    "typescript-eslint": "^8.46.1",
+    "husky": "^9.1.7"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-plugin-template",
+  "name": "Obsidian Plugin Template",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "A template for building Obsidian plugins with TypeScript, esbuild, Jest, ESLint, and SCSS",
+  "author": "",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}

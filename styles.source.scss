@@ -1,0 +1,15 @@
+// =============================================================================
+// OBSIDIAN PLUGIN TEMPLATE - STYLES ENTRY POINT
+// =============================================================================
+// Import partials from app/styles/ here.
+// Add new partials as your plugin grows:
+//   @use "app/styles/your-new-partial";
+//
+// The build system compiles this file via `node build-css.mjs` → styles.css
+// =============================================================================
+
+// Reference documentation for available Obsidian CSS variables
+@use "app/styles/variables";
+
+// Base plugin styles
+@use "app/styles/base";

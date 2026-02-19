@@ -1,0 +1,17 @@
+{
+  "settings": {
+    "title": "Plugin Settings",
+    "exampleToggle": "Example toggle",
+    "exampleText": "Example text",
+    "exampleDropdown": "Example dropdown"
+  },
+  "commands": {
+    "exampleCommand": "Run example command"
+  },
+  "notices": {
+    "exampleNotice": "Example notice fired!"
+  },
+  "codeBlocks": {
+    "exampleTitle": "Example Block"
+  }
+}
