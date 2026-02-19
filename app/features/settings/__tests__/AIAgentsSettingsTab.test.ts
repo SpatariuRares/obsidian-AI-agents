@@ -1,27 +1,35 @@
 /**
- * @fileoverview ExampleSettingsTab.test.ts
+ * @fileoverview AIAgentsSettingsTab.test.ts
  *
- * Tests the ExampleSettingsTab settings UI:
+ * Tests the AIAgentsSettingsTab settings UI:
  *   - Construction and plugin reference storage
  *   - display() clears and rebuilds the panel without throwing
  *   - Re-rendering works correctly (idempotent)
- *
- * Note: Obsidian's Setting class and Plugin base are provided by
- * __mocks__/obsidian.ts. The container element is a plain stub so
- * we avoid needing a real DOM in the node test environment.
  */
 
 import { App } from "obsidian";
-import { ExampleSettingsTab } from "../ExampleSettingsTab";
+import { AIAgentsSettingsTab } from "../AIAgentsSettingsTab";
 import { DEFAULT_SETTINGS, PluginSettings } from "@app/types/PluginTypes";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-/** Minimal plugin stub that satisfies PluginWithSettings. */
 function makePlugin(overrides: Partial<PluginSettings> = {}) {
+  const base = {
+    ...DEFAULT_SETTINGS,
+    ...overrides,
+    ollama: {
+      ...DEFAULT_SETTINGS.ollama,
+      ...(overrides.ollama ?? {}),
+    },
+    openRouter: {
+      ...DEFAULT_SETTINGS.openRouter,
+      ...(overrides.openRouter ?? {}),
+    },
+  } as PluginSettings;
+
   return {
     app: new App(),
-    settings: { ...DEFAULT_SETTINGS, ...overrides } as PluginSettings,
+    settings: base,
     saveSettings: jest.fn().mockResolvedValue(undefined),
     addCommand: jest.fn(),
     addSettingTab: jest.fn(),
@@ -30,46 +38,40 @@ function makePlugin(overrides: Partial<PluginSettings> = {}) {
     loadData: jest.fn().mockResolvedValue({}),
     saveData: jest.fn().mockResolvedValue(undefined),
     registerEvent: jest.fn(),
-  } as unknown as Parameters<typeof ExampleSettingsTab>[1];
+  } as unknown as Parameters<typeof AIAgentsSettingsTab>[1];
 }
 
-/** Minimal container stub with a spied empty() method. */
 function makeContainerEl() {
   return { empty: jest.fn() } as unknown as HTMLElement;
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe("ExampleSettingsTab", () => {
-  // ── Constructor ───────────────────────────────────────────────────────────
-
+describe("AIAgentsSettingsTab", () => {
   describe("constructor", () => {
     it("should create an instance without throwing", () => {
       expect(
-        () => new ExampleSettingsTab(new App(), makePlugin()),
+        () => new AIAgentsSettingsTab(new App(), makePlugin()),
       ).not.toThrow();
     });
 
     it("should store the plugin reference on this.plugin", () => {
       const plugin = makePlugin();
-      const tab = new ExampleSettingsTab(new App(), plugin);
+      const tab = new AIAgentsSettingsTab(new App(), plugin);
       expect(tab.plugin).toBe(plugin);
     });
 
     it("should expose an app property from the base class", () => {
       const app = new App();
-      const tab = new ExampleSettingsTab(app, makePlugin());
+      const tab = new AIAgentsSettingsTab(app, makePlugin());
       expect(tab.app).toBe(app);
     });
   });
 
-  // ── display() ────────────────────────────────────────────────────────────
-
   describe("display()", () => {
-    /** Helper: build, attach a mock container, and call display(). */
     function render(overrides: Partial<PluginSettings> = {}) {
       const plugin = makePlugin(overrides);
-      const tab = new ExampleSettingsTab(new App(), plugin);
+      const tab = new AIAgentsSettingsTab(new App(), plugin);
       tab.containerEl = makeContainerEl();
       tab.display();
       return { plugin, tab };
@@ -86,25 +88,29 @@ describe("ExampleSettingsTab", () => {
       expect(() => render()).not.toThrow();
     });
 
-    it("should not throw when exampleToggle is true", () => {
-      expect(() => render({ exampleToggle: true })).not.toThrow();
+    it("should not throw when ollama is enabled", () => {
+      expect(
+        () => render({ ollama: { enabled: true, baseUrl: "http://localhost:11434" } }),
+      ).not.toThrow();
     });
 
-    it("should not throw with non-default exampleText", () => {
-      expect(() => render({ exampleText: "custom text" })).not.toThrow();
+    it("should not throw when openRouter is enabled with API key", () => {
+      expect(
+        () => render({ openRouter: { enabled: true, apiKey: "sk-or-test" } }),
+      ).not.toThrow();
     });
 
-    it("should not throw when exampleDropdown is set to option2", () => {
-      expect(() => render({ exampleDropdown: "option2" })).not.toThrow();
+    it("should not throw with custom agents folder", () => {
+      expect(() => render({ agentsFolder: "my-agents" })).not.toThrow();
     });
 
-    it("should not throw when exampleDropdown is set to option3", () => {
-      expect(() => render({ exampleDropdown: "option3" })).not.toThrow();
+    it("should not throw with custom chat position", () => {
+      expect(() => render({ chatPosition: "left" })).not.toThrow();
     });
 
     it("should call containerEl.empty() twice when display() is called twice", () => {
       const plugin = makePlugin();
-      const tab = new ExampleSettingsTab(new App(), plugin);
+      const tab = new AIAgentsSettingsTab(new App(), plugin);
       tab.containerEl = makeContainerEl();
       tab.display();
       tab.display();

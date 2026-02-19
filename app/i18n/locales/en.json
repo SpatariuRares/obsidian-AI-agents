@@ -1,17 +1,34 @@
 {
   "settings": {
-    "title": "Plugin Settings",
-    "exampleToggle": "Example toggle",
-    "exampleText": "Example text",
-    "exampleDropdown": "Example dropdown"
+    "title": "AI Agents",
+    "providers": {
+      "heading": "AI providers",
+      "ollamaEnable": "Enable Ollama",
+      "ollamaUrl": "Ollama server URL",
+      "openrouterEnable": "Enable OpenRouter",
+      "openrouterApiKey": "OpenRouter API key",
+      "defaultProvider": "Default provider"
+    },
+    "general": {
+      "heading": "General",
+      "agentsFolder": "Agents folder",
+      "userName": "User name"
+    },
+    "behaviour": {
+      "heading": "Behaviour",
+      "defaultModel": "Default model",
+      "maxHistory": "Max history messages",
+      "autoSave": "Auto-save interval",
+      "confirmDestructive": "Confirm destructive operations",
+      "maxFileOps": "Max file operations per message"
+    },
+    "interface": {
+      "heading": "Interface",
+      "chatPosition": "Chat position",
+      "showStatusBar": "Show status bar",
+      "showTokenCount": "Show token count"
+    }
   },
-  "commands": {
-    "exampleCommand": "Run example command"
-  },
-  "notices": {
-    "exampleNotice": "Example notice fired!"
-  },
-  "codeBlocks": {
-    "exampleTitle": "Example Block"
-  }
+  "commands": {},
+  "notices": {}
 }

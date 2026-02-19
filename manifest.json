@@ -1,10 +1,10 @@
 {
-  "id": "obsidian-plugin-template",
-  "name": "Obsidian Plugin Template",
-  "version": "1.0.0",
+  "id": "obsidian-ai-agents",
+  "name": "AI Agents",
+  "version": "0.1.0",
   "minAppVersion": "0.15.0",
-  "description": "A template for building Obsidian plugins with TypeScript, esbuild, Jest, ESLint, and SCSS",
-  "author": "",
+  "description": "Transform your vault into an ecosystem of configurable AI agents defined by markdown files.",
+  "author": "Rares",
   "authorUrl": "",
   "isDesktopOnly": false
 }

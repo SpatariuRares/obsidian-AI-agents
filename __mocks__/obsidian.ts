@@ -14,8 +14,42 @@
 
 /** Minimal App stub. */
 export class App {
-  vault = {};
+  vault = {
+    getAllLoadedFiles: jest.fn().mockReturnValue([]),
+    getMarkdownFiles: jest.fn().mockReturnValue([]),
+  };
   workspace = {};
+}
+
+/** Stub for TFolder — represents a vault folder. */
+export class TFolder {
+  path: string;
+  constructor(path = "") {
+    this.path = path;
+  }
+}
+
+/** Stub for TFile — represents a vault file. */
+export class TFile {
+  path: string;
+  basename: string;
+  stat = { mtime: 0 };
+  constructor(path = "") {
+    this.path = path;
+    this.basename = path.split("/").pop() ?? path;
+  }
+}
+
+/** Stub for AbstractInputSuggest — base class for input autocomplete. */
+export class AbstractInputSuggest<T> {
+  app: App;
+  constructor(app: App, _inputEl: HTMLInputElement) {
+    this.app = app;
+  }
+  getSuggestions(_query: string): T[] { return []; }
+  renderSuggestion(_item: T, _el: HTMLElement): void {}
+  selectSuggestion(_item: T): void {}
+  close(): void {}
 }
 
 /**
@@ -71,12 +105,14 @@ export class Setting {
 
   addText(
     cb: (text: {
+      inputEl: HTMLInputElement;
       setPlaceholder(p: string): unknown;
       setValue(v: string): unknown;
       onChange(handler: (v: string) => unknown): unknown;
     }) => unknown,
   ): this {
     const control = {
+      inputEl: {} as HTMLInputElement,
       setPlaceholder: (_p: string) => control,
       setValue: (_v: string) => control,
       onChange: (handler: (v: string) => unknown) => {

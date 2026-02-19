@@ -1,45 +1,72 @@
 /**
- * @fileoverview PluginTypes - Core plugin type definitions
+ * @fileoverview PluginTypes - Core type definitions for obsidian-ai-agents
  *
- * Defines the settings interface and default configuration for the plugin.
- * Import these types in main.ts and the settings tab to ensure consistency.
- *
- * Usage:
- * ```typescript
- * import { PluginSettings, DEFAULT_SETTINGS } from '@app/types/PluginTypes';
- * ```
+ * Defines settings interfaces for AI providers (Ollama, OpenRouter),
+ * agent configuration, and plugin behaviour.
  */
 
-/**
- * Plugin settings interface.
- *
- * Add new setting fields here as your plugin grows.
- * Each field should have a corresponding entry in DEFAULT_SETTINGS below.
- */
-export interface PluginSettings {
-  /** Example: a boolean toggle setting */
-  exampleToggle: boolean;
+// ---------------------------------------------------------------------------
+// Provider settings
+// ---------------------------------------------------------------------------
 
-  /** Example: a free-text input setting */
-  exampleText: string;
-
-  /**
-   * Example: a dropdown/select setting.
-   * Constrain valid values with a union type for stricter safety.
-   */
-  exampleDropdown: string;
+export interface OllamaSettings {
+  enabled: boolean;
+  baseUrl: string;
 }
 
-/**
- * Default values for all plugin settings.
- *
- * Used in main.ts when loading settings for the first time:
- * ```typescript
- * this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
- * ```
- */
+export interface OpenRouterSettings {
+  enabled: boolean;
+  apiKey: string;
+}
+
+// ---------------------------------------------------------------------------
+// Plugin settings
+// ---------------------------------------------------------------------------
+
+export interface PluginSettings {
+  // --- Providers ---
+  ollama: OllamaSettings;
+  openRouter: OpenRouterSettings;
+  defaultProvider: "ollama" | "openrouter";
+
+  // --- General ---
+  agentsFolder: string;
+  userName: string;
+
+  // --- Behaviour ---
+  defaultModel: string;
+  maxHistoryMessages: number;
+  autoSaveInterval: number;
+  confirmDestructiveOps: boolean;
+  maxFileOpsPerMessage: number;
+
+  // --- UI ---
+  chatPosition: "right" | "left" | "tab";
+  showStatusBar: boolean;
+  showTokenCount: boolean;
+}
+
 export const DEFAULT_SETTINGS: PluginSettings = {
-  exampleToggle: false,
-  exampleText: "Hello, Obsidian!",
-  exampleDropdown: "option1",
+  ollama: {
+    enabled: false,
+    baseUrl: "http://localhost:11434",
+  },
+  openRouter: {
+    enabled: false,
+    apiKey: "",
+  },
+  defaultProvider: "ollama",
+
+  agentsFolder: "agents",
+  userName: "",
+
+  defaultModel: "",
+  maxHistoryMessages: 50,
+  autoSaveInterval: 30,
+  confirmDestructiveOps: true,
+  maxFileOpsPerMessage: 10,
+
+  chatPosition: "right",
+  showStatusBar: true,
+  showTokenCount: true,
 };
