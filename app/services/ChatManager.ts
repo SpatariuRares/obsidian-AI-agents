@@ -12,9 +12,11 @@
  */
 
 import { App } from "obsidian";
-import { ChatMessage, ParsedAgent } from "@app/types/AgentTypes";
+import { ChatMessage, ParsedAgent, TokenUsage } from "@app/types/AgentTypes";
 import { PluginSettings } from "@app/types/PluginTypes";
 import { resolveTemplate } from "@app/services/TemplateEngine";
+import { ConversationLogger } from "@app/services/ConversationLogger";
+import { TokenTracker } from "@app/services/TokenTracker";
 
 export class ChatManager {
   private messages: ChatMessage[] = [];
@@ -22,9 +24,15 @@ export class ChatManager {
   private app: App;
   private settings: PluginSettings;
 
-  constructor(app: App, settings: PluginSettings) {
+  public logger: ConversationLogger;
+  public tokenTracker: TokenTracker;
+  private isNewSessionLog: boolean = false;
+
+  constructor(app: App, settings: PluginSettings, saveSettings: () => Promise<void>) {
     this.app = app;
     this.settings = settings;
+    this.logger = new ConversationLogger(app);
+    this.tokenTracker = new TokenTracker(settings, saveSettings);
   }
 
   /**
@@ -35,6 +43,9 @@ export class ChatManager {
   async startSession(agent: ParsedAgent): Promise<void> {
     this.messages = [];
     this.activeAgent = agent;
+    this.isNewSessionLog = true;
+
+    this.app.workspace.trigger("ai-agents:update" as any);
 
     const systemPrompt = await resolveTemplate(agent.promptTemplate, {
       agentConfig: agent.config,
@@ -58,6 +69,15 @@ export class ChatManager {
       content,
       timestamp: Date.now(),
     });
+  }
+
+  /**
+   * Removes the most recent message. Useful for cleaning up a failed empty assistant message.
+   */
+  removeLastMessage(): void {
+    if (this.messages.length > 0) {
+      this.messages.pop();
+    }
   }
 
   /**
@@ -92,6 +112,29 @@ export class ChatManager {
     return this.activeAgent;
   }
 
+  /**
+   * Updates the active agent config without restarting the session.
+   * Useful for hot-reloading when the agent.md file is modified mid-chat.
+   */
+  async updateActiveAgent(agent: ParsedAgent): Promise<void> {
+    if (!this.activeAgent || this.activeAgent.id !== agent.id) return;
+
+    this.activeAgent = agent;
+
+    // We could update the system prompt in the messages array here,
+    // but typically history is immutable. Updating the active agent 
+    // ensures the next messages use the new config/prompt rules.
+    const systemPrompt = await resolveTemplate(agent.promptTemplate, {
+      agentConfig: agent.config,
+      settings: this.settings,
+      app: this.app,
+    });
+
+    if (this.messages.length > 0 && this.messages[0].role === "system") {
+      this.messages[0].content = systemPrompt;
+    }
+  }
+
   hasActiveSession(): boolean {
     return this.activeAgent !== null && this.messages.length > 0;
   }
@@ -99,6 +142,27 @@ export class ChatManager {
   clearSession(): void {
     this.messages = [];
     this.activeAgent = null;
+    this.isNewSessionLog = false;
+
+    this.app.workspace.trigger("ai-agents:update" as any);
+  }
+
+  /**
+   * Logs a single turn (user + assistant) to the markdown log file
+   * and tracks token usage.
+   */
+  async logTurn(userMsg: ChatMessage, asstMsg: ChatMessage, usage?: TokenUsage): Promise<void> {
+    if (!this.activeAgent) return;
+
+    const isNew = this.isNewSessionLog;
+    this.isNewSessionLog = false;
+
+    await this.logger.appendLog(this.activeAgent, userMsg, asstMsg, usage, isNew);
+
+    if (usage) {
+      await this.tokenTracker.update(this.activeAgent.id, usage);
+      this.app.workspace.trigger("ai-agents:update" as any);
+    }
   }
 
   /**

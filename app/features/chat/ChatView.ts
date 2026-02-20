@@ -10,7 +10,7 @@
  * Styled with Obsidian CSS variables (see _chat.scss).
  */
 
-import { ItemView, WorkspaceLeaf, setIcon } from "obsidian";
+import { ItemView, WorkspaceLeaf, setIcon, Notice } from "obsidian";
 import { ChatManager } from "@app/services/ChatManager";
 import { ParsedAgent, ChatMessage } from "@app/types/AgentTypes";
 import { AgentRegistry } from "@app/services/AgentRegistry";
@@ -299,12 +299,14 @@ export class ChatView extends ItemView {
 
     try {
       const messagesForApi = this.host.chatManager.getMessages();
+      const userMsg = messagesForApi[messagesForApi.length - 1]; // user message we just added
+      let usageResponse;
 
       if (activeAgent.config.stream) {
         this.host.chatManager.addMessage("assistant", "");
         await this.renderMessages();
 
-        await ApiRouter.send(
+        const response = await ApiRouter.send(
           messagesForApi,
           activeAgent.config,
           this.host.chatManager.getSettings(),
@@ -313,6 +315,7 @@ export class ChatView extends ItemView {
             await this.updateLastMessage();
           }
         );
+        usageResponse = response?.usage;
       } else {
         const response = await ApiRouter.send(
           messagesForApi,
@@ -321,11 +324,26 @@ export class ChatView extends ItemView {
         );
         this.host.chatManager.addMessage("assistant", response.text);
         await this.renderMessages();
+        usageResponse = response?.usage;
       }
+
+      const visibleMsgs = this.host.chatManager.getVisibleMessages();
+      const asstMsg = visibleMsgs[visibleMsgs.length - 1];
+
+      await this.host.chatManager.logTurn(userMsg, asstMsg, usageResponse);
     } catch (error: unknown) {
       console.error("[ChatView] API Error:", error);
       const errMessage = error instanceof Error ? error.message : String(error);
-      this.host.chatManager.addMessage("assistant", `**Error:** ${errMessage}`);
+
+      new Notice(`AI Agent Error: ${errMessage}`, 5000);
+
+      // Clean up the empty assistant message if we added it for streaming
+      const msgs = this.host.chatManager.getMessages();
+      const lastMsg = msgs[msgs.length - 1];
+      if (lastMsg && lastMsg.role === "assistant" && !lastMsg.content.trim()) {
+        this.host.chatManager.removeLastMessage();
+      }
+
       await this.renderMessages();
     }
   }

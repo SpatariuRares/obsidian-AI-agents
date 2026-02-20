@@ -44,6 +44,9 @@ export interface PluginSettings {
   chatPosition: "right" | "left" | "tab";
   showStatusBar: boolean;
   showTokenCount: boolean;
+
+  // --- Tracking ---
+  agentUsage: Record<string, number>;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -69,4 +72,6 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   chatPosition: "right",
   showStatusBar: true,
   showTokenCount: true,
+
+  agentUsage: {},
 };

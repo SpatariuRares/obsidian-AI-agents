@@ -35,6 +35,10 @@ export class OpenAilikeProvider extends BaseProvider {
             stream: config.stream === true
         };
 
+        if (config.stream) {
+            payload.stream_options = { include_usage: true };
+        }
+
         if (config.stream && onStream) {
             try {
                 const response = await fetch(baseUrl, {
@@ -56,6 +60,7 @@ export class OpenAilikeProvider extends BaseProvider {
                 const decoder = new TextDecoder("utf-8");
                 let fullText = "";
                 let buffer = "";
+                let usage: import("@app/types/AgentTypes").TokenUsage | undefined;
 
                 while (true) {
                     const { done, value } = await reader.read();
@@ -79,6 +84,13 @@ export class OpenAilikeProvider extends BaseProvider {
                                     fullText += chunkContent;
                                     onStream(chunkContent);
                                 }
+                                if (data.usage) {
+                                    usage = {
+                                        promptTokens: data.usage.prompt_tokens || 0,
+                                        completionTokens: data.usage.completion_tokens || 0,
+                                        totalTokens: data.usage.total_tokens || 0
+                                    };
+                                }
                             } catch (err) {
                                 console.warn("[OpenAilikeProvider] Failed to parse SSE line:", line, err);
                             }
@@ -95,12 +107,19 @@ export class OpenAilikeProvider extends BaseProvider {
                             fullText += chunkContent;
                             onStream(chunkContent);
                         }
+                        if (data.usage) {
+                            usage = {
+                                promptTokens: data.usage.prompt_tokens || 0,
+                                completionTokens: data.usage.completion_tokens || 0,
+                                totalTokens: data.usage.total_tokens || 0
+                            };
+                        }
                     } catch (err) {
                         // ignore
                     }
                 }
 
-                return { text: fullText };
+                return { text: fullText, usage };
             } catch (error) {
                 console.error("[OpenAilikeProvider] Streaming request failed:", error);
                 throw error;
@@ -130,7 +149,16 @@ export class OpenAilikeProvider extends BaseProvider {
             const data = response.json;
             const text = data.choices?.[0]?.message?.content || "";
 
-            return { text };
+            let usage: import("@app/types/AgentTypes").TokenUsage | undefined;
+            if (data.usage) {
+                usage = {
+                    promptTokens: data.usage.prompt_tokens || 0,
+                    completionTokens: data.usage.completion_tokens || 0,
+                    totalTokens: data.usage.total_tokens || 0
+                };
+            }
+
+            return { text, usage };
         } catch (error) {
             console.error("[OpenAilikeProvider] Chat request failed:", error);
             throw error;

@@ -534,23 +534,23 @@ interface PluginSettings {
 
 ### Fase 4 — File Operations (settimana 6-7)
 
-- [ ] `GlobMatcher.ts` — Pattern matching per permessi
-- [ ] `PermissionGuard.ts` — Verifica pre-esecuzione
-- [ ] `FileOperations.ts` — CRUD con guard integrato
-- [ ] `ToolHandler.ts` — Traduce tool_call API in operazioni vault
-- [ ] `PermissionModal.ts` — Conferma operazioni distruttive
-- [ ] Generazione dinamica tools in base ai permessi
-- [ ] Test: operazioni permesse/negate, path traversal, conferme UI
+- [x] `GlobMatcher.ts` — Pattern matching per permessi
+- [x] `PermissionGuard.ts` — Verifica pre-esecuzione
+- [x] `FileOperations.ts` — CRUD con guard integrato
+- [x] `ToolHandler.ts` — Traduce tool_call API in operazioni vault
+- [x] `PermissionModal.ts` — Conferma operazioni distruttive
+- [x] Generazione dinamica tools in base ai permessi
+- [x] Test: operazioni permesse/negate, path traversal, conferme UI
 
 ### Fase 5 — Logging & Polish (settimana 8)
 
-- [ ] `ConversationLogger.ts` — Scrittura log markdown
-- [ ] `TokenTracker.ts` — Tracciamento usage
-- [ ] `StatusBar.ts` — Agente attivo + token usati
-- [ ] `AgentSidebar.ts` — Lista agenti con stato
-- [ ] Hot reload: watch su agent.md per aggiornare config e prompt senza restart
-- [ ] Error handling robusto su tutte le chiamate API
-- [ ] Test end-to-end completo
+- [x] `ConversationLogger.ts` — Scrittura log markdown
+- [x] `TokenTracker.ts` — Tracciamento usage
+- [x] `StatusBar.ts` — Agente attivo + token usati
+- [x] `AgentSidebar.ts` — Lista agenti con stato
+- [x] Hot reload: watch su agent.md per aggiornare config e prompt senza restart
+- [x] Error handling robusto su tutte le chiamate API
+- [x] Test end-to-end completo
 
 ### Fase 6 — Extra (futuro)
 
@@ -564,20 +564,7 @@ interface PluginSettings {
 
 ---
 
-## 12. Comandi Obsidian
-
-| Comando            | Hotkey suggerito | Descrizione                        |
-| ------------------ | ---------------- | ---------------------------------- |
-| `Open Agent Chat`  | `Ctrl+Shift+A`   | Apre la chat view                  |
-| `Switch Agent`     | `Ctrl+Shift+S`   | Modale cambio agente               |
-| `New Chat Session` | `Ctrl+Shift+N`   | Nuova sessione con agente corrente |
-| `Reload Agents`    | —                | Riscansiona cartella agents/       |
-| `View Agent Logs`  | —                | Apre i log dell'agente corrente    |
-| `Create New Agent` | —                | Wizard creazione nuovo agente      |
-
----
-
-## 13. Note Tecniche
+## 12. Note Tecniche
 
 **API calls**: Usare `requestUrl` di Obsidian, non `fetch` diretto. Questo garantisce compatibilità con mobile e gestisce CORS correttamente.
 

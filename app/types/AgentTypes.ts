@@ -57,6 +57,13 @@ export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
   timestamp: number;
+  tool_calls?: any[];
+}
+
+export interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
 }
 
 // ---------------------------------------------------------------------------
