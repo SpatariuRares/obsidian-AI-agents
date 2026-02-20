@@ -18,8 +18,10 @@ jest.mock("obsidian", () => {
   return {
     ...actual,
     Notice: class {
-      constructor(msg: string) { noticeSpy(msg); }
-      hide() { }
+      constructor(msg: string) {
+        noticeSpy(msg);
+      }
+      hide() {}
     },
   };
 });
@@ -64,9 +66,7 @@ function makeContainerEl() {
 describe("AIAgentsSettingsTab", () => {
   describe("constructor", () => {
     it("should create an instance without throwing", () => {
-      expect(
-        () => new AIAgentsSettingsTab(new App(), makePlugin()),
-      ).not.toThrow();
+      expect(() => new AIAgentsSettingsTab(new App(), makePlugin())).not.toThrow();
     });
 
     it("should store the plugin reference on this.plugin", () => {
@@ -93,9 +93,7 @@ describe("AIAgentsSettingsTab", () => {
 
     it("should call containerEl.empty() once to reset the panel", () => {
       const { tab } = render();
-      expect(
-        (tab.containerEl as unknown as { empty: jest.Mock }).empty,
-      ).toHaveBeenCalledTimes(1);
+      expect((tab.containerEl as unknown as { empty: jest.Mock }).empty).toHaveBeenCalledTimes(1);
     });
 
     it("should not throw with default settings values", () => {
@@ -103,15 +101,13 @@ describe("AIAgentsSettingsTab", () => {
     });
 
     it("should not throw when ollama is enabled", () => {
-      expect(
-        () => render({ ollama: { enabled: true, baseUrl: "http://localhost:11434" } }),
+      expect(() =>
+        render({ ollama: { enabled: true, baseUrl: "http://localhost:11434" } }),
       ).not.toThrow();
     });
 
     it("should not throw when openRouter is enabled with API key", () => {
-      expect(
-        () => render({ openRouter: { enabled: true, apiKey: "sk-or-test" } }),
-      ).not.toThrow();
+      expect(() => render({ openRouter: { enabled: true, apiKey: "sk-or-test" } })).not.toThrow();
     });
 
     it("should not throw with custom agents folder", () => {
@@ -128,9 +124,7 @@ describe("AIAgentsSettingsTab", () => {
       tab.containerEl = makeContainerEl();
       tab.display();
       tab.display();
-      expect(
-        (tab.containerEl as unknown as { empty: jest.Mock }).empty,
-      ).toHaveBeenCalledTimes(2);
+      expect((tab.containerEl as unknown as { empty: jest.Mock }).empty).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -158,15 +152,17 @@ describe("AIAgentsSettingsTab", () => {
         "agents/assistant/agent.md",
         expect.stringContaining("name:"),
       );
-      expect(
-        (plugin.agentRegistry as unknown as { scan: jest.Mock }).scan,
-      ).toHaveBeenCalledWith("agents");
+      expect((plugin.agentRegistry as unknown as { scan: jest.Mock }).scan).toHaveBeenCalledWith(
+        "agents",
+      );
       expect(noticeSpy).toHaveBeenCalledWith("notices.defaultAgentCreated");
     });
 
     it("should not create if agent file already exists", async () => {
       const { app, tab } = makeTab({ agentsFolder: "agents" });
-      app.vault.getAbstractFileByPath = jest.fn().mockReturnValue(new TFile("agents/assistant/agent.md"));
+      app.vault.getAbstractFileByPath = jest
+        .fn()
+        .mockReturnValue(new TFile("agents/assistant/agent.md"));
 
       await (tab as unknown as { createDefaultAgent(): Promise<void> }).createDefaultAgent();
 

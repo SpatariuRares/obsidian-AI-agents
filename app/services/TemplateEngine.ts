@@ -41,10 +41,7 @@ export interface TemplateContext {
  * Resolve all {{variables}} in a prompt template string.
  * Returns the fully expanded prompt ready to send to the LLM.
  */
-export async function resolveTemplate(
-  template: string,
-  ctx: TemplateContext,
-): Promise<string> {
+export async function resolveTemplate(template: string, ctx: TemplateContext): Promise<string> {
   let result = template;
 
   // 1. Simple scalar variables (synchronous)
@@ -70,10 +67,7 @@ export async function resolveTemplate(
 // Scalar variables
 // ---------------------------------------------------------------------------
 
-function replaceScalarVariables(
-  template: string,
-  ctx: TemplateContext,
-): string {
+function replaceScalarVariables(template: string, ctx: TemplateContext): string {
   const now = new Date();
   const date = formatDate(now);
   const time = formatTime(now);
@@ -101,10 +95,7 @@ function replaceScalarVariables(
 
 const READ_PATTERN = /\{\{READ:\s*(.+?)\}\}/g;
 
-async function resolveReadDirectives(
-  template: string,
-  ctx: TemplateContext,
-): Promise<string> {
+async function resolveReadDirectives(template: string, ctx: TemplateContext): Promise<string> {
   // Collect all matches first (regex is stateful)
   const matches: { full: string; path: string }[] = [];
   let match: RegExpExecArray | null;
@@ -130,17 +121,11 @@ async function resolveReadDirectives(
  * Read a file from the vault after verifying the path is allowed.
  * Allowed means: listed in read OR in sources.
  */
-async function readFileChecked(
-  rawPath: string,
-  ctx: TemplateContext,
-): Promise<string> {
+async function readFileChecked(rawPath: string, ctx: TemplateContext): Promise<string> {
   const filePath = normalizePath(rawPath);
 
   // Build the list of allowed patterns
-  const allowedPatterns = [
-    ...ctx.agentConfig.read,
-    ...ctx.agentConfig.sources,
-  ];
+  const allowedPatterns = [...ctx.agentConfig.read, ...ctx.agentConfig.sources];
 
   if (allowedPatterns.length > 0 && !micromatch.isMatch(filePath, allowedPatterns)) {
     return t("templateEngine.readDenied", { path: filePath });

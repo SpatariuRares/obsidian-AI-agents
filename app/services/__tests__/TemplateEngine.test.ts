@@ -24,10 +24,7 @@ function makeFile(path: string, mtime = 0): TFile {
   return f;
 }
 
-function makeApp(
-  files: TFile[],
-  contents: Map<string, string>,
-): App {
+function makeApp(files: TFile[], contents: Map<string, string>): App {
   const app = new App();
   const fileMap = new Map(files.map((f) => [f.path, f]));
 
@@ -46,9 +43,7 @@ function makeConfig(overrides: Partial<AgentConfig> = {}): AgentConfig {
   };
 }
 
-function makeContext(
-  overrides: Partial<TemplateContext> = {},
-): TemplateContext {
+function makeContext(overrides: Partial<TemplateContext> = {}): TemplateContext {
   return {
     agentConfig: makeConfig(),
     settings: { ...DEFAULT_SETTINGS, userName: "Rares" } as PluginSettings,
@@ -98,10 +93,7 @@ describe("resolveTemplate — scalar variables", () => {
     const ctx = makeContext({
       agentConfig: makeConfig({ name: "Echo" }),
     });
-    const result = await resolveTemplate(
-      "{{agent_name}} says: I am {{agent_name}}.",
-      ctx,
-    );
+    const result = await resolveTemplate("{{agent_name}} says: I am {{agent_name}}.", ctx);
     expect(result).toBe("Echo says: I am Echo.");
   });
 
@@ -130,10 +122,7 @@ describe("resolveTemplate — scalar variables", () => {
 
 describe("resolveTemplate — knowledge_context", () => {
   it("should inject knowledge files content", async () => {
-    const files = [
-      makeFile("kb/guide.md"),
-      makeFile("kb/faq.md"),
-    ];
+    const files = [makeFile("kb/guide.md"), makeFile("kb/faq.md")];
     const contents = new Map([
       ["kb/guide.md", "Guide content"],
       ["kb/faq.md", "FAQ content"],
@@ -239,10 +228,7 @@ describe("resolveTemplate — READ directive", () => {
   });
 
   it("should resolve multiple READ directives in one template", async () => {
-    const files = [
-      makeFile("data/a.md"),
-      makeFile("data/b.md"),
-    ];
+    const files = [makeFile("data/a.md"), makeFile("data/b.md")];
     const contents = new Map([
       ["data/a.md", "File A"],
       ["data/b.md", "File B"],
@@ -286,10 +272,7 @@ describe("resolveTemplate — READ directive", () => {
 
 describe("resolveTemplate — full template", () => {
   it("should resolve all variable types in one pass", async () => {
-    const files = [
-      makeFile("data/ctx.md"),
-      makeFile("kb/ref.md"),
-    ];
+    const files = [makeFile("data/ctx.md"), makeFile("kb/ref.md")];
     const contents = new Map([
       ["data/ctx.md", "User context"],
       ["kb/ref.md", "Knowledge ref"],

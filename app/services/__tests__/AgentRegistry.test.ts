@@ -59,10 +59,7 @@ function buildVault(
   return { files, fileContents };
 }
 
-function makeApp(
-  files: TFile[],
-  fileContents: Map<string, string>,
-): App {
+function makeApp(files: TFile[], fileContents: Map<string, string>): App {
   const app = new App();
   app.vault.getMarkdownFiles = jest.fn(() => [...files]);
   app.vault.read = jest.fn(async (file: TFile) => fileContents.get(file.path) ?? "");
@@ -89,7 +86,7 @@ describe("AgentRegistry", () => {
     });
 
     it("should skip agents with invalid config", async () => {
-      const spy = jest.spyOn(console, "warn").mockImplementation(() => { });
+      const spy = jest.spyOn(console, "warn").mockImplementation(() => {});
 
       const { files, fileContents } = buildVault([
         { name: "echo", content: ECHO_AGENT_MD },
@@ -108,7 +105,7 @@ describe("AgentRegistry", () => {
     });
 
     it("should handle empty vault gracefully", async () => {
-      const spy = jest.spyOn(console, "warn").mockImplementation(() => { });
+      const spy = jest.spyOn(console, "warn").mockImplementation(() => {});
 
       const app = makeApp([], new Map());
       const registry = new AgentRegistry(app);
@@ -120,9 +117,7 @@ describe("AgentRegistry", () => {
     });
 
     it("should clear previous agents on re-scan", async () => {
-      const { files, fileContents } = buildVault([
-        { name: "echo", content: ECHO_AGENT_MD },
-      ]);
+      const { files, fileContents } = buildVault([{ name: "echo", content: ECHO_AGENT_MD }]);
 
       const app = makeApp(files, fileContents);
       const registry = new AgentRegistry(app);
@@ -156,9 +151,7 @@ describe("AgentRegistry", () => {
 
   describe("getAgent()", () => {
     it("should return the agent by its folder id", async () => {
-      const { files, fileContents } = buildVault([
-        { name: "echo", content: ECHO_AGENT_MD },
-      ]);
+      const { files, fileContents } = buildVault([{ name: "echo", content: ECHO_AGENT_MD }]);
 
       const app = makeApp(files, fileContents);
       const registry = new AgentRegistry(app);
@@ -199,9 +192,7 @@ describe("AgentRegistry", () => {
 
   describe("reloadAgent()", () => {
     it("should reload a single agent from disk", async () => {
-      const { files, fileContents } = buildVault([
-        { name: "echo", content: ECHO_AGENT_MD },
-      ]);
+      const { files, fileContents } = buildVault([{ name: "echo", content: ECHO_AGENT_MD }]);
 
       const app = makeApp(files, fileContents);
       const registry = new AgentRegistry(app);
@@ -210,19 +201,14 @@ describe("AgentRegistry", () => {
       expect(registry.getAgent("echo")!.config.name).toBe("Echo");
 
       // Simulate file change
-      fileContents.set(
-        "agents/echo/agent.md",
-        ECHO_AGENT_MD.replace("Echo", "Echo v2"),
-      );
+      fileContents.set("agents/echo/agent.md", ECHO_AGENT_MD.replace("Echo", "Echo v2"));
 
       await registry.reloadAgent("echo", "agents");
       expect(registry.getAgent("echo")!.config.name).toBe("Echo v2");
     });
 
     it("should remove agent and throw when file is deleted", async () => {
-      const { files, fileContents } = buildVault([
-        { name: "echo", content: ECHO_AGENT_MD },
-      ]);
+      const { files, fileContents } = buildVault([{ name: "echo", content: ECHO_AGENT_MD }]);
 
       const app = makeApp(files, fileContents);
       const registry = new AgentRegistry(app);
@@ -231,9 +217,7 @@ describe("AgentRegistry", () => {
       // Simulate file deletion — return empty list
       app.vault.getMarkdownFiles = jest.fn().mockReturnValue([]);
 
-      await expect(registry.reloadAgent("echo", "agents")).rejects.toThrow(
-        "Agent file not found",
-      );
+      await expect(registry.reloadAgent("echo", "agents")).rejects.toThrow("Agent file not found");
       expect(registry.getAgent("echo")).toBeUndefined();
     });
   });

@@ -11,7 +11,7 @@
  */
 
 import { parseYaml } from "obsidian";
-import { AgentConfig, AgentType, LogFormat } from "@app/types/AgentTypes";
+import { AgentConfig, AgentType } from "@app/types/AgentTypes";
 
 // ---------------------------------------------------------------------------
 // Parse result
@@ -56,10 +56,7 @@ export const DEFAULT_CONFIG: AgentConfig = {
   delete: [],
   vault_root_access: false,
   confirm_destructive: true,
-  logging_enabled: false,
-  logging_path: "logs",
-  logging_format: "daily",
-  logging_include_metadata: true,
+  memory: false,
   stream: false,
 };
 
@@ -128,18 +125,20 @@ export function parseAgentFile(raw: string): AgentParseResult {
 
   const config: AgentConfig = {
     name: parsed.name as string,
-    description: typeof parsed.description === "string" ? parsed.description : DEFAULT_CONFIG.description,
+    description:
+      typeof parsed.description === "string" ? parsed.description : DEFAULT_CONFIG.description,
     author: typeof parsed.author === "string" ? parsed.author : DEFAULT_CONFIG.author,
     avatar: typeof parsed.avatar === "string" ? parsed.avatar : DEFAULT_CONFIG.avatar,
     enabled: parseBool(parsed.enabled, DEFAULT_CONFIG.enabled),
-    type: typeof parsed.type === "string" ? parsed.type as AgentType : DEFAULT_CONFIG.type,
+    type: typeof parsed.type === "string" ? (parsed.type as AgentType) : DEFAULT_CONFIG.type,
     provider: typeof parsed.provider === "string" ? parsed.provider : DEFAULT_CONFIG.provider,
     model: parsed.model as string,
     sources: Array.isArray(parsed.sources) ? parsed.sources : DEFAULT_CONFIG.sources,
     strategy: typeof parsed.strategy === "string" ? parsed.strategy : DEFAULT_CONFIG.strategy,
-    max_context_tokens: typeof parsed.max_context_tokens === "number"
-      ? parsed.max_context_tokens
-      : DEFAULT_CONFIG.max_context_tokens,
+    max_context_tokens:
+      typeof parsed.max_context_tokens === "number"
+        ? parsed.max_context_tokens
+        : DEFAULT_CONFIG.max_context_tokens,
     stream: parseBool(parsed.stream, false),
     read: Array.isArray(parsed.read) ? parsed.read : DEFAULT_CONFIG.read,
     write: Array.isArray(parsed.write) ? parsed.write : DEFAULT_CONFIG.write,
@@ -148,12 +147,7 @@ export function parseAgentFile(raw: string): AgentParseResult {
     delete: Array.isArray(parsed.delete) ? parsed.delete : DEFAULT_CONFIG.delete,
     vault_root_access: parseBool(parsed.vault_root_access, DEFAULT_CONFIG.vault_root_access),
     confirm_destructive: parseBool(parsed.confirm_destructive, DEFAULT_CONFIG.confirm_destructive),
-    logging_enabled: parseBool(parsed.logging_enabled, DEFAULT_CONFIG.logging_enabled),
-    logging_path: typeof parsed.logging_path === "string" ? parsed.logging_path : DEFAULT_CONFIG.logging_path,
-    logging_format: typeof parsed.logging_format === "string"
-      ? parsed.logging_format as LogFormat
-      : DEFAULT_CONFIG.logging_format,
-    logging_include_metadata: parseBool(parsed.logging_include_metadata, DEFAULT_CONFIG.logging_include_metadata),
+    memory: parseBool(parsed.memory, DEFAULT_CONFIG.memory),
   };
 
   return { config, promptTemplate: body };

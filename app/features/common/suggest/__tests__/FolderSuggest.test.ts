@@ -63,10 +63,7 @@ describe("FolderSuggest", () => {
       const file = new TFile();
       file.path = "my-file.md";
 
-      (app.vault.getAllLoadedFiles as jest.Mock).mockReturnValue([
-        folder,
-        file,
-      ]);
+      (app.vault.getAllLoadedFiles as jest.Mock).mockReturnValue([folder, file]);
 
       const result = folderSuggest.getSuggestions("");
 
@@ -84,11 +81,7 @@ describe("FolderSuggest", () => {
       const folder3 = new TFolder();
       folder3.path = "documents/archive";
 
-      (app.vault.getAllLoadedFiles as jest.Mock).mockReturnValue([
-        folder1,
-        folder2,
-        folder3,
-      ]);
+      (app.vault.getAllLoadedFiles as jest.Mock).mockReturnValue([folder1, folder2, folder3]);
 
       const result = folderSuggest.getSuggestions("documents");
 
@@ -104,10 +97,7 @@ describe("FolderSuggest", () => {
       const folder2 = new TFolder();
       folder2.path = "folder2";
 
-      (app.vault.getAllLoadedFiles as jest.Mock).mockReturnValue([
-        folder1,
-        folder2,
-      ]);
+      (app.vault.getAllLoadedFiles as jest.Mock).mockReturnValue([folder1, folder2]);
 
       const result = folderSuggest.getSuggestions("");
 

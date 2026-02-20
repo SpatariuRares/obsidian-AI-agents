@@ -31,9 +31,7 @@ function makeApp(files: TFile[], contents: Map<string, string>): App {
 describe("wrapBlock", () => {
   it("should wrap content with START/END markers", () => {
     const result = wrapBlock("docs/readme.md", "Hello world");
-    expect(result).toBe(
-      "--- START: docs/readme.md ---\nHello world\n--- END: docs/readme.md ---",
-    );
+    expect(result).toBe("--- START: docs/readme.md ---\nHello world\n--- END: docs/readme.md ---");
   });
 });
 
@@ -98,10 +96,7 @@ describe("resolveGlobs", () => {
 
 describe("loadKnowledgeContent", () => {
   it("should load and concatenate matched files with separators", async () => {
-    const files = [
-      makeFile("docs/a.md"),
-      makeFile("docs/b.md"),
-    ];
+    const files = [makeFile("docs/a.md"), makeFile("docs/b.md")];
     const contents = new Map([
       ["docs/a.md", "Content A"],
       ["docs/b.md", "Content B"],

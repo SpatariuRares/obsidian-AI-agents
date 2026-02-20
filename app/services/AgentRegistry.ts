@@ -63,9 +63,7 @@ export class AgentRegistry {
     const folderPath = normalizePath(`${agentsFolder}/${id}`);
     const agentFilePath = normalizePath(`${folderPath}/agent.md`);
 
-    const file = this.app.vault.getMarkdownFiles().find(
-      (f) => f.path === agentFilePath,
-    );
+    const file = this.app.vault.getMarkdownFiles().find((f) => f.path === agentFilePath);
 
     if (!file) {
       this.agents.delete(id);
@@ -106,10 +104,7 @@ export class AgentRegistry {
   // Internal
   // -------------------------------------------------------------------------
 
-  private async parseAgentAt(
-    folderPath: string,
-    file: TFile,
-  ): Promise<ParsedAgent> {
+  private async parseAgentAt(folderPath: string, file: TFile): Promise<ParsedAgent> {
     const raw = await this.app.vault.read(file);
     const { config, promptTemplate } = parseAgentFile(raw);
 

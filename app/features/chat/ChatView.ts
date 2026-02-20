@@ -20,6 +20,8 @@ import { AgentSelectorModal, CREATE_AGENT_ID } from "@app/ui/AgentSelectorModal"
 import { AgentEditor } from "@app/ui/AgentEditor";
 import { ToolHandler } from "@app/services/ToolHandler";
 import { t } from "@app/i18n";
+import { ChatHistoryModal } from "@app/ui/ChatHistoryModal";
+import { Modal, Setting } from "obsidian";
 
 export const VIEW_TYPE_CHAT = "ai-agents-chat";
 
@@ -38,6 +40,8 @@ export class ChatView extends ItemView {
   private inputEl!: HTMLTextAreaElement;
   private agentSelectBtnEl!: HTMLButtonElement;
   private editAgentBtnEl!: HTMLButtonElement;
+  private historyBtnEl!: HTMLButtonElement;
+  private renameBtnEl!: HTMLButtonElement;
   private emptyStateEl!: HTMLElement;
   private editorWrapperEl!: HTMLElement;
 
@@ -105,11 +109,33 @@ export class ChatView extends ItemView {
       cls: "ai-agents-chat__edit-agent clickable-icon",
       attr: { "aria-label": t("chat.editAgent") },
     });
-    setIcon(this.editAgentBtnEl, "pencil");
+    setIcon(this.editAgentBtnEl, "settings");
     this.editAgentBtnEl.setCssProps({ display: "none" });
     this.editAgentBtnEl.addEventListener("click", () => {
       const activeAgent = this.host.chatManager.getActiveAgent();
       if (activeAgent) this.showEditor(activeAgent);
+    });
+
+    this.historyBtnEl = header.createEl("button", {
+      cls: "ai-agents-chat__history-btn clickable-icon",
+      attr: { "aria-label": t("chat.history") },
+    });
+    setIcon(this.historyBtnEl, "history");
+    this.historyBtnEl.setCssProps({ display: "none" });
+    this.historyBtnEl.addEventListener("click", () => {
+      this.openHistoryModal().catch((_e: Error) => {
+        /* no-op */
+      });
+    });
+
+    this.renameBtnEl = header.createEl("button", {
+      cls: "ai-agents-chat__rename-btn clickable-icon",
+      attr: { "aria-label": t("chat.renameSession") },
+    });
+    setIcon(this.renameBtnEl, "pencil");
+    this.renameBtnEl.setCssProps({ display: "none" });
+    this.renameBtnEl.addEventListener("click", () => {
+      this.promptRenameSession();
     });
 
     const newSessionBtn = header.createEl("button", {
@@ -118,7 +144,9 @@ export class ChatView extends ItemView {
     });
     setIcon(newSessionBtn, "rotate-ccw");
     newSessionBtn.addEventListener("click", () => {
-      this.onNewSession().catch((_e: Error) => { /* no-op */ });
+      this.onNewSession().catch((_e: Error) => {
+        /* no-op */
+      });
     });
   }
 
@@ -166,7 +194,9 @@ export class ChatView extends ItemView {
     this.inputEl.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        this.onSendMessage().catch((_err: Error) => { /* no-op */ });
+        this.onSendMessage().catch((_err: Error) => {
+          /* no-op */
+        });
       }
     });
 
@@ -176,7 +206,9 @@ export class ChatView extends ItemView {
     });
     setIcon(sendBtn, "send");
     sendBtn.addEventListener("click", () => {
-      this.onSendMessage().catch((_err: Error) => { /* no-op */ });
+      this.onSendMessage().catch((_err: Error) => {
+        /* no-op */
+      });
     });
   }
 
@@ -188,7 +220,8 @@ export class ChatView extends ItemView {
     const activeAgent = this.host.chatManager.getActiveAgent();
 
     if (activeAgent) {
-      this.agentSelectBtnEl.textContent = `${activeAgent.config.avatar || ""} ${activeAgent.config.name}`.trim();
+      this.agentSelectBtnEl.textContent =
+        `${activeAgent.config.avatar || ""} ${activeAgent.config.name}`.trim();
       this.editAgentBtnEl.setCssProps({ display: "flex" });
     } else {
       this.agentSelectBtnEl.textContent = t("chat.chooseAgent");
@@ -206,8 +239,82 @@ export class ChatView extends ItemView {
     }
 
     const modal = new AgentSelectorModal(this.app, agents, (agent) => {
-      this.onAgentSelected(agent).catch((_e: Error) => { /* no-op */ });
+      this.onAgentSelected(agent).catch((_e: Error) => {
+        /* no-op */
+      });
     });
+    modal.open();
+  }
+
+  private async openHistoryModal(): Promise<void> {
+    const activeAgent = this.host.chatManager.getActiveAgent();
+    if (!activeAgent) return;
+
+    const logs = await this.host.chatManager.logger.getLogHistory(activeAgent);
+    if (logs.length === 0) {
+      new Notice(t("historyModal.empty"));
+      return;
+    }
+
+    new ChatHistoryModal(this.app, activeAgent.config.name, logs, async (sessionMeta) => {
+      try {
+        const msgs = await this.host.chatManager.logger.loadSession(sessionMeta.file);
+        if (msgs.length > 0) {
+          await this.host.chatManager.loadHistoricalSession(
+            activeAgent,
+            sessionMeta.file,
+            sessionMeta.title,
+            msgs,
+          );
+          await this.renderMessages();
+          this.refreshAgentSelectBtn();
+        } else {
+          new Notice("Failed to load session logic: File might be corrupted.");
+        }
+      } catch (e) {
+        new Notice("Failed to load session.");
+        // console.error(e);
+      }
+    }).open();
+  }
+
+  private promptRenameSession(): void {
+    const manager = this.host.chatManager;
+    const currentTitle = manager.currentSessionTitle;
+
+    const modal = new Modal(this.app);
+    modal.titleEl.setText(t("chat.renameSession"));
+
+    new Setting(modal.contentEl).setName(t("chat.renamePrompt")).addText((text) => {
+      text.setValue(currentTitle);
+      const inputEl = text.inputEl;
+
+      inputEl.addEventListener("keydown", async (e) => {
+        if (e.key === "Enter") {
+          const val = text.getValue().trim();
+          if (val && val !== currentTitle) {
+            await manager.renameCurrentSession(val);
+          }
+          modal.close();
+        } else if (e.key === "Escape") {
+          modal.close();
+        }
+      });
+
+      const saveBtn = modal.contentEl.createEl("button", { text: "Save", cls: "mod-cta" });
+      saveBtn.style.marginTop = "10px";
+      saveBtn.addEventListener("click", async () => {
+        const val = text.getValue().trim();
+        if (val && val !== currentTitle) {
+          await manager.renameCurrentSession(val);
+        }
+        modal.close();
+      });
+
+      // Focus input
+      setTimeout(() => inputEl.focus(), 50);
+    });
+
     modal.open();
   }
 
@@ -239,7 +346,7 @@ export class ChatView extends ItemView {
     const inputArea = this.containerEl.querySelector(".ai-agents-chat__input-area") as HTMLElement;
     if (inputArea) inputArea.setCssProps({ display: "none" });
 
-    // Show editor 
+    // Show editor
     this.editorWrapperEl.setCssProps({ display: "block" });
     const editor = new AgentEditor(
       this.app,
@@ -260,9 +367,11 @@ export class ChatView extends ItemView {
         this.showChat();
         if (!this.host.chatManager.getActiveAgent()) {
           this.refreshAgentSelectBtn();
-          this.renderMessages().catch((_e: Error) => { /* no-op */ });
+          this.renderMessages().catch((_e: Error) => {
+            /* no-op */
+          });
         }
-      }
+      },
     );
     editor.render();
   }
@@ -275,7 +384,9 @@ export class ChatView extends ItemView {
     const inputArea = this.containerEl.querySelector(".ai-agents-chat__input-area") as HTMLElement;
     if (inputArea) inputArea.setCssProps({ display: "flex" });
 
-    this.renderMessages().catch((_e: Error) => { /* no-op */ });
+    this.renderMessages().catch((_e: Error) => {
+      /* no-op */
+    });
   }
 
   private async onNewSession(): Promise<void> {
@@ -303,7 +414,8 @@ export class ChatView extends ItemView {
     try {
       let isToolLoop = true;
       let usageResponse;
-      const initialUserMsg = this.host.chatManager.getMessages()[this.host.chatManager.getMessages().length - 1];
+      const initialUserMsg =
+        this.host.chatManager.getMessages()[this.host.chatManager.getMessages().length - 1];
 
       while (isToolLoop) {
         const messagesForApi = this.host.chatManager.getMessages();
@@ -320,13 +432,13 @@ export class ChatView extends ItemView {
             async (chunk: string) => {
               this.host.chatManager.appendChunkToLastMessage(chunk);
               await this.updateLastMessage();
-            }
+            },
           );
         } else {
           response = await ApiRouter.send(
             messagesForApi,
             activeAgent.config,
-            this.host.chatManager.getSettings()
+            this.host.chatManager.getSettings(),
           );
           this.host.chatManager.addMessage("assistant", response.text);
           await this.renderMessages();
@@ -335,7 +447,7 @@ export class ChatView extends ItemView {
         usageResponse = response?.usage;
 
         if (response.tool_calls && response.tool_calls.length > 0) {
-          // If we streamed, the assistant message is already there but empty text. 
+          // If we streamed, the assistant message is already there but empty text.
           // If not streamed, we added it above with text.
           // Let's ensure the assistant message actually reflects the tool_calls for future requests.
           const msgs = this.host.chatManager.getMessages();
@@ -352,12 +464,17 @@ export class ChatView extends ItemView {
               // console.warn("[ChatView] Failed to parse tool arguments:", call.function.arguments);
             }
 
-            const toolResult = await ToolHandler.executeTool(this.app, activeAgent.config, toolName, args);
+            const toolResult = await ToolHandler.executeTool(
+              this.app,
+              activeAgent.config,
+              toolName,
+              args,
+            );
 
             // Add tool response to history
             this.host.chatManager.addMessage("tool", JSON.stringify(toolResult), {
               name: toolName,
-              tool_call_id: call.id
+              tool_call_id: call.id,
             });
           }
           await this.renderMessages();
@@ -404,6 +521,10 @@ export class ChatView extends ItemView {
       // Toggle empty state vs message list
       this.emptyStateEl.setCssProps({ display: hasSession ? "none" : "flex" });
       this.messageListEl.setCssProps({ display: hasSession ? "flex" : "none" });
+
+      // Toggle history & rename buttons
+      this.historyBtnEl.setCssProps({ display: hasSession ? "flex" : "none" });
+      this.renameBtnEl.setCssProps({ display: hasSession ? "flex" : "none" });
     }
 
     if (!hasSession || this.viewMode === "edit") return;

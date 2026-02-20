@@ -14,8 +14,6 @@
 
 export type AgentType = "conversational" | "task" | "scheduled";
 
-export type LogFormat = "daily" | "per_session" | "single";
-
 // ---------------------------------------------------------------------------
 // Full agent config (parsed YAML frontmatter — flat)
 // ---------------------------------------------------------------------------
@@ -43,10 +41,7 @@ export interface AgentConfig {
   delete: string[];
   vault_root_access: boolean;
   confirm_destructive: boolean;
-  logging_enabled: boolean;
-  logging_path: string;
-  logging_format: LogFormat;
-  logging_include_metadata: boolean;
+  memory: boolean;
 }
 
 // ---------------------------------------------------------------------------

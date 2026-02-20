@@ -2,7 +2,7 @@ import { App, Component, MarkdownRenderer } from "obsidian";
 
 /**
  * MessageRenderer
- * 
+ *
  * Handles the rendering of markdown content inside chat message bubbles.
  * Uses Obsidian's native MarkdownRenderer to support all standard Obsidian
  * markdown features, including code blocks, latex, and plugins.
@@ -10,7 +10,7 @@ import { App, Component, MarkdownRenderer } from "obsidian";
 export class MessageRenderer {
   /**
    * Renders the given markdown string into the container element.
-   * 
+   *
    * @param app The main Obsidian App instance.
    * @param content The markdown string to render.
    * @param containerEl The HTML element where the content will be injected.
@@ -22,7 +22,7 @@ export class MessageRenderer {
     content: string,
     containerEl: HTMLElement,
     sourcePath: string,
-    component: Component
+    component: Component,
   ): Promise<void> {
     try {
       containerEl.empty();
@@ -31,7 +31,7 @@ export class MessageRenderer {
       containerEl.empty();
       containerEl.createDiv({
         text: "Error rendering message. Showing raw text:",
-        cls: "ai-agents-chat__error-text"
+        cls: "ai-agents-chat__error-text",
       });
       containerEl.createEl("pre", { text: content });
     }

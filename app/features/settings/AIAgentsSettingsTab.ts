@@ -14,39 +14,53 @@ import { AgentRegistry } from "@app/services/AgentRegistry";
 import { FolderSuggest } from "@app/features/common/suggest/FolderSuggest";
 import { t } from "@app/i18n";
 import { CONSTANTS } from "@app/constants/constants";
+import { ExampleGenerator } from "@app/services/ExampleGenerator";
 
 /** Default agent.md content used by the "Create default agent" button. */
 const DEFAULT_AGENT_MD = `---
-name: "Assistant"
-description: "A general-purpose assistant"
-author: ""
-avatar: "🤖"
+name: "Obsidian Copilot"
+description: "An advanced, fully-featured AI assistant capable of managing notes, summarizing content, and organizing your vault."
+author: "AI Agents"
+avatar: "🧠"
 enabled: "true"
 type: "conversational"
 provider: "ollama"
 model: "llama3"
-sources: []
+stream: "true"
+sources:
+  - "Inbox/"
+  - "Projects/"
 strategy: "inject_all"
-max_context_tokens: 4000
-read: []
-write: []
-create: []
+max_context_tokens: 8000
+read:
+  - "/"
+write:
+  - "Inbox/"
+  - "Daily Notes/"
+create:
+  - "Inbox/"
+  - "Daily Notes/"
 move: []
 delete: []
 vault_root_access: "false"
 confirm_destructive: "true"
-logging_enabled: "false"
-logging_path: "logs"
-logging_format: "daily"
-logging_include_metadata: "true"
+memory: "true"
 ---
 
-You are **{{agent_name}}**, a helpful assistant inside an Obsidian vault.
+You are **{{agent_name}}**, an advanced AI assistant embedded directly within the user's Obsidian vault.
+Your goal is to help the user manage their personal knowledge base, summarize notes, brainstorm ideas, and write content.
 
-User: {{user_name}}
-Date: {{date}}
+## Context
+- **User:** {{user_name}}
+- **Current Date:** {{date}}
 
-Answer questions clearly and concisely.
+## Guidelines
+1. **Be Concise & Markdown-Native:** Always format your responses using rich Markdown (headers, lists, bold, italics, code blocks) to make them look beautiful in Obsidian.
+2. **Leverage Memory:** You have the \`memory\` flag enabled, which means you have access to the context of previous chats. Refer back to past conversations if it helps answer the current query.
+3. **Drafting Notes:** When asked to write a note, provide a clear, well-structured output.
+4. **Tools & Operations:** When proposing changes to files or creating new notes, clearly explain what you are going to do.
+
+How can I assist you with your vault today?
 `;
 
 interface PluginWithSettings extends Plugin {
@@ -84,12 +98,10 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       .setName(t("settings.providers.ollamaEnable"))
       .setDesc(t("settings.providers.ollamaEnableDesc"))
       .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.ollama.enabled)
-          .onChange(async (value) => {
-            this.plugin.settings.ollama.enabled = value;
-            await this.plugin.saveSettings();
-          }),
+        toggle.setValue(this.plugin.settings.ollama.enabled).onChange(async (value) => {
+          this.plugin.settings.ollama.enabled = value;
+          await this.plugin.saveSettings();
+        }),
       );
 
     new Setting(containerEl)
@@ -110,12 +122,10 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       .setName(t("settings.providers.openrouterEnable"))
       .setDesc(t("settings.providers.openrouterEnableDesc"))
       .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.openRouter.enabled)
-          .onChange(async (value) => {
-            this.plugin.settings.openRouter.enabled = value;
-            await this.plugin.saveSettings();
-          }),
+        toggle.setValue(this.plugin.settings.openRouter.enabled).onChange(async (value) => {
+          this.plugin.settings.openRouter.enabled = value;
+          await this.plugin.saveSettings();
+        }),
       );
 
     new Setting(containerEl)
@@ -143,9 +153,7 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
           })
           .setValue(this.plugin.settings.defaultProvider)
           .onChange(async (value) => {
-            this.plugin.settings.defaultProvider = value as
-              | "ollama"
-              | "openrouter";
+            this.plugin.settings.defaultProvider = value as "ollama" | "openrouter";
             await this.plugin.saveSettings();
           }),
       );
@@ -194,6 +202,17 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
           }),
       );
 
+    new Setting(containerEl)
+      .setName(t("settings.general.generateMockData"))
+      .setDesc(t("settings.general.generateMockDataDesc"))
+      .addButton((btn) =>
+        (btn as unknown as ButtonApi)
+          .setButtonText(t("settings.general.generateMockDataBtn"))
+          .onClick(() => {
+            void ExampleGenerator.generateMockData(this.app);
+          }),
+      );
+
     // =======================================================================
     // SECTION: Behaviour
     // =======================================================================
@@ -204,7 +223,10 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       .setDesc(t("settings.behaviour.defaultModelDesc"))
       .addText((text) =>
         text
-          .setPlaceholder(t("settings.behaviour.defaultModelPlaceholder", { defaultValue: "llama3" } as any) || "llama3")
+          .setPlaceholder(
+            t("settings.behaviour.defaultModelPlaceholder", { defaultValue: "llama3" } as any) ||
+              "llama3",
+          )
           .setValue(this.plugin.settings.defaultModel)
           .onChange(async (value) => {
             this.plugin.settings.defaultModel = value;
@@ -248,12 +270,10 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       .setName(t("settings.behaviour.confirmDestructive"))
       .setDesc(t("settings.behaviour.confirmDestructiveDesc"))
       .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.confirmDestructiveOps)
-          .onChange(async (value) => {
-            this.plugin.settings.confirmDestructiveOps = value;
-            await this.plugin.saveSettings();
-          }),
+        toggle.setValue(this.plugin.settings.confirmDestructiveOps).onChange(async (value) => {
+          this.plugin.settings.confirmDestructiveOps = value;
+          await this.plugin.saveSettings();
+        }),
       );
 
     new Setting(containerEl)
@@ -289,10 +309,7 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
           })
           .setValue(this.plugin.settings.chatPosition)
           .onChange(async (value) => {
-            this.plugin.settings.chatPosition = value as
-              | "right"
-              | "left"
-              | "tab";
+            this.plugin.settings.chatPosition = value as "right" | "left" | "tab";
             await this.plugin.saveSettings();
           }),
       );
@@ -301,24 +318,20 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       .setName(t("settings.interface.showStatusBar"))
       .setDesc(t("settings.interface.showStatusBarDesc"))
       .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.showStatusBar)
-          .onChange(async (value) => {
-            this.plugin.settings.showStatusBar = value;
-            await this.plugin.saveSettings();
-          }),
+        toggle.setValue(this.plugin.settings.showStatusBar).onChange(async (value) => {
+          this.plugin.settings.showStatusBar = value;
+          await this.plugin.saveSettings();
+        }),
       );
 
     new Setting(containerEl)
       .setName(t("settings.interface.showTokenCount"))
       .setDesc(t("settings.interface.showTokenCountDesc"))
       .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.showTokenCount)
-          .onChange(async (value) => {
-            this.plugin.settings.showTokenCount = value;
-            await this.plugin.saveSettings();
-          }),
+        toggle.setValue(this.plugin.settings.showTokenCount).onChange(async (value) => {
+          this.plugin.settings.showTokenCount = value;
+          await this.plugin.saveSettings();
+        }),
       );
   }
 

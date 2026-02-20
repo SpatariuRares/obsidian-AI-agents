@@ -25,10 +25,13 @@
       "agentsFolderPlaceholder": "agents",
       "userName": "User name",
       "userNameDesc": "Your name, available as {{user_name}} in agent prompts.",
-      "userNamePlaceholder": "Enter your name",
+      "userNamePlaceholder": "e.g. John Doe",
       "createDefaultAgent": "Create default agent",
-      "createDefaultAgentDesc": "Scaffold a starter agent in the agents folder with a ready-to-use configuration.",
-      "createDefaultAgentBtn": "Create"
+      "createDefaultAgentDesc": "Generate a fully-featured, ready-to-use Obsidian Copilot agent in the agents folder.",
+      "createDefaultAgentBtn": "Create",
+      "generateMockData": "Generate Example Vault Content",
+      "generateMockDataDesc": "Scaffolds an Inbox, Projects, and Daily Notes folder with sample files to test advanced agents.",
+      "generateMockDataBtn": "Generate"
     },
     "behaviour": {
       "heading": "Behaviour",
@@ -59,8 +62,8 @@
   },
   "statusBar": {
     "noAgent": "No agent",
-    "noAgentWithIcon": "{{icon}} No agent",
-    "tokenFormat": " | {{icon}} {tokens}"
+    "noAgentWithIcon": "{icon} No agent",
+    "tokenFormat": " | {icon} {tokens}"
   },
   "icons": {
     "defaultAgent": "🤖",
@@ -80,6 +83,9 @@
     "chooseAgent": "Choose an agent...",
     "editAgent": "Edit agent",
     "newSession": "New session",
+    "history": "Chat history",
+    "renameSession": "Rename session",
+    "renamePrompt": "Enter new session title:",
     "selectAgentPrompt": "Select an agent to start chatting.",
     "inputPlaceholder": "Type a message...",
     "sendMessage": "Send message",
@@ -91,6 +97,11 @@
     "searchPlaceholder": "Search for an agent...",
     "createNewAgent": "Create new agent",
     "createNewAgentDesc": "Click here to build a new AI agent."
+  },
+  "historyModal": {
+    "title": "Chat history for {name}",
+    "empty": "No past sessions found.",
+    "searchPlaceholder": "Search history..."
   },
   "editor": {
     "editTitle": "Edit agent: {name}",
@@ -137,14 +148,9 @@
     "vaultRootAccessDesc": "Allow access beyond the specified folders.",
     "confirmDestructive": "Confirm destructive",
     "confirmDestructiveDesc": "Require user confirmation for write, move, delete operations.",
-    "loggingHeading": "Logging",
-    "enableLogging": "Enable logging",
-    "loggingPath": "Logging path",
-    "loggingFormat": "Logging format",
-    "formatDaily": "Daily",
-    "formatPerSession": "Per session",
-    "formatSingle": "Single file",
-    "includeMetadata": "Include metadata",
+    "memoryHeading": "Memory",
+    "enableMemory": "Enable memory",
+    "enableMemoryDesc": "If enabled, the agent will load previous chat sessions to maintain long-term context.",
     "systemPrompt": "System prompt",
     "systemPromptDesc": "The main instructions for this agent. Supports variables like {{user_name}}, {{date}}, etc.",
     "cancelBtn": "Cancel",
@@ -160,8 +166,10 @@
   },
   "notices": {
     "defaultAgentExists": "Default agent already exists.",
-    "defaultAgentCreated": "Default agent created successfully.",
-    "defaultAgentFailed": "Failed to create agent: {message}",
+    "defaultAgentCreated": "Default agent created.",
+    "defaultAgentFailed": "Failed to create default agent: {message}",
+    "mockDataCreated": "Generated {count} mock files!",
+    "mockDataExists": "Mock data folders and files already exist.",
     "folderIdRequired": "Folder/ID is required.",
     "nameModelRequired": "Name and model are required.",
     "agentSaved": "Agent '{name}' saved successfully!",

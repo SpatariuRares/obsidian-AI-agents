@@ -68,14 +68,14 @@ Be concise and specific.
 describe("splitFrontmatter", () => {
   it("should extract yaml and body from a valid agent.md", () => {
     const { yaml, body } = splitFrontmatter(MINIMAL_AGENT);
-    expect(yaml).toContain("name: \"Echo\"");
+    expect(yaml).toContain('name: "Echo"');
     expect(body).toBe("You are an echo bot. Repeat what the user says.");
   });
 
   it("should handle leading whitespace before opening ---", () => {
     const raw = "\n  \n" + MINIMAL_AGENT;
     const { yaml } = splitFrontmatter(raw);
-    expect(yaml).toContain("name: \"Echo\"");
+    expect(yaml).toContain('name: "Echo"');
   });
 
   it("should throw if file does not start with ---", () => {
@@ -124,10 +124,7 @@ describe("parseAgentFile", () => {
     expect(result.config.model).toBe("gemini-flash");
 
     // knowledge
-    expect(result.config.sources).toEqual([
-      "knowledge/company/**",
-      "data/context.md",
-    ]);
+    expect(result.config.sources).toEqual(["knowledge/company/**", "data/context.md"]);
     expect(result.config.strategy).toBe("inject_all");
     expect(result.config.max_context_tokens).toBe(4000);
 

@@ -1,22 +1,10 @@
-/**
- * @fileoverview ChatManager - Manages chat sessions and message history
- *
- * Lifecycle:
- *   1. startSession(agent) → resolves prompt template → system message
- *   2. addMessage(role, content) → appends to messages array
- *   3. getMessages() → returns the full conversation (for API calls)
- *   4. clearSession() → resets
- *
- * The ChatManager does NOT call the AI provider — that responsibility
- * belongs to the ApiRouter (Phase 3). ChatManager only manages state.
- */
-
 import { App } from "obsidian";
 import { ChatMessage, ParsedAgent, TokenUsage } from "@app/types/AgentTypes";
 import { PluginSettings } from "@app/types/PluginTypes";
 import { resolveTemplate } from "@app/services/TemplateEngine";
 import { ConversationLogger } from "@app/services/ConversationLogger";
 import { TokenTracker } from "@app/services/TokenTracker";
+import { ApiRouter } from "@app/services/ApiRouter";
 
 export class ChatManager {
   private messages: ChatMessage[] = [];
@@ -28,6 +16,9 @@ export class ChatManager {
   public tokenTracker: TokenTracker;
   private isNewSessionLog: boolean = false;
 
+  public currentSessionFile: string | null = null;
+  public currentSessionTitle: string = "New Chat";
+
   constructor(app: App, settings: PluginSettings, saveSettings: () => Promise<void>) {
     this.app = app;
     this.settings = settings;
@@ -35,23 +26,45 @@ export class ChatManager {
     this.tokenTracker = new TokenTracker(settings, saveSettings);
   }
 
-  /**
-   * Start a new chat session with the given agent.
-   * Resolves the prompt template and initialises the messages array
-   * with the system prompt.
-   */
   async startSession(agent: ParsedAgent): Promise<void> {
     this.messages = [];
     this.activeAgent = agent;
     this.isNewSessionLog = true;
+    this.currentSessionFile = null;
+    this.currentSessionTitle = "New Chat";
 
-    this.app.workspace.trigger("ai-agents:update" as any);
-
-    const systemPrompt = await resolveTemplate(agent.promptTemplate, {
+    let systemPrompt = await resolveTemplate(agent.promptTemplate, {
       agentConfig: agent.config,
       settings: this.settings,
       app: this.app,
     });
+
+    if (agent.config.memory) {
+      try {
+        const histories = await this.logger.getLogHistory(agent);
+        const recent = histories.slice(0, 5);
+        if (recent.length > 0) {
+          let memoryContext =
+            "\n\n--- PAST CHAT MEMORY ---\nHere is context from previous conversations. Use it if relevant:\n";
+          for (const hist of recent) {
+            const pastMsgs = await this.logger.loadSession(hist.file);
+            if (pastMsgs.length > 1) {
+              memoryContext += `\nChat: ${hist.title} (${hist.date})\n`;
+              for (const m of pastMsgs) {
+                if (m.role === "user" || m.role === "assistant") {
+                  memoryContext += `[${m.role.toUpperCase()}]: ${m.content}\n`;
+                }
+              }
+            }
+          }
+          systemPrompt += memoryContext + "\n--- END PAST CHAT MEMORY ---\n";
+        }
+      } catch (e) {
+        console.error("Failed to load memory context", e);
+      }
+    }
+
+    this.app.workspace.trigger("ai-agents:update" as any);
 
     this.messages.push({
       role: "system",
@@ -60,31 +73,20 @@ export class ChatManager {
     });
   }
 
-  /**
-   * Append a message to the conversation.
-   */
-  addMessage(role: "user" | "assistant" | "tool", content: string, extra?: Partial<ChatMessage>): void {
-    this.messages.push({
-      role,
-      content,
-      timestamp: Date.now(),
-      ...extra
-    });
+  addMessage(
+    role: "user" | "assistant" | "tool",
+    content: string,
+    extra?: Partial<ChatMessage>,
+  ): void {
+    this.messages.push({ role, content, timestamp: Date.now(), ...extra });
   }
 
-  /**
-   * Removes the most recent message. Useful for cleaning up a failed empty assistant message.
-   */
   removeLastMessage(): void {
     if (this.messages.length > 0) {
       this.messages.pop();
     }
   }
 
-  /**
-   * Append a chunk of text to the last message in the conversation.
-   * Useful for streaming responses.
-   */
   appendChunkToLastMessage(chunk: string): void {
     if (this.messages.length === 0) return;
     const lastMsg = this.messages[this.messages.length - 1];
@@ -93,18 +95,10 @@ export class ChatManager {
     }
   }
 
-  /**
-   * Return all messages in the conversation.
-   * The first message is always the system prompt.
-   */
   getMessages(): ChatMessage[] {
     return [...this.messages];
   }
 
-  /**
-   * Return only user/assistant messages (no system prompt).
-   * Used by the UI to display the chat history.
-   */
   getVisibleMessages(): ChatMessage[] {
     return this.messages.filter((m) => m.role !== "system");
   }
@@ -113,24 +107,14 @@ export class ChatManager {
     return this.activeAgent;
   }
 
-  /**
-   * Updates the active agent config without restarting the session.
-   * Useful for hot-reloading when the agent.md file is modified mid-chat.
-   */
   async updateActiveAgent(agent: ParsedAgent): Promise<void> {
     if (!this.activeAgent || this.activeAgent.id !== agent.id) return;
-
     this.activeAgent = agent;
-
-    // We could update the system prompt in the messages array here,
-    // but typically history is immutable. Updating the active agent 
-    // ensures the next messages use the new config/prompt rules.
     const systemPrompt = await resolveTemplate(agent.promptTemplate, {
       agentConfig: agent.config,
       settings: this.settings,
       app: this.app,
     });
-
     if (this.messages.length > 0 && this.messages[0].role === "system") {
       this.messages[0].content = systemPrompt;
     }
@@ -144,21 +128,82 @@ export class ChatManager {
     this.messages = [];
     this.activeAgent = null;
     this.isNewSessionLog = false;
-
+    this.currentSessionFile = null;
+    this.currentSessionTitle = "New Chat";
     this.app.workspace.trigger("ai-agents:update" as any);
   }
 
-  /**
-   * Logs a single turn (user + assistant) to the markdown log file
-   * and tracks token usage.
-   */
+  async loadHistoricalSession(
+    agent: ParsedAgent,
+    file: string,
+    title: string,
+    msgs: ChatMessage[],
+  ): Promise<void> {
+    this.activeAgent = agent;
+    this.currentSessionFile = file;
+    this.currentSessionTitle = title;
+    this.messages = msgs;
+    this.isNewSessionLog = false;
+    this.app.workspace.trigger("ai-agents:update" as any);
+  }
+
+  async renameCurrentSession(newTitle: string): Promise<void> {
+    if (this.activeAgent && this.currentSessionFile) {
+      this.currentSessionTitle = newTitle;
+      this.currentSessionFile = await this.logger.saveSession(
+        this.activeAgent,
+        this.currentSessionFile,
+        this.messages,
+        this.currentSessionTitle,
+      );
+      this.app.workspace.trigger("ai-agents:update" as any);
+    }
+  }
+
   async logTurn(userMsg: ChatMessage, asstMsg: ChatMessage, usage?: TokenUsage): Promise<void> {
     if (!this.activeAgent) return;
 
-    const isNew = this.isNewSessionLog;
+    const vis = this.getVisibleMessages();
+    if (this.currentSessionTitle === "New Chat" && vis.length <= 2) {
+      try {
+        const prompt: ChatMessage[] = [
+          {
+            role: "system",
+            content:
+              "You are a title generator. Generate a very short 3-5 word title for the following conversation. Reply ONLY with the title text itself, without any quotes or explanations.",
+            timestamp: Date.now(),
+          },
+          {
+            role: "user",
+            content: `User: ${userMsg.content}\nAssistant: ${asstMsg.content}`,
+            timestamp: Date.now(),
+          },
+        ];
+
+        const tempConfig = { ...this.activeAgent.config, stream: false };
+        const titleRes = await ApiRouter.send(prompt, tempConfig, this.settings);
+        const title = titleRes.text.trim().replace(/^["']|["']$/g, "");
+        if (title) {
+          this.currentSessionTitle = title;
+        }
+      } catch (e) {
+        console.error("Failed to generate title", e);
+        this.currentSessionTitle = "Chat " + new Date().toLocaleTimeString();
+      }
+    }
+
     this.isNewSessionLog = false;
 
-    await this.logger.appendLog(this.activeAgent, userMsg, asstMsg, usage, isNew);
+    try {
+      this.currentSessionFile = await this.logger.saveSession(
+        this.activeAgent,
+        this.currentSessionFile,
+        this.messages,
+        this.currentSessionTitle,
+      );
+    } catch (e) {
+      console.error("Failed to save session", e);
+    }
 
     if (usage) {
       await this.tokenTracker.update(this.activeAgent.id, usage);
@@ -166,9 +211,6 @@ export class ChatManager {
     }
   }
 
-  /**
-   * Update the settings reference (called when settings change).
-   */
   updateSettings(settings: PluginSettings): void {
     this.settings = settings;
   }

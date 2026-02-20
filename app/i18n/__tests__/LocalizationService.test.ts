@@ -11,8 +11,7 @@ import { LocalizationService, t } from "../LocalizationService";
 
 /** Reset the private singleton between tests to ensure test isolation. */
 function resetSingleton(): void {
-  (LocalizationService as unknown as { instance: undefined }).instance =
-    undefined;
+  (LocalizationService as unknown as { instance: undefined }).instance = undefined;
 }
 
 /** Minimal App mock satisfying the LocalizationService constructor. */
@@ -92,22 +91,25 @@ describe("LocalizationService", () => {
     it("should interpolate a single parameter", () => {
       const instance = LocalizationService.getInstance();
       // Inject a test translation directly to avoid coupling to en.json content.
-      (instance as unknown as { translations: Record<string, unknown> })
-        .translations = { greeting: "Hello {name}!" };
+      (instance as unknown as { translations: Record<string, unknown> }).translations = {
+        greeting: "Hello {name}!",
+      };
       expect(instance.t("greeting", { name: "Claude" })).toBe("Hello Claude!");
     });
 
     it("should interpolate numeric parameters", () => {
       const instance = LocalizationService.getInstance();
-      (instance as unknown as { translations: Record<string, unknown> })
-        .translations = { count: "You have {n} items" };
+      (instance as unknown as { translations: Record<string, unknown> }).translations = {
+        count: "You have {n} items",
+      };
       expect(instance.t("count", { n: 42 })).toBe("You have 42 items");
     });
 
     it("should leave unmatched placeholders intact", () => {
       const instance = LocalizationService.getInstance();
-      (instance as unknown as { translations: Record<string, unknown> })
-        .translations = { tmpl: "Hi {name}!" };
+      (instance as unknown as { translations: Record<string, unknown> }).translations = {
+        tmpl: "Hi {name}!",
+      };
       expect(instance.t("tmpl", { other: "x" })).toBe("Hi {name}!");
     });
 
@@ -142,15 +144,17 @@ describe("LocalizationService", () => {
 
     it("should resolve dot-notation keys into nested objects", () => {
       const instance = LocalizationService.getInstance();
-      (instance as unknown as { translations: Record<string, unknown> })
-        .translations = { section: { sub: { key: "deep value" } } };
+      (instance as unknown as { translations: Record<string, unknown> }).translations = {
+        section: { sub: { key: "deep value" } },
+      };
       expect(instance.t("section.sub.key")).toBe("deep value");
     });
 
     it("should return the key when an intermediate node is missing", () => {
       const instance = LocalizationService.getInstance();
-      (instance as unknown as { translations: Record<string, unknown> })
-        .translations = { section: {} };
+      (instance as unknown as { translations: Record<string, unknown> }).translations = {
+        section: {},
+      };
       expect(instance.t("section.missing.key")).toBe("section.missing.key");
     });
   });
@@ -172,15 +176,11 @@ describe("LocalizationService", () => {
     beforeEach(() => LocalizationService.initialize(mockApp));
 
     it("should return true for a key present in translations", () => {
-      expect(LocalizationService.getInstance().hasKey("settings.title")).toBe(
-        true,
-      );
+      expect(LocalizationService.getInstance().hasKey("settings.title")).toBe(true);
     });
 
     it("should return false for a key not present in translations", () => {
-      expect(
-        LocalizationService.getInstance().hasKey("definitely.not.there"),
-      ).toBe(false);
+      expect(LocalizationService.getInstance().hasKey("definitely.not.there")).toBe(false);
     });
   });
 
@@ -189,9 +189,7 @@ describe("LocalizationService", () => {
   describe("reload()", () => {
     it("should re-detect locale and reload translations without throwing", () => {
       LocalizationService.initialize(mockApp);
-      expect(() =>
-        LocalizationService.getInstance().reload(),
-      ).not.toThrow();
+      expect(() => LocalizationService.getInstance().reload()).not.toThrow();
     });
 
     it("should still return translations after reload", () => {
@@ -226,10 +224,7 @@ describe("LocalizationService", () => {
       // then succeed for the English fallback load.
       let callCount = 0;
       const spy = jest
-        .spyOn(
-          instance as unknown as { loadLocaleFile(l: string): unknown },
-          "loadLocaleFile",
-        )
+        .spyOn(instance as unknown as { loadLocaleFile(l: string): unknown }, "loadLocaleFile")
         .mockImplementation((locale: string) => {
           callCount++;
           if (callCount === 1) {

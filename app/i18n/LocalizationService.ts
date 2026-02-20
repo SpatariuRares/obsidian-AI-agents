@@ -65,8 +65,8 @@ export class LocalizationService {
         t: (key: string) => key, // Return key as fallback
         getCurrentLocale: () => "en",
         hasKey: () => false,
-        reload: () => { },
-        destroy: () => { },
+        reload: () => {},
+        destroy: () => {},
       } as unknown as LocalizationService;
     }
     return LocalizationService.instance;
@@ -87,8 +87,7 @@ export class LocalizationService {
   private detectLanguage(): string {
     try {
       // window.moment is provided globally by Obsidian
-      const locale = (window as Window & { moment?: { locale?: () => string } })
-        .moment?.locale?.();
+      const locale = (window as Window & { moment?: { locale?: () => string } }).moment?.locale?.();
       return locale && locale.length > 0 ? locale : this.DEFAULT_LOCALE;
     } catch {
       return this.DEFAULT_LOCALE;
@@ -149,10 +148,7 @@ export class LocalizationService {
     let translation = this.getNestedValue(this.translations, key);
 
     // Fallback to English if not found
-    if (
-      translation === undefined &&
-      this.currentLocale !== this.DEFAULT_LOCALE
-    ) {
+    if (translation === undefined && this.currentLocale !== this.DEFAULT_LOCALE) {
       translation = this.getNestedValue(this.fallbackTranslations, key);
     }
 
@@ -163,8 +159,7 @@ export class LocalizationService {
     }
 
     // Ensure translation is a string
-    const translatedString =
-      typeof translation === "string" ? translation : String(translation);
+    const translatedString = typeof translation === "string" ? translation : String(translation);
 
     // Interpolate parameters if provided
     if (params) {
