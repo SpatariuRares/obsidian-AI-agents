@@ -6,7 +6,7 @@ import { AgentRegistry } from "@app/services/AgentRegistry";
 import { PluginSettings } from "@app/types/PluginTypes";
 import { PathSuggest } from "@app/features/common/suggest/PathSuggest";
 import { t } from "@app/i18n";
-import { CONSTANTS } from "@app/constants/constants";
+import { CONSTANTS } from "@app/types/constants";
 
 export class AgentEditor {
   private app: App;

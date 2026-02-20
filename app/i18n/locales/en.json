@@ -192,7 +192,7 @@
   },
   "basicAgent": {
     "name": "Basic Assistant",
-    "promptBody": "You are a helpful AI assistant.\nRespond concisely.\n"
+    "promptBody": "You are a helpful AI assistant.\nRespond concisely.\nIf the user asks about their files or vault, use the available tools to read or list them.\n"
   },
   "mockData": {
     "inboxFolder": "exampleAIAgents/Inbox",

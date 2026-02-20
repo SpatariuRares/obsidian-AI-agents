@@ -5,7 +5,7 @@
 import { App, TFile, TFolder } from "obsidian";
 import { AgentConfig } from "@app/types/AgentTypes";
 import { PermissionGuard, FileOperationType } from "@app/services/PermissionGuard";
-import { PermissionModal } from "@app/ui/PermissionModal";
+import { PermissionModal } from "@app/features/common/PermissionModal";
 import { t } from "@app/i18n";
 
 export class FileOperations {

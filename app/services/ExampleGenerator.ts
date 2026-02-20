@@ -2,7 +2,7 @@ import { App, normalizePath, Notice } from "obsidian";
 import { t } from "@app/i18n";
 import { LocalizationService } from "@app/i18n/LocalizationService";
 import { AgentRegistry } from "@app/services/AgentRegistry";
-import { CONSTANTS } from "@app/constants/constants";
+import { CONSTANTS } from "@app/types/constants";
 
 /** Default agent.md generator used by the "Create default agent" button. */
 export function getDefaultAgentMd(): string {
@@ -55,9 +55,12 @@ export function getBasicAgentMd(): string {
   return `---
 language: "${language}"
 ${getKey("name").toLowerCase()}: "${t("basicAgent.name") || "Basic Assistant"}"
+${getKey("readPermissions").toLowerCase()}:
+  - "/"
+${getKey("vaultRootAccess").toLowerCase()}: true
 ---
 
-${t("basicAgent.promptBody") || "You are a helpful AI assistant.\nRespond concisely.\n"}`;
+${t("basicAgent.promptBody") || "You are a helpful AI assistant.\nRespond concisely.\nIf the user asks about their files or vault, use the available tools to read or list them.\n"}`;
 }
 
 export class ExampleGenerator {

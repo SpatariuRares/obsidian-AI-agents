@@ -13,7 +13,7 @@ import { PluginSettings } from "@app/types/PluginTypes";
 import { AgentRegistry } from "@app/services/AgentRegistry";
 import { FolderSuggest } from "@app/features/common/suggest/FolderSuggest";
 import { t } from "@app/i18n";
-import { CONSTANTS } from "@app/constants/constants";
+import { CONSTANTS } from "@app/types/constants";
 import { ExampleGenerator } from "@app/services/ExampleGenerator";
 
 interface PluginWithSettings extends Plugin {

@@ -16,11 +16,11 @@ import { ParsedAgent, ChatMessage } from "@app/types/AgentTypes";
 import { AgentRegistry } from "@app/services/AgentRegistry";
 import { MessageRenderer } from "@app/utils/MessageRenderer";
 import { ApiRouter } from "@app/services/ApiRouter";
-import { AgentSelectorModal, CREATE_AGENT_ID } from "@app/ui/AgentSelectorModal";
-import { AgentEditor } from "@app/ui/AgentEditor";
+import { AgentSelectorModal, CREATE_AGENT_ID } from "@app/features/agents/AgentSelectorModal";
+import { AgentEditor } from "@app/features/agents/AgentEditor";
 import { ToolHandler } from "@app/services/ToolHandler";
 import { t } from "@app/i18n";
-import { ChatHistoryModal } from "@app/ui/ChatHistoryModal";
+import { ChatHistoryModal } from "@app/features/chat/ChatHistoryModal";
 import { Modal, Setting } from "obsidian";
 
 export const VIEW_TYPE_CHAT = "ai-agents-chat";
