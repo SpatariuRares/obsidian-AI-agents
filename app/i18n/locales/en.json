@@ -127,20 +127,21 @@
     "provider": "Provider",
     "model": "Model",
     "streamResponses": "Stream responses",
+    "stream": "Stream",
     "maxContextTokens": "Max context tokens",
     "strategy": "Strategy",
     "permissionsHeading": "Knowledge & file permissions",
     "sources": "Sources",
     "sourcesDesc": "Paths to include in the knowledge context.",
-    "readPermissions": "Read permissions",
+    "readPermissions": "Read",
     "readPermissionsDesc": "Paths this agent can read.",
-    "writePermissions": "Write permissions",
+    "writePermissions": "Write",
     "writePermissionsDesc": "Paths this agent can write to.",
-    "createPermissions": "Create permissions",
+    "createPermissions": "Create",
     "createPermissionsDesc": "Paths this agent can create files in.",
-    "movePermissions": "Move permissions",
+    "movePermissions": "Move",
     "movePermissionsDesc": "Paths this agent can move/rename.",
-    "deletePermissions": "Delete permissions",
+    "deletePermissions": "Delete",
     "deletePermissionsDesc": "Paths this agent can delete.",
     "pathPlaceholder": "Add path or glob...",
     "addBtn": "Add",
@@ -171,7 +172,8 @@
     "mockDataCreated": "Generated {count} mock files!",
     "mockDataExists": "Mock data folders and files already exist.",
     "folderIdRequired": "Folder/ID is required.",
-    "nameModelRequired": "Name and model are required.",
+    "nameRequired": "Name is required.",
+    "modelRequired": "Model is required and must be provided either in the agent frontmatter or in the plugin settings",
     "agentSaved": "Agent '{name}' saved successfully!",
     "agentSaveFailed": "Failed to save agent: {message}",
     "aiAgentError": "AI Agent error: {message}",
@@ -181,6 +183,27 @@
   "templateEngine": {
     "readDenied": "[READ denied: {path} is not in read or sources]",
     "readFailed": "[READ failed: {path} not found]"
+  },
+  "exampleAgent": {
+    "name": "Obsidian Copilot",
+    "description": "An advanced, fully-featured AI assistant capable of managing notes, summarizing content, and organizing your vault.",
+    "author": "AI Agents",
+    "promptBody": "You are **{{agent_name}}**, an advanced AI assistant embedded directly within the user's Obsidian vault.\nYour goal is to help the user manage their personal knowledge base, summarize notes, brainstorm ideas, and write content.\n\n## Context\n- **User:** {{user_name}}\n- **Current Date:** {{date}}\n\n## Guidelines\n1. **Be Concise & Markdown-Native:** Always format your responses using rich Markdown (headers, lists, bold, italics, code blocks) to make them look beautiful in Obsidian.\n2. **Leverage Memory:** You have the `memory` flag enabled, which means you have access to the context of previous chats. Refer back to past conversations if it helps answer the current query.\n3. **Drafting Notes:** When asked to write a note, provide a clear, well-structured output.\n4. **Tools & Operations:** When proposing changes to files or creating new notes, clearly explain what you are going to do.\n\nHow can I assist you with your vault today?\n"
+  },
+  "basicAgent": {
+    "name": "Basic Assistant",
+    "promptBody": "You are a helpful AI assistant.\nRespond concisely.\n"
+  },
+  "mockData": {
+    "inboxFolder": "exampleAIAgents/Inbox",
+    "projectsFolder": "exampleAIAgents/Projects",
+    "dailyNotesFolder": "exampleAIAgents/Daily Notes",
+    "ideaTitle": "Idea for new plugin.md",
+    "ideaContent": "---\ntags: [idea, plugin]\n---\n\nNeed to create a plugin that helps with daily organization.\n\nTodo:\n- [ ] Research Obsidian API\n- [ ] Create UI mockups\n",
+    "projectTitle": "Website Redesign.md",
+    "projectContent": "---\nstatus: in-progress\ndeadline: 2026-12-31\n---\n\n# Website Redesign\n\nWe need to migrate to the new UI framework.\n\n## Goals\n- Better performance\n- Mobile responsive\n",
+    "dailyTitle": "{date}.md",
+    "dailyContent": "# {date}\n\n## Log\n- Started working on the new AI agent workflow.\n- Need to ask the Copilot to summarize my project goals.\n"
   },
   "commands": {}
 }

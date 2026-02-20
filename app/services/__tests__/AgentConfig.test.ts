@@ -12,7 +12,10 @@ import { splitFrontmatter, parseAgentFile, AgentConfigError } from "@app/service
 // Helpers — sample agent.md contents
 // ---------------------------------------------------------------------------
 
+import { LocalizationService } from "@app/i18n/LocalizationService";
+
 const MINIMAL_AGENT = `---
+language: "en"
 name: "Echo"
 avatar: "🔊"
 enabled: "true"
@@ -22,6 +25,7 @@ model: "gpt_oss_free"
 You are an echo bot. Repeat what the user says.`;
 
 const FULL_AGENT = `---
+language: "en"
 name: "Writing Coach"
 description: "Helps improve writing"
 author: "Rares"
@@ -152,6 +156,7 @@ describe("parseAgentFile", () => {
 
   it("should fill default sources when not provided", () => {
     const raw = `---
+language: "en"
 name: "Test"
 model: "llama3"
 ---
@@ -165,6 +170,7 @@ prompt`;
 
   it("should fill default permissions when not provided", () => {
     const raw = `---
+language: "en"
 name: "Test"
 model: "llama3"
 ---
@@ -180,6 +186,7 @@ prompt`;
 
   it("should default enabled to true when not provided", () => {
     const raw = `---
+language: "en"
 name: "Test"
 model: "llama3"
 ---
@@ -191,6 +198,7 @@ prompt`;
 
   it("should set enabled to false when explicitly false", () => {
     const raw = `---
+language: "en"
 name: "Test"
 enabled: "false"
 model: "llama3"
@@ -203,6 +211,7 @@ prompt`;
 
   it("should handle boolean enabled values (not just strings)", () => {
     const raw = `---
+language: "en"
 name: "Test"
 enabled: false
 model: "llama3"
@@ -215,6 +224,7 @@ prompt`;
 
   it("should fill default logging when not provided", () => {
     const raw = `---
+language: "en"
 name: "Test"
 model: "llama3"
 ---
@@ -229,6 +239,7 @@ prompt`;
 
   it("should default type to conversational", () => {
     const raw = `---
+language: "en"
 name: "Test"
 model: "llama3"
 ---
@@ -238,10 +249,59 @@ prompt`;
     expect(result.config.type).toBe("conversational");
   });
 
+  // --- Localization -----------------------------------------------------
+
+  describe("i18n Localization Keys", () => {
+    it("should translate keys from another language", () => {
+      // Assuming i18n/locales/it.json exists and has editor mappings
+      // like "name": "Nome", "description": "Descrizione"
+
+      const raw = `---
+language: "it"
+nome: "Allenatore"
+descrizione: "Aiuta a migliorare"
+model: "llama3"
+---
+prompt`;
+
+      const result = parseAgentFile(raw);
+      expect(result.config.name).toBe("Allenatore");
+      expect(result.config.description).toBe("Aiuta a migliorare");
+      expect(result.config.language).toBe("it");
+    });
+
+    it("should process keys case-insensitively", () => {
+      const raw = `---
+language: "it"
+NoMe: "Allenatore"
+DESCRIZIONE: "Aiuta a migliorare"
+model: "llama3"
+---
+prompt`;
+
+      const result = parseAgentFile(raw);
+      expect(result.config.name).toBe("Allenatore");
+      expect(result.config.description).toBe("Aiuta a migliorare");
+    });
+
+    it("should fallback gracefully if language doesn't have translation but valid keys are provided", () => {
+      const raw = `---
+language: "non-existent-lang"
+name: "Coach"
+model: "llama3"
+---
+prompt`;
+
+      const result = parseAgentFile(raw);
+      expect(result.config.name).toBe("Coach");
+    });
+  });
+
   // --- Validation errors ------------------------------------------------
 
   it("should throw when name is missing", () => {
     const raw = `---
+language: "en"
 avatar: "🤖"
 model: "llama3"
 ---
@@ -252,6 +312,7 @@ prompt`;
 
   it("should throw when name is empty", () => {
     const raw = `---
+language: "en"
 name: ""
 model: "llama3"
 ---
@@ -260,8 +321,9 @@ prompt`;
     expect(() => parseAgentFile(raw)).toThrow("name is required");
   });
 
-  it("should throw when model is missing", () => {
+  it("should throw when model is missing and no fallback provided", () => {
     const raw = `---
+language: "en"
 name: "Test"
 ---
 prompt`;
@@ -269,13 +331,35 @@ prompt`;
     expect(() => parseAgentFile(raw)).toThrow("model is required");
   });
 
-  it("should throw when model is empty", () => {
+  it("should use fallback model when model is missing", () => {
     const raw = `---
+language: "en"
+name: "Test"
+---
+prompt`;
+
+    const result = parseAgentFile(raw, "fallback-model");
+    expect(result.config.model).toBe("fallback-model");
+  });
+
+  it("should throw when model is empty and no fallback provided", () => {
+    const raw = `---
+language: "en"
 name: "Test"
 model: ""
 ---
 prompt`;
 
     expect(() => parseAgentFile(raw)).toThrow("model is required");
+  });
+
+  it("should throw when language is missing", () => {
+    const raw = `---
+name: "Test"
+model: "llama3"
+---
+prompt`;
+
+    expect(() => parseAgentFile(raw)).toThrow("language is required");
   });
 });

@@ -12,13 +12,16 @@
 import { App, TFile, normalizePath } from "obsidian";
 import { parseAgentFile, AgentConfigError } from "@app/services/AgentConfig";
 import { ParsedAgent } from "@app/types/AgentTypes";
+import { PluginSettings } from "@app/types/PluginTypes";
 
 export class AgentRegistry {
   private agents: Map<string, ParsedAgent> = new Map();
   private app: App;
+  private settings: () => PluginSettings;
 
-  constructor(app: App) {
+  constructor(app: App, settings: () => PluginSettings) {
     this.app = app;
+    this.settings = settings;
   }
 
   /**
@@ -106,7 +109,7 @@ export class AgentRegistry {
 
   private async parseAgentAt(folderPath: string, file: TFile): Promise<ParsedAgent> {
     const raw = await this.app.vault.read(file);
-    const { config, promptTemplate } = parseAgentFile(raw);
+    const { config, promptTemplate } = parseAgentFile(raw, this.settings().defaultModel);
 
     // id = last segment of the folder path (e.g. "agents/writer" → "writer")
     const id = folderPath.split("/").pop() ?? folderPath;

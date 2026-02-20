@@ -16,53 +16,6 @@ import { t } from "@app/i18n";
 import { CONSTANTS } from "@app/constants/constants";
 import { ExampleGenerator } from "@app/services/ExampleGenerator";
 
-/** Default agent.md content used by the "Create default agent" button. */
-const DEFAULT_AGENT_MD = `---
-name: "Obsidian Copilot"
-description: "An advanced, fully-featured AI assistant capable of managing notes, summarizing content, and organizing your vault."
-author: "AI Agents"
-avatar: "🧠"
-enabled: "true"
-type: "conversational"
-provider: "ollama"
-model: "llama3"
-stream: "true"
-sources:
-  - "Inbox/"
-  - "Projects/"
-strategy: "inject_all"
-max_context_tokens: 8000
-read:
-  - "/"
-write:
-  - "Inbox/"
-  - "Daily Notes/"
-create:
-  - "Inbox/"
-  - "Daily Notes/"
-move: []
-delete: []
-vault_root_access: "false"
-confirm_destructive: "true"
-memory: "true"
----
-
-You are **{{agent_name}}**, an advanced AI assistant embedded directly within the user's Obsidian vault.
-Your goal is to help the user manage their personal knowledge base, summarize notes, brainstorm ideas, and write content.
-
-## Context
-- **User:** {{user_name}}
-- **Current Date:** {{date}}
-
-## Guidelines
-1. **Be Concise & Markdown-Native:** Always format your responses using rich Markdown (headers, lists, bold, italics, code blocks) to make them look beautiful in Obsidian.
-2. **Leverage Memory:** You have the \`memory\` flag enabled, which means you have access to the context of previous chats. Refer back to past conversations if it helps answer the current query.
-3. **Drafting Notes:** When asked to write a note, provide a clear, well-structured output.
-4. **Tools & Operations:** When proposing changes to files or creating new notes, clearly explain what you are going to do.
-
-How can I assist you with your vault today?
-`;
-
 interface PluginWithSettings extends Plugin {
   settings: PluginSettings;
   agentRegistry: AgentRegistry;
@@ -198,7 +151,11 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
           .setButtonText(t("settings.general.createDefaultAgentBtn"))
           .setCta()
           .onClick(() => {
-            void this.createDefaultAgent();
+            void ExampleGenerator.createDefaultAgent(
+              this.app,
+              this.plugin.settings.agentsFolder,
+              this.plugin.agentRegistry,
+            );
           }),
       );
 
@@ -209,7 +166,11 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
         (btn as unknown as ButtonApi)
           .setButtonText(t("settings.general.generateMockDataBtn"))
           .onClick(() => {
-            void ExampleGenerator.generateMockData(this.app);
+            void ExampleGenerator.generateMockData(
+              this.app,
+              this.plugin.settings.agentsFolder,
+              this.plugin.agentRegistry,
+            );
           }),
       );
 
@@ -333,43 +294,5 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }),
       );
-  }
-
-  // -----------------------------------------------------------------------
-  // Default agent scaffolding
-  // -----------------------------------------------------------------------
-
-  private async createDefaultAgent(): Promise<void> {
-    const folder = this.plugin.settings.agentsFolder || CONSTANTS.DEFAULT_AGENTS_FOLDER;
-    const agentFolder = normalizePath(`${folder}/assistant`);
-    const agentFile = normalizePath(`${agentFolder}/agent.md`);
-
-    // Check if the file already exists
-    const existing = this.app.vault.getAbstractFileByPath(agentFile);
-    if (existing) {
-      new Notice(t("notices.defaultAgentExists"));
-      return;
-    }
-
-    try {
-      // Ensure parent folders exist (createFolder throws if already present)
-      await this.ensureFolder(folder);
-      await this.ensureFolder(agentFolder);
-
-      await this.app.vault.create(agentFile, DEFAULT_AGENT_MD.trimStart());
-      await this.plugin.agentRegistry.scan(folder);
-      new Notice(t("notices.defaultAgentCreated"));
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      new Notice(t("notices.defaultAgentFailed", { message: msg }));
-    }
-  }
-
-  private async ensureFolder(path: string): Promise<void> {
-    const normalized = normalizePath(path);
-    const existing = this.app.vault.getAbstractFileByPath(normalized);
-    if (!existing) {
-      await this.app.vault.createFolder(normalized);
-    }
   }
 }

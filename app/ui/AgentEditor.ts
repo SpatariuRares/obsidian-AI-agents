@@ -330,8 +330,8 @@ export class AgentEditor {
       return;
     }
 
-    if (!this.config.name || !this.config.model) {
-      new Notice(t("notices.nameModelRequired"));
+    if (!this.config.name) {
+      new Notice(t("notices.nameRequired"));
       return;
     }
 

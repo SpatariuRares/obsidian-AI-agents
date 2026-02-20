@@ -25,7 +25,7 @@ export default class AIAgentsPlugin extends Plugin {
     LocalizationService.initialize(this.app);
 
     // Core services
-    this.agentRegistry = new AgentRegistry(this.app);
+    this.agentRegistry = new AgentRegistry(this.app, () => this.settings);
     this.chatManager = new ChatManager(this.app, this.settings, () => this.saveSettings());
 
     // Defer agent scan until vault is fully indexed
@@ -38,24 +38,36 @@ export default class AIAgentsPlugin extends Plugin {
     new AIAgentsStatusBar(this, statusBarEl, this.chatManager);
 
     // Chat sidebar view
-    this.registerView(VIEW_TYPE_CHAT, (leaf) => new ChatView(leaf, {
-      agentRegistry: this.agentRegistry,
-      chatManager: this.chatManager,
-    }));
+    this.registerView(
+      VIEW_TYPE_CHAT,
+      (leaf) =>
+        new ChatView(leaf, {
+          agentRegistry: this.agentRegistry,
+          chatManager: this.chatManager,
+        }),
+    );
 
     // Agent list sidebar view
-    this.registerView(VIEW_TYPE_AGENT_SIDEBAR, (leaf) => new AgentSidebar(leaf, {
-      agentRegistry: this.agentRegistry,
-      startSessionAndOpenChat: async (agent) => {
-        await this.chatManager.startSession(agent);
-        await this.activateChatView();
-      }
-    }));
+    this.registerView(
+      VIEW_TYPE_AGENT_SIDEBAR,
+      (leaf) =>
+        new AgentSidebar(leaf, {
+          agentRegistry: this.agentRegistry,
+          startSessionAndOpenChat: async (agent) => {
+            await this.chatManager.startSession(agent);
+            await this.activateChatView();
+          },
+        }),
+    );
 
     // Hot reload agents on file modification
     this.registerEvent(
       this.app.vault.on("modify", async (file) => {
-        if (file instanceof TFile && file.path.startsWith(this.settings.agentsFolder + "/") && file.name === "agent.md") {
+        if (
+          file instanceof TFile &&
+          file.path.startsWith(this.settings.agentsFolder + "/") &&
+          file.name === "agent.md"
+        ) {
           const folderPath = file.path.substring(0, file.path.lastIndexOf("/"));
           const id = folderPath.split("/").pop();
           if (id) {
@@ -76,7 +88,7 @@ export default class AIAgentsPlugin extends Plugin {
             }
           }
         }
-      })
+      }),
     );
 
     // Settings tab
@@ -84,7 +96,9 @@ export default class AIAgentsPlugin extends Plugin {
 
     // Ribbon icon — opens the chat panel
     this.addRibbonIcon("bot", "Open AI agents chat", () => {
-      this.activateChatView().catch(() => { /* no-op */ });
+      this.activateChatView().catch(() => {
+        /* no-op */
+      });
     });
 
     // Commands
@@ -92,7 +106,9 @@ export default class AIAgentsPlugin extends Plugin {
       id: "open-chat",
       name: "Open agent chat",
       callback: () => {
-        this.activateChatView().catch(() => { /* no-op */ });
+        this.activateChatView().catch(() => {
+          /* no-op */
+        });
       },
     });
 
@@ -100,7 +116,9 @@ export default class AIAgentsPlugin extends Plugin {
       id: "open-agent-sidebar",
       name: "Open agent list sidebar",
       callback: () => {
-        this.activateSidebarView().catch(() => { /* no-op */ });
+        this.activateSidebarView().catch(() => {
+          /* no-op */
+        });
       },
     });
 
@@ -127,7 +145,9 @@ export default class AIAgentsPlugin extends Plugin {
 
     if (existing.length > 0) {
       // Already open — just reveal it
-      this.app.workspace.revealLeaf(existing[0]).catch(() => { /* no-op */ });
+      this.app.workspace.revealLeaf(existing[0]).catch(() => {
+        /* no-op */
+      });
       return;
     }
 
@@ -135,7 +155,9 @@ export default class AIAgentsPlugin extends Plugin {
     const leaf = this.app.workspace.getRightLeaf(false);
     if (leaf) {
       await leaf.setViewState({ type: VIEW_TYPE_CHAT, active: true });
-      this.app.workspace.revealLeaf(leaf).catch(() => { /* no-op */ });
+      this.app.workspace.revealLeaf(leaf).catch(() => {
+        /* no-op */
+      });
     }
   }
 
@@ -143,7 +165,9 @@ export default class AIAgentsPlugin extends Plugin {
     const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_AGENT_SIDEBAR);
 
     if (existing.length > 0) {
-      this.app.workspace.revealLeaf(existing[0]).catch(() => { /* no-op */ });
+      this.app.workspace.revealLeaf(existing[0]).catch(() => {
+        /* no-op */
+      });
       return;
     }
 
@@ -151,7 +175,9 @@ export default class AIAgentsPlugin extends Plugin {
     const leaf = this.app.workspace.getLeftLeaf(false);
     if (leaf) {
       await leaf.setViewState({ type: VIEW_TYPE_AGENT_SIDEBAR, active: true });
-      this.app.workspace.revealLeaf(leaf).catch(() => { /* no-op */ });
+      this.app.workspace.revealLeaf(leaf).catch(() => {
+        /* no-op */
+      });
     }
   }
 

@@ -79,7 +79,7 @@ describe("AgentRegistry", () => {
       ]);
 
       const app = makeApp(files, fileContents);
-      const registry = new AgentRegistry(app);
+      const registry = new AgentRegistry(app, () => ({ defaultModel: "gpt-mock" }) as any);
       await registry.scan("agents");
 
       expect(registry.getAllAgents()).toHaveLength(2);
@@ -94,7 +94,7 @@ describe("AgentRegistry", () => {
       ]);
 
       const app = makeApp(files, fileContents);
-      const registry = new AgentRegistry(app);
+      const registry = new AgentRegistry(app, () => ({ defaultModel: "gpt-mock" }) as any);
       await registry.scan("agents");
 
       expect(registry.getAllAgents()).toHaveLength(1);
@@ -108,7 +108,7 @@ describe("AgentRegistry", () => {
       const spy = jest.spyOn(console, "warn").mockImplementation(() => {});
 
       const app = makeApp([], new Map());
-      const registry = new AgentRegistry(app);
+      const registry = new AgentRegistry(app, () => ({ defaultModel: "gpt-mock" }) as any);
       await registry.scan("nonexistent");
 
       expect(registry.getAllAgents()).toHaveLength(0);
@@ -120,7 +120,7 @@ describe("AgentRegistry", () => {
       const { files, fileContents } = buildVault([{ name: "echo", content: ECHO_AGENT_MD }]);
 
       const app = makeApp(files, fileContents);
-      const registry = new AgentRegistry(app);
+      const registry = new AgentRegistry(app, () => ({ defaultModel: "gpt-mock" }) as any);
 
       await registry.scan("agents");
       expect(registry.getAllAgents()).toHaveLength(1);
@@ -141,7 +141,7 @@ describe("AgentRegistry", () => {
       );
 
       const app = makeApp(files, fileContents);
-      const registry = new AgentRegistry(app);
+      const registry = new AgentRegistry(app, () => ({ defaultModel: "gpt-mock" }) as any);
       await registry.scan("agents");
 
       expect(registry.getAllAgents()).toHaveLength(1);
@@ -154,7 +154,7 @@ describe("AgentRegistry", () => {
       const { files, fileContents } = buildVault([{ name: "echo", content: ECHO_AGENT_MD }]);
 
       const app = makeApp(files, fileContents);
-      const registry = new AgentRegistry(app);
+      const registry = new AgentRegistry(app, () => ({ defaultModel: "gpt-mock" }) as any);
       await registry.scan("agents");
 
       const agent = registry.getAgent("echo");
@@ -168,7 +168,7 @@ describe("AgentRegistry", () => {
 
     it("should return undefined for unknown id", () => {
       const app = makeApp([], new Map());
-      const registry = new AgentRegistry(app);
+      const registry = new AgentRegistry(app, () => ({ defaultModel: "gpt-mock" }) as any);
       expect(registry.getAgent("nonexistent")).toBeUndefined();
     });
   });
@@ -181,7 +181,7 @@ describe("AgentRegistry", () => {
       ]);
 
       const app = makeApp(files, fileContents);
-      const registry = new AgentRegistry(app);
+      const registry = new AgentRegistry(app, () => ({ defaultModel: "gpt-mock" }) as any);
       await registry.scan("agents");
 
       const enabled = registry.getEnabledAgents();
@@ -195,7 +195,7 @@ describe("AgentRegistry", () => {
       const { files, fileContents } = buildVault([{ name: "echo", content: ECHO_AGENT_MD }]);
 
       const app = makeApp(files, fileContents);
-      const registry = new AgentRegistry(app);
+      const registry = new AgentRegistry(app, () => ({ defaultModel: "gpt-mock" }) as any);
       await registry.scan("agents");
 
       expect(registry.getAgent("echo")!.config.name).toBe("Echo");
@@ -211,7 +211,7 @@ describe("AgentRegistry", () => {
       const { files, fileContents } = buildVault([{ name: "echo", content: ECHO_AGENT_MD }]);
 
       const app = makeApp(files, fileContents);
-      const registry = new AgentRegistry(app);
+      const registry = new AgentRegistry(app, () => ({ defaultModel: "gpt-mock" }) as any);
       await registry.scan("agents");
 
       // Simulate file deletion — return empty list

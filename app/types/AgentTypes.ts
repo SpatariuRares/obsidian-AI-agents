@@ -19,6 +19,7 @@ export type AgentType = "conversational" | "task" | "scheduled";
 // ---------------------------------------------------------------------------
 
 export interface AgentConfig {
+  language: string;
   name: string;
   description: string;
   author: string;
