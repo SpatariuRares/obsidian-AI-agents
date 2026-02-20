@@ -10,7 +10,7 @@
 
 import { App, Notice, Plugin, PluginSettingTab, Setting, normalizePath } from "obsidian";
 import { PluginSettings } from "@app/types/PluginTypes";
-import { AgentRegistry } from "@app/core/AgentRegistry";
+import { AgentRegistry } from "@app/services/AgentRegistry";
 import { FolderSuggest } from "@app/features/common/suggest/FolderSuggest";
 
 /** Default agent.md content used by the "Create default agent" button. */

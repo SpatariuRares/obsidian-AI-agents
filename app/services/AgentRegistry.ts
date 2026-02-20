@@ -10,7 +10,7 @@
  */
 
 import { App, TFile, normalizePath } from "obsidian";
-import { parseAgentFile, AgentConfigError } from "@app/core/AgentConfig";
+import { parseAgentFile, AgentConfigError } from "@app/services/AgentConfig";
 import { ParsedAgent } from "@app/types/AgentTypes";
 
 export class AgentRegistry {

@@ -60,6 +60,7 @@ export const DEFAULT_CONFIG: AgentConfig = {
   logging_path: "logs",
   logging_format: "daily",
   logging_include_metadata: true,
+  stream: false,
 };
 
 // ---------------------------------------------------------------------------
@@ -139,6 +140,7 @@ export function parseAgentFile(raw: string): AgentParseResult {
     max_context_tokens: typeof parsed.max_context_tokens === "number"
       ? parsed.max_context_tokens
       : DEFAULT_CONFIG.max_context_tokens,
+    stream: parseBool(parsed.stream, false),
     read: Array.isArray(parsed.read) ? parsed.read : DEFAULT_CONFIG.read,
     write: Array.isArray(parsed.write) ? parsed.write : DEFAULT_CONFIG.write,
     create: Array.isArray(parsed.create) ? parsed.create : DEFAULT_CONFIG.create,

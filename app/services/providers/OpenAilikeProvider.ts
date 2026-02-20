@@ -1,7 +1,7 @@
 import { requestUrl, RequestUrlParam } from "obsidian";
 import { ChatMessage, AgentConfig } from "@app/types/AgentTypes";
 import { PluginSettings } from "@app/types/PluginTypes";
-import { BaseProvider, ProviderResponse } from "@app/api/providers/BaseProvider";
+import { BaseProvider, ProviderResponse } from "@app/services/providers/BaseProvider";
 
 export class OpenAilikeProvider extends BaseProvider {
     async chat(
@@ -23,7 +23,7 @@ export class OpenAilikeProvider extends BaseProvider {
             apiKey = settings.openRouter.apiKey;
         }
 
-        const payload: any = {
+        const payload: Record<string, unknown> = {
             model: config.model || "llama3",
             messages: messages.map((m) => ({
                 role: m.role,
@@ -32,13 +32,82 @@ export class OpenAilikeProvider extends BaseProvider {
             temperature: config.temperature ?? 0.7,
             max_tokens: config.max_tokens ?? 2000,
             top_p: config.top_p ?? 0.9,
+            stream: config.stream === true
         };
 
         if (config.stream && onStream) {
-            console.warn("[OpenAilikeProvider] Streaming is requested but currently disabled in favor of default requestUrl for CORS bypass.");
+            try {
+                const response = await fetch(baseUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${apiKey}`,
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error ${response.status}: ${response.statusText}`);
+                }
+
+                const reader = response.body?.getReader();
+                if (!reader) throw new Error("No ReadableStream in response");
+
+                const decoder = new TextDecoder("utf-8");
+                let fullText = "";
+                let buffer = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split("\n");
+                    buffer = lines.pop() || ""; // Keep the last incomplete line in buffer
+
+                    for (const line of lines) {
+                        const trimmed = line.trim();
+                        if (!trimmed || trimmed === "data: [DONE]") continue;
+
+                        if (trimmed.startsWith("data: ")) {
+                            try {
+                                const dataStr = trimmed.slice(6);
+                                // console.log("[OpenAilikeProvider] raw data string:", dataStr);
+                                const data = JSON.parse(dataStr);
+                                const chunkContent = data.choices?.[0]?.delta?.content || "";
+                                if (chunkContent) {
+                                    fullText += chunkContent;
+                                    onStream(chunkContent);
+                                }
+                            } catch (err) {
+                                console.warn("[OpenAilikeProvider] Failed to parse SSE line:", line, err);
+                            }
+                        }
+                    }
+                }
+
+                // Flush remaining buffer
+                if (buffer.trim().startsWith("data: ")) {
+                    try {
+                        const data = JSON.parse(buffer.trim().slice(6));
+                        const chunkContent = data.choices?.[0]?.delta?.content || "";
+                        if (chunkContent) {
+                            fullText += chunkContent;
+                            onStream(chunkContent);
+                        }
+                    } catch (err) {
+                        // ignore
+                    }
+                }
+
+                return { text: fullText };
+            } catch (error) {
+                console.error("[OpenAilikeProvider] Streaming request failed:", error);
+                throw error;
+            }
         }
 
-        // For obsidian requestUrl, streaming is not natively supported in an easy iteration manner.
+        // --- Non-streaming fallback using Obsidian's requestUrl (bypasses CORS) ---
         payload.stream = false;
 
         const requestParams: RequestUrlParam = {

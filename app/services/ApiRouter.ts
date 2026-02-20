@@ -1,7 +1,7 @@
 import { ChatMessage, AgentConfig } from "@app/types/AgentTypes";
 import { PluginSettings } from "@app/types/PluginTypes";
-import { BaseProvider, ProviderResponse } from "@app/api/providers/BaseProvider";
-import { OpenAilikeProvider } from "@app/api/providers/OpenAilikeProvider";
+import { BaseProvider, ProviderResponse } from "@app/services/providers/BaseProvider";
+import { OpenAilikeProvider } from "@app/services/providers/OpenAilikeProvider";
 
 export class ApiRouter {
     /**

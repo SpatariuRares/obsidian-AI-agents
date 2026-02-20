@@ -17,7 +17,7 @@ import { App, TFile, normalizePath } from "obsidian";
 import * as micromatch from "micromatch";
 import { AgentConfig } from "@app/types/AgentTypes";
 import { PluginSettings } from "@app/types/PluginTypes";
-import { loadKnowledgeContent, wrapBlock } from "@app/core/KnowledgeResolver";
+import { loadKnowledgeContent, wrapBlock } from "@app/services/KnowledgeResolver";
 
 // ---------------------------------------------------------------------------
 // Context passed to the resolver

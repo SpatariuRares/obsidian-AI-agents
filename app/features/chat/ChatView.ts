@@ -36,6 +36,10 @@ export class ChatView extends ItemView {
   private agentSelectBtnEl!: HTMLButtonElement;
   private emptyStateEl!: HTMLElement;
 
+  // Streaming render queue state
+  private isRenderingLastMessage = false;
+  private renderLastMessageQueued = false;
+
   constructor(leaf: WorkspaceLeaf, host: ChatViewHost) {
     super(leaf);
     this.host = host;
@@ -217,15 +221,30 @@ export class ChatView extends ItemView {
     if (!activeAgent) return;
 
     try {
-      const messages = this.host.chatManager.getMessages();
-      const response = await ApiRouter.send(
-        messages,
-        activeAgent.config,
-        this.host.chatManager.getSettings()
-      );
+      const messagesForApi = this.host.chatManager.getMessages();
 
-      this.host.chatManager.addMessage("assistant", response.text);
-      await this.renderMessages();
+      if (activeAgent.config.stream) {
+        this.host.chatManager.addMessage("assistant", "");
+        await this.renderMessages();
+
+        await ApiRouter.send(
+          messagesForApi,
+          activeAgent.config,
+          this.host.chatManager.getSettings(),
+          async (chunk: string) => {
+            this.host.chatManager.appendChunkToLastMessage(chunk);
+            await this.updateLastMessage();
+          }
+        );
+      } else {
+        const response = await ApiRouter.send(
+          messagesForApi,
+          activeAgent.config,
+          this.host.chatManager.getSettings()
+        );
+        this.host.chatManager.addMessage("assistant", response.text);
+        await this.renderMessages();
+      }
     } catch (error: unknown) {
       console.error("[ChatView] API Error:", error);
       const errMessage = error instanceof Error ? error.message : String(error);
@@ -257,6 +276,42 @@ export class ChatView extends ItemView {
 
     // Scroll to bottom
     this.messageListEl.scrollTop = this.messageListEl.scrollHeight;
+  }
+
+  private async updateLastMessage(): Promise<void> {
+    if (this.isRenderingLastMessage) {
+      this.renderLastMessageQueued = true;
+      return;
+    }
+
+    this.isRenderingLastMessage = true;
+    try {
+      const messages = this.host.chatManager.getVisibleMessages();
+      if (messages.length === 0) return;
+
+      const lastMsg = messages[messages.length - 1];
+      const lastBubble = this.messageListEl.lastElementChild;
+
+      if (!lastBubble || !lastBubble.classList.contains("ai-agents-chat__message--assistant")) {
+        await this.renderMessages();
+        return;
+      }
+
+      const contentEl = lastBubble.querySelector(".ai-agents-chat__message-content") as HTMLElement;
+      if (contentEl) {
+        contentEl.empty();
+        await MessageRenderer.render(this.app, lastMsg.content, contentEl, "", this);
+        this.messageListEl.scrollTop = this.messageListEl.scrollHeight;
+      } else {
+        await this.renderMessages();
+      }
+    } finally {
+      this.isRenderingLastMessage = false;
+      if (this.renderLastMessageQueued) {
+        this.renderLastMessageQueued = false;
+        await this.updateLastMessage();
+      }
+    }
   }
 
   private async renderMessage(msg: ChatMessage): Promise<void> {

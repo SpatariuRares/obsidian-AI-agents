@@ -14,7 +14,7 @@
 import { App } from "obsidian";
 import { ChatMessage, ParsedAgent } from "@app/types/AgentTypes";
 import { PluginSettings } from "@app/types/PluginTypes";
-import { resolveTemplate } from "@app/core/TemplateEngine";
+import { resolveTemplate } from "@app/services/TemplateEngine";
 
 export class ChatManager {
   private messages: ChatMessage[] = [];
@@ -58,6 +58,18 @@ export class ChatManager {
       content,
       timestamp: Date.now(),
     });
+  }
+
+  /**
+   * Append a chunk of text to the last message in the conversation.
+   * Useful for streaming responses.
+   */
+  appendChunkToLastMessage(chunk: string): void {
+    if (this.messages.length === 0) return;
+    const lastMsg = this.messages[this.messages.length - 1];
+    if (lastMsg.role === "assistant") {
+      lastMsg.content += chunk;
+    }
   }
 
   /**

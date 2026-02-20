@@ -7,9 +7,9 @@
 import { Plugin } from "obsidian";
 import { PluginSettings, DEFAULT_SETTINGS } from "@app/types/PluginTypes";
 import { AIAgentsSettingsTab } from "@app/features/settings/AIAgentsSettingsTab";
-import { AgentRegistry } from "@app/core/AgentRegistry";
-import { ChatManager } from "@app/chat/ChatManager";
-import { ChatView, VIEW_TYPE_CHAT } from "@app/chat/ChatView";
+import { AgentRegistry } from "@app/services/AgentRegistry";
+import { ChatManager } from "@app/services/ChatManager";
+import { ChatView, VIEW_TYPE_CHAT } from "@app/features/chat/ChatView";
 import { LocalizationService } from "@app/i18n";
 
 export default class AIAgentsPlugin extends Plugin {

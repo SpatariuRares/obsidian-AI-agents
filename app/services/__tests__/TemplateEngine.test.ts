@@ -12,7 +12,7 @@ import { App, TFile } from "obsidian";
 import { resolveTemplate, TemplateContext } from "../TemplateEngine";
 import { AgentConfig } from "@app/types/AgentTypes";
 import { DEFAULT_SETTINGS, PluginSettings } from "@app/types/PluginTypes";
-import { DEFAULT_CONFIG } from "@app/core/AgentConfig";
+import { DEFAULT_CONFIG } from "@app/services/AgentConfig";
 
 // ---------------------------------------------------------------------------
 // Helpers
