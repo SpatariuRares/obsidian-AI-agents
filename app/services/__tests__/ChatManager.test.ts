@@ -6,10 +6,10 @@
  */
 
 import { App } from "obsidian";
-import { ChatManager } from "../ChatManager";
+import { ChatManager } from "@app/services/ChatManager";
 import { ParsedAgent } from "@app/types/AgentTypes";
 import { DEFAULT_SETTINGS, PluginSettings } from "@app/types/PluginTypes";
-import { DEFAULT_CONFIG } from "@app/core/AgentConfig";
+import { DEFAULT_CONFIG } from "@app/services/AgentConfig";
 
 // ---------------------------------------------------------------------------
 // Helpers

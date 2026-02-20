@@ -11,9 +11,12 @@
  */
 
 import { ItemView, WorkspaceLeaf, setIcon } from "obsidian";
-import { ChatManager } from "@app/chat/ChatManager";
+import { ChatManager } from "@app/services/ChatManager";
 import { ParsedAgent, ChatMessage } from "@app/types/AgentTypes";
-import { AgentRegistry } from "@app/core/AgentRegistry";
+import { AgentRegistry } from "@app/services/AgentRegistry";
+import { MessageRenderer } from "@app/utils/MessageRenderer";
+import { ApiRouter } from "@app/services/ApiRouter";
+import { AgentSelectorModal } from "@app/ui/AgentSelectorModal";
 
 export const VIEW_TYPE_CHAT = "ai-agents-chat";
 
@@ -30,7 +33,7 @@ export class ChatView extends ItemView {
   private host: ChatViewHost;
   private messageListEl!: HTMLElement;
   private inputEl!: HTMLTextAreaElement;
-  private agentSelectEl!: HTMLSelectElement;
+  private agentSelectBtnEl!: HTMLButtonElement;
   private emptyStateEl!: HTMLElement;
 
   constructor(leaf: WorkspaceLeaf, host: ChatViewHost) {
@@ -62,8 +65,8 @@ export class ChatView extends ItemView {
     this.buildHeader(container);
     this.buildMessageArea(container);
     this.buildInputArea(container);
-    this.refreshAgentSelect();
-    this.renderMessages();
+    this.refreshAgentSelectBtn();
+    await this.renderMessages();
   }
 
   async onClose(): Promise<void> {
@@ -77,16 +80,13 @@ export class ChatView extends ItemView {
   private buildHeader(container: HTMLElement): void {
     const header = container.createDiv({ cls: "ai-agents-chat__header" });
 
-    this.agentSelectEl = header.createEl("select", {
-      cls: "ai-agents-chat__agent-select dropdown",
-    });
-    this.agentSelectEl.addEventListener("change", () => {
-      this.onAgentSelected();
+    this.agentSelectBtnEl = header.createEl("button", {
+      cls: "ai-agents-chat__agent-select-btn",
+      text: "Choose an agent...",
     });
 
-    // Refresh the agent list each time the dropdown is opened
-    this.agentSelectEl.addEventListener("mousedown", () => {
-      this.refreshAgentSelect();
+    this.agentSelectBtnEl.addEventListener("click", () => {
+      this.openAgentModal();
     });
 
     const newSessionBtn = header.createEl("button", {
@@ -95,7 +95,7 @@ export class ChatView extends ItemView {
     });
     setIcon(newSessionBtn, "rotate-ccw");
     newSessionBtn.addEventListener("click", () => {
-      this.onNewSession();
+      this.onNewSession().catch((e: Error) => console.error("New session error:", e));
     });
   }
 
@@ -140,7 +140,7 @@ export class ChatView extends ItemView {
     this.inputEl.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        this.onSendMessage();
+        this.onSendMessage().catch((err: Error) => console.error("Send message error:", err));
       }
     });
 
@@ -150,7 +150,7 @@ export class ChatView extends ItemView {
     });
     setIcon(sendBtn, "send");
     sendBtn.addEventListener("click", () => {
-      this.onSendMessage();
+      this.onSendMessage().catch((err: Error) => console.error("Send message error:", err));
     });
   }
 
@@ -158,52 +158,39 @@ export class ChatView extends ItemView {
   // Agent selector
   // -------------------------------------------------------------------------
 
-  refreshAgentSelect(): void {
-    this.agentSelectEl.empty();
-
-    // Placeholder option
-    const placeholder = this.agentSelectEl.createEl("option", {
-      text: "Choose an agent...",
-      attr: { value: "", disabled: "true" },
-    });
-
-    const agents = this.host.agentRegistry.getEnabledAgents();
+  refreshAgentSelectBtn(): void {
     const activeAgent = this.host.chatManager.getActiveAgent();
 
+    if (activeAgent) {
+      this.agentSelectBtnEl.textContent = `${activeAgent.config.avatar || ""} ${activeAgent.config.name}`.trim();
+    } else {
+      this.agentSelectBtnEl.textContent = "Choose an agent...";
+    }
+  }
+
+  private openAgentModal(): void {
+    const agents = this.host.agentRegistry.getEnabledAgents();
+
     if (agents.length === 0) {
-      placeholder.textContent = "No agents found";
+      // Could show a notice here
+      console.warn("[ChatView] No enabled agents found.");
       return;
     }
 
-    // If no active agent, keep placeholder selected
-    if (!activeAgent) {
-      placeholder.selected = true;
-    }
-
-    for (const agent of agents) {
-      const opt = this.agentSelectEl.createEl("option", {
-        text: `${agent.config.avatar || ""} ${agent.config.name}`.trim(),
-        attr: { value: agent.id },
-      });
-      if (activeAgent && activeAgent.id === agent.id) {
-        opt.selected = true;
-      }
-    }
+    const modal = new AgentSelectorModal(this.app, agents, (agent) => {
+      this.onAgentSelected(agent).catch((e: Error) => console.error("Agent select error:", e));
+    });
+    modal.open();
   }
 
   // -------------------------------------------------------------------------
   // Event handlers
   // -------------------------------------------------------------------------
 
-  private async onAgentSelected(): Promise<void> {
-    const agentId = this.agentSelectEl.value;
-    if (!agentId) return;
-
-    const agent = this.host.agentRegistry.getAgent(agentId);
-    if (!agent) return;
-
+  private async onAgentSelected(agent: ParsedAgent): Promise<void> {
     await this.host.chatManager.startSession(agent);
-    this.renderMessages();
+    this.refreshAgentSelectBtn();
+    await this.renderMessages();
     this.inputEl.focus();
   }
 
@@ -211,7 +198,7 @@ export class ChatView extends ItemView {
     const activeAgent = this.host.chatManager.getActiveAgent();
     if (activeAgent) {
       await this.host.chatManager.startSession(activeAgent);
-      this.renderMessages();
+      await this.renderMessages();
       this.inputEl.focus();
     }
   }
@@ -224,17 +211,34 @@ export class ChatView extends ItemView {
     this.host.chatManager.addMessage("user", text);
     this.inputEl.value = "";
     this.inputEl.style.height = "auto";
-    this.renderMessages();
+    await this.renderMessages();
 
-    // TODO: Phase 3 — send to ApiRouter and get assistant response
-    // For now, just show the user message.
+    const activeAgent = this.host.chatManager.getActiveAgent();
+    if (!activeAgent) return;
+
+    try {
+      const messages = this.host.chatManager.getMessages();
+      const response = await ApiRouter.send(
+        messages,
+        activeAgent.config,
+        this.host.chatManager.getSettings()
+      );
+
+      this.host.chatManager.addMessage("assistant", response.text);
+      await this.renderMessages();
+    } catch (error: unknown) {
+      console.error("[ChatView] API Error:", error);
+      const errMessage = error instanceof Error ? error.message : String(error);
+      this.host.chatManager.addMessage("assistant", `**Error:** ${errMessage}`);
+      await this.renderMessages();
+    }
   }
 
   // -------------------------------------------------------------------------
   // Rendering
   // -------------------------------------------------------------------------
 
-  renderMessages(): void {
+  async renderMessages(): Promise<void> {
     const hasSession = this.host.chatManager.hasActiveSession();
 
     // Toggle empty state vs message list
@@ -248,14 +252,14 @@ export class ChatView extends ItemView {
     const messages = this.host.chatManager.getVisibleMessages();
 
     for (const msg of messages) {
-      this.renderMessage(msg);
+      await this.renderMessage(msg);
     }
 
     // Scroll to bottom
     this.messageListEl.scrollTop = this.messageListEl.scrollHeight;
   }
 
-  private renderMessage(msg: ChatMessage): void {
+  private async renderMessage(msg: ChatMessage): Promise<void> {
     const bubble = this.messageListEl.createDiv({
       cls: `ai-agents-chat__message ai-agents-chat__message--${msg.role}`,
     });
@@ -270,6 +274,6 @@ export class ChatView extends ItemView {
     }
 
     const content = bubble.createDiv({ cls: "ai-agents-chat__message-content" });
-    content.textContent = msg.content;
+    await MessageRenderer.render(this.app, msg.content, content, "", this);
   }
 }

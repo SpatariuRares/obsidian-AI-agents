@@ -71,9 +71,9 @@ export class AbstractInputSuggest<T> {
     this.app = app;
   }
   getSuggestions(_query: string): T[] { return []; }
-  renderSuggestion(_item: T, _el: HTMLElement): void {}
-  selectSuggestion(_item: T): void {}
-  close(): void {}
+  renderSuggestion(_item: T, _el: HTMLElement): void { }
+  selectSuggestion(_item: T): void { }
+  close(): void { }
 }
 
 /**
@@ -81,8 +81,8 @@ export class AbstractInputSuggest<T> {
  * Tests can verify it was called without needing the real UI.
  */
 export class Notice {
-  constructor(_message: string, _timeout?: number) {}
-  hide(): void {}
+  constructor(_message: string, _timeout?: number) { }
+  hide(): void { }
 }
 
 /**
@@ -94,7 +94,7 @@ export class Notice {
  * test value so that onChange handler bodies execute during tests.
  */
 export class Setting {
-  constructor(_containerEl: unknown) {}
+  constructor(_containerEl: unknown) { }
 
   setName(_name: string): this {
     return this;
@@ -197,8 +197,8 @@ export class PluginSettingTab {
     this.app = app;
   }
 
-  display(): void {}
-  hide(): void {}
+  display(): void { }
+  hide(): void { }
 }
 
 /**
@@ -221,12 +221,12 @@ export class ItemView {
   getViewType(): string { return ""; }
   getDisplayText(): string { return ""; }
   getIcon(): string { return ""; }
-  async onOpen(): Promise<void> {}
-  async onClose(): Promise<void> {}
+  async onOpen(): Promise<void> { }
+  async onClose(): Promise<void> { }
 }
 
 /** setIcon — sets a Lucide icon on an element. Stubbed as no-op. */
-export function setIcon(_el: HTMLElement, _icon: string): void {}
+export function setIcon(_el: HTMLElement, _icon: string): void { }
 
 /**
  * Plugin — base class for Obsidian plugins.
@@ -255,9 +255,9 @@ export class MarkdownRenderChild {
     this.containerEl = containerEl;
   }
 
-  onload(): void {}
-  onunload(): void {}
-  register(_cb: () => void): void {}
+  onload(): void { }
+  onunload(): void { }
+  register(_cb: () => void): void { }
   registerEvent = jest.fn();
 }
 
@@ -265,7 +265,6 @@ export class MarkdownRenderChild {
  * parseYaml — parse a YAML string into a plain object.
  * Uses js-yaml (same library Obsidian uses internally) for full YAML support.
  */
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const jsYaml = require("js-yaml");
 export const parseYaml = jest
   .fn()

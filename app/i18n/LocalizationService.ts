@@ -65,8 +65,8 @@ export class LocalizationService {
         t: (key: string) => key, // Return key as fallback
         getCurrentLocale: () => "en",
         hasKey: () => false,
-        reload: () => {},
-        destroy: () => {},
+        reload: () => { },
+        destroy: () => { },
       } as unknown as LocalizationService;
     }
     return LocalizationService.instance;
@@ -126,7 +126,7 @@ export class LocalizationService {
       // NOTE: This will be bundled by esbuild
       const localeFile = require(`./locales/${locale}.json`);
       return localeFile as Translations;
-    } catch (error) {
+    } catch (_error) {
       console.warn(`[i18n] Locale file not found: ${locale}.json`);
       // Return empty object if file doesn't exist
       return {};

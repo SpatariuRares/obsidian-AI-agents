@@ -9,7 +9,7 @@
  */
 
 import { App, TFile } from "obsidian";
-import { AgentRegistry } from "../AgentRegistry";
+import { AgentRegistry } from "@app/services/AgentRegistry";
 
 // ---------------------------------------------------------------------------
 // Sample agent.md contents
@@ -89,7 +89,7 @@ describe("AgentRegistry", () => {
     });
 
     it("should skip agents with invalid config", async () => {
-      const spy = jest.spyOn(console, "warn").mockImplementation(() => {});
+      const spy = jest.spyOn(console, "warn").mockImplementation(() => { });
 
       const { files, fileContents } = buildVault([
         { name: "echo", content: ECHO_AGENT_MD },
@@ -109,7 +109,7 @@ describe("AgentRegistry", () => {
     });
 
     it("should handle empty vault gracefully", async () => {
-      const spy = jest.spyOn(console, "warn").mockImplementation(() => {});
+      const spy = jest.spyOn(console, "warn").mockImplementation(() => { });
 
       const app = makeApp([], new Map());
       const registry = new AgentRegistry(app);

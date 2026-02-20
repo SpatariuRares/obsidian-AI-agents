@@ -29,6 +29,10 @@ export interface AgentConfig {
   type: AgentType;
   provider: string;
   model: string;
+  temperature?: number;
+  max_tokens?: number;
+  top_p?: number;
+  stream?: boolean;
   sources: string[];
   strategy: string;
   max_context_tokens: number;

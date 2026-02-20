@@ -56,60 +56,58 @@ Ogni agente è definito da un singolo `agent.md`. Il frontmatter YAML è la conf
 
 ```yaml
 ---
-metadata:
-  name: "Writing Coach"
-  version: "1.0"
-  description: "Helps improve writing style and clarity"
-  author: "User"
-  avatar: "✍️"               # Emoji o path a immagine nel vault
-  created: "2026-01-24"
-  updated: "2026-01-25"
-
-agent:
-  enabled: true               # true/false — disabilita senza cancellare
-  type: "conversational"      # conversational | task | scheduled
-  model:
-    primary: "gemini-flash"
-    fallback: "gpt_oss_free"  # Modello di fallback se il primario fallisce
-
-  parameters:
-    temperature: 0.7
-    max_tokens: 2000
-    top_p: 0.9
-    stream: true              # Streaming delle risposte
-
-knowledge:
-  sources:                    # Path RELATIVI AL VAULT ROOT (non alla cartella agente)
-    - "knowledge/company/**"  # Tutta la sottocartella company
-    - "knowledge/docs/api-reference.md"  # File singolo
-    - "data/context.md"       # File in un'altra cartella del vault
-    - "journal/2026-*.md"     # Glob pattern
-  strategy: "inject_all"      # inject_all | on_demand | rag
-  max_context_tokens: 4000    # Limite token per il contesto knowledge
-
-permissions:
-  read:                       # Path che l'agente può leggere
-    - "data/**"
-    - "journal/**"
-    - "tasks/**"
-  write:                      # Path che l'agente può modificare
-    - "data/context.md"
-    - "tasks/*.md"
-  create:                     # Path dove l'agente può creare file
-    - "logs/**"
-    - "tasks/**"
-  move:                       # Path da cui l'agente può spostare file
-    - "inbox/**"
-  delete: []                  # Di default nessun permesso di delete
-
-  vault_root_access: false    # Blocca accesso fuori dai path definiti
-  confirm_destructive: true   # Chiede conferma per write/move/delete
-
-logging:
-  enabled: true
-  path: "logs"                # Relativo alla cartella agente
-  format: "daily"             # daily | per_session | single
-  include_metadata: true      # Salva model, tokens usati, timestamp
+name: "Writing Coach"
+description: "Helps improve writing style and clarity"
+author: "User"
+avatar: "✍️"
+enabled: "true"
+type: "conversational"      # conversational | task | scheduled
+provider: "ollama"
+#TODO: add in interface
+temperature: 0.7
+max_tokens: 2000
+top_p: 0.9
+stream: true              # Streaming delle risposte
+model: "llama3"
+sources: [                   # Path RELATIVI AL VAULT ROOT (non alla cartella agente)
+    "knowledge/company/**"  # Tutta la sottocartella company
+    ,"knowledge/docs/api-reference.md"  # File singolo
+    , "data/context.md"       # File in un'altra cartella del vault
+    , "journal/2026-*.md"     # Glob pattern
+]
+strategy: "inject_all"
+max_context_tokens: 4000
+read: [
+    "data/**",
+     "journal/**",
+    "tasks/**"
+]
+write: [
+    "data/**",
+     "journal/**",
+    "tasks/**"
+]
+create: [
+    "data/**",
+     "journal/**",
+    "tasks/**"
+]
+move: [
+    "data/**",
+     "journal/**",
+    "tasks/**"
+]
+delete: [
+    "data/**",
+     "journal/**",
+    "tasks/**"
+]
+vault_root_access: "false"
+confirm_destructive: "true"
+logging_enabled: "false"
+logging_path: "logs"
+logging_format: "daily"
+logging_include_metadata: "true"
 ---
 
 You are a **Writing Coach**. Your role is to help the user improve their
@@ -137,6 +135,7 @@ Always suggest a rewritten version when critiquing.
 ### 3.1 Parsing
 
 Il plugin splitta il file su `---`:
+
 - **Parte 1** (frontmatter) → `parseYaml()` → oggetto config
 - **Parte 2** (body) → stringa raw del system prompt → passa al `TemplateEngine`
 
@@ -150,13 +149,14 @@ Tutti i path in `knowledge.sources` sono **relativi al vault root**, non alla ca
 - **Isolamento**: l'agente vede solo i file dichiarati, non tutto il vault
 
 Esempi validi:
+
 ```yaml
 knowledge:
   sources:
-    - "knowledge/company/**"            # Tutti i file ricorsivi
-    - "projects/current/README.md"      # Singolo file specifico
-    - "notes/2026-01-*.md"              # Pattern temporale
-    - "shared-kb/**/*.md"               # Solo .md ricorsivi
+    - "knowledge/company/**" # Tutti i file ricorsivi
+    - "projects/current/README.md" # Singolo file specifico
+    - "notes/2026-01-*.md" # Pattern temporale
+    - "shared-kb/**/*.md" # Solo .md ricorsivi
 ```
 
 ---
@@ -165,21 +165,22 @@ knowledge:
 
 Il body markdown di `agent.md` è il system prompt. Supporta queste variabili che il `TemplateEngine` risolve prima di inviare al modello:
 
-| Variabile | Descrizione |
-|---|---|
-| `{{agent_name}}` | Nome dell'agente dal frontmatter `metadata.name` |
-| `{{user_name}}` | Nome utente dalle settings del plugin |
-| `{{date}}` | Data corrente (YYYY-MM-DD) |
-| `{{time}}` | Ora corrente (HH:MM) |
-| `{{datetime}}` | Data e ora completa |
-| `{{READ: path/to/file.md}}` | Inietta il contenuto di un file specifico dal vault |
-| `{{knowledge_context}}` | Inietta tutti i file dichiarati in `knowledge.sources` |
-| `{{conversation_summary}}` | Riassunto delle ultime N conversazioni dai log |
-| `{{vault_structure}}` | Albero delle cartelle accessibili (basato su permissions.read) |
+| Variabile                   | Descrizione                                                    |
+| --------------------------- | -------------------------------------------------------------- |
+| `{{agent_name}}`            | Nome dell'agente dal frontmatter `metadata.name`               |
+| `{{user_name}}`             | Nome utente dalle settings del plugin                          |
+| `{{date}}`                  | Data corrente (YYYY-MM-DD)                                     |
+| `{{time}}`                  | Ora corrente (HH:MM)                                           |
+| `{{datetime}}`              | Data e ora completa                                            |
+| `{{READ: path/to/file.md}}` | Inietta il contenuto di un file specifico dal vault            |
+| `{{knowledge_context}}`     | Inietta tutti i file dichiarati in `knowledge.sources`         |
+| `{{conversation_summary}}`  | Riassunto delle ultime N conversazioni dai log                 |
+| `{{vault_structure}}`       | Albero delle cartelle accessibili (basato su permissions.read) |
 
 ### Risoluzione `{{READ: ...}}`
 
 Il path è relativo al vault root. Il `TemplateEngine`:
+
 1. Verifica che il path sia nei `permissions.read` o in `knowledge.sources`
 2. Legge il file dal vault
 3. Lo wrappa in un blocco contestuale per il modello:
@@ -226,10 +227,7 @@ obsidian-ai-agents/
       │   ├── ApiRouter.ts            # Smista al provider corretto
       │   ├── providers/
       │   │   ├── BaseProvider.ts     # Interfaccia comune
-      │   │   ├── OpenAIProvider.ts   # OpenAI e compatibili (oss_free)
-      │   │   ├── GeminiProvider.ts   # Google Gemini
-      │   │   ├── AnthropicProvider.ts# Claude API
-      │   │   └── MistralProvider.ts  # Mistral
+      │   │   ├── OpenAilikeProvider.ts   # ollama e openrouter
       │   └── ToolHandler.ts          # Gestisce function calling / tool use
       │
       ├── fileops/
@@ -334,14 +332,14 @@ Utente invia messaggio
 
 ### 7.1 Operazioni
 
-| Operazione | Permesso richiesto | Descrizione |
-|---|---|---|
-| `vault.read(path)` | `permissions.read` | Legge contenuto file |
-| `vault.modify(path, content)` | `permissions.write` | Modifica file esistente |
-| `vault.create(path, content)` | `permissions.create` | Crea nuovo file |
-| `fileManager.rename(file, newPath)` | `permissions.move` | Sposta/rinomina file |
-| `vault.delete(file)` | `permissions.delete` | Elimina file |
-| `vault.adapter.list(path)` | `permissions.read` | Lista contenuto cartella |
+| Operazione                          | Permesso richiesto   | Descrizione              |
+| ----------------------------------- | -------------------- | ------------------------ |
+| `vault.read(path)`                  | `permissions.read`   | Legge contenuto file     |
+| `vault.modify(path, content)`       | `permissions.write`  | Modifica file esistente  |
+| `vault.create(path, content)`       | `permissions.create` | Crea nuovo file          |
+| `fileManager.rename(file, newPath)` | `permissions.move`   | Sposta/rinomina file     |
+| `vault.delete(file)`                | `permissions.delete` | Elimina file             |
+| `vault.adapter.list(path)`          | `permissions.read`   | Lista contenuto cartella |
 
 ### 7.2 Glob Matching
 
@@ -372,8 +370,8 @@ const tools = [
     name: "read_file",
     description: "Leggi il contenuto di un file dal vault",
     parameters: {
-      path: { type: "string", description: "Path relativo al vault root" }
-    }
+      path: { type: "string", description: "Path relativo al vault root" },
+    },
   },
   {
     name: "write_file",
@@ -381,42 +379,42 @@ const tools = [
     parameters: {
       path: { type: "string" },
       content: { type: "string" },
-      mode: { type: "string", enum: ["overwrite", "append", "prepend"] }
-    }
+      mode: { type: "string", enum: ["overwrite", "append", "prepend"] },
+    },
   },
   {
     name: "create_file",
     description: "Crea un nuovo file nel vault",
     parameters: {
       path: { type: "string" },
-      content: { type: "string" }
-    }
+      content: { type: "string" },
+    },
   },
   {
     name: "move_file",
     description: "Sposta o rinomina un file",
     parameters: {
       from: { type: "string" },
-      to: { type: "string" }
-    }
+      to: { type: "string" },
+    },
   },
   {
     name: "list_files",
     description: "Lista file in una cartella",
     parameters: {
       path: { type: "string" },
-      recursive: { type: "boolean" }
-    }
+      recursive: { type: "boolean" },
+    },
   },
   {
     name: "search_vault",
     description: "Cerca testo nei file del vault",
     parameters: {
       query: { type: "string" },
-      path: { type: "string", description: "Cartella dove cercare" }
-    }
-  }
-]
+      path: { type: "string", description: "Cartella dove cercare" },
+    },
+  },
+];
 ```
 
 Le tools vengono generate dinamicamente in base ai permessi dell'agente: se non ha `write`, la tool `write_file` non viene inclusa.
@@ -463,7 +461,7 @@ total_tokens: 3420
 ```typescript
 interface PluginSettings {
   // Cartella agenti
-  agentsFolder: string;            // default: "agents"
+  agentsFolder: string; // default: "agents"
 
   // API Keys (salvate in data.json, encrypted)
   apiKeys: {
@@ -471,27 +469,27 @@ interface PluginSettings {
     gemini?: string;
     anthropic?: string;
     mistral?: string;
-    custom?: Record<string, string>;  // Per endpoint custom/oss
+    custom?: Record<string, string>; // Per endpoint custom/oss
   };
 
   // Provider custom (per modelli self-hosted)
   customProviders: {
     name: string;
     baseUrl: string;
-    apiKeyRef: string;             // Riferimento a apiKeys.custom
-    isOpenAICompatible: boolean;   // Usa formato OpenAI
+    apiKeyRef: string; // Riferimento a apiKeys.custom
+    isOpenAICompatible: boolean; // Usa formato OpenAI
   }[];
 
   // Utente
-  userName: string;                // Per {{user_name}} nel prompt
-  locale: string;                  // it, en, etc.
+  userName: string; // Per {{user_name}} nel prompt
+  locale: string; // it, en, etc.
 
   // Comportamento
   defaultModel: string;
-  maxHistoryMessages: number;      // Quanti messaggi mantenere nel context
-  autoSaveInterval: number;        // Secondi tra auto-save del log
-  confirmDestructiveOps: boolean;  // Override globale conferma operazioni
-  maxFileOpsPerMessage: number;    // Rate limit operazioni file
+  maxHistoryMessages: number; // Quanti messaggi mantenere nel context
+  autoSaveInterval: number; // Secondi tra auto-save del log
+  confirmDestructiveOps: boolean; // Override globale conferma operazioni
+  maxFileOpsPerMessage: number; // Rate limit operazioni file
 
   // UI
   chatPosition: "right" | "left" | "tab";
@@ -506,31 +504,27 @@ interface PluginSettings {
 
 ### Fase 1 — Fondamenta (settimana 1-2)
 
-- [ ] Scaffold progetto (manifest, package.json, esbuild)
-- [ ] `types.ts` — Tutte le interfacce TypeScript
-- [ ] `AgentConfig.ts` — Parser agent.md (frontmatter → config, body → prompt)
-- [ ] `AgentRegistry.ts` — Scansione cartella, lifecycle agenti
-- [ ] `KnowledgeResolver.ts` — Espansione glob, caricamento file da qualsiasi path nel vault
-- [ ] `TemplateEngine.ts` — Risoluzione {{variabili}} nel body di agent.md
-- [ ] `settings.ts` — Settings tab con API keys e configurazione base
-- [ ] Test: creare 2-3 agenti di esempio e verificare parsing corretto
+- [x] **DONE** Scaffold progetto (manifest, package.json, esbuild)
+- [x] **DONE** `types.ts` — Tutte le interfacce TypeScript (`AgentTypes.ts`, `PluginTypes.ts`)
+- [x] **DONE** `AgentConfig.ts` — Parser agent.md (frontmatter → config, body → prompt)
+- [x] **DONE** `AgentRegistry.ts` — Scansione cartella, lifecycle agenti
+- [x] **DONE** `KnowledgeResolver.ts` — Espansione glob, caricamento file da qualsiasi path nel vault
+- [x] **DONE** `TemplateEngine.ts` — Risoluzione {{variabili}} nel body di agent.md
+- [x] **DONE** `settings.ts` — Settings tab con API keys e configurazione base
+- [x] **DONE** Test: creare 2-3 agenti di esempio e verificare parsing corretto
 
 ### Fase 2 — Chat Core (settimana 3-4)
 
-- [ ] `ChatView.ts` — Vista principale con lista messaggi e input
-- [ ] `ChatManager.ts` — Gestione sessione, history, context window
-- [ ] `MessageRenderer.ts` — Render markdown nelle risposte
-- [ ] `AgentSelectorModal.ts` — Modale scelta agente
-- [ ] `ApiRouter.ts` + `BaseProvider.ts` — Interfaccia comune provider
-- [ ] `OpenAIProvider.ts` — Primo provider (copre anche OSS compatibili)
+- [x] **DONE** `ChatView.ts` — Vista principale con lista messaggi e input
+- [x] **DONE** `ChatManager.ts` — Gestione sessione, history, context window
+- [x] **DONE** `MessageRenderer.ts` — Render markdown nelle risposte
+- [x] **DONE** `AgentSelectorModal.ts` — Modale scelta agente (Sostituisce select inline in ChatView)
+- [x] **DONE** `ApiRouter.ts` + `BaseProvider.ts` — Interfaccia comune provider
+- [x] **DONE** `OpenAilikeProvider.ts` — ollama e openrouter
 - [ ] Test: chat funzionante con un modello OpenAI-compatible
 
-### Fase 3 — Multi-Provider (settimana 5)
+### Fase 3 — Provider (settimana 5)
 
-- [ ] `GeminiProvider.ts`
-- [ ] `AnthropicProvider.ts`
-- [ ] `MistralProvider.ts`
-- [ ] Fallback automatico: se primary fallisce, passa a fallback model
 - [ ] Streaming responses per tutti i provider
 - [ ] Test: verificare tutti i provider, fallback, streaming
 
@@ -568,14 +562,14 @@ interface PluginSettings {
 
 ## 12. Comandi Obsidian
 
-| Comando | Hotkey suggerito | Descrizione |
-|---|---|---|
-| `Open Agent Chat` | `Ctrl+Shift+A` | Apre la chat view |
-| `Switch Agent` | `Ctrl+Shift+S` | Modale cambio agente |
-| `New Chat Session` | `Ctrl+Shift+N` | Nuova sessione con agente corrente |
-| `Reload Agents` | — | Riscansiona cartella agents/ |
-| `View Agent Logs` | — | Apre i log dell'agente corrente |
-| `Create New Agent` | — | Wizard creazione nuovo agente |
+| Comando            | Hotkey suggerito | Descrizione                        |
+| ------------------ | ---------------- | ---------------------------------- |
+| `Open Agent Chat`  | `Ctrl+Shift+A`   | Apre la chat view                  |
+| `Switch Agent`     | `Ctrl+Shift+S`   | Modale cambio agente               |
+| `New Chat Session` | `Ctrl+Shift+N`   | Nuova sessione con agente corrente |
+| `Reload Agents`    | —                | Riscansiona cartella agents/       |
+| `View Agent Logs`  | —                | Apre i log dell'agente corrente    |
+| `Create New Agent` | —                | Wizard creazione nuovo agente      |
 
 ---
 
@@ -617,23 +611,30 @@ vault/
 ```
 
 ### Esempio `agents/echo/agent.md`
+
 ```yaml
 ---
-metadata:
-  name: "Echo"
-  avatar: "🔊"
-agent:
-  enabled: true
-  model:
-    primary: "gpt_oss_free"
-  parameters:
-    temperature: 0
-    max_tokens: 500
-knowledge:
-  sources: []
-permissions: {}
-logging:
-  enabled: false
+---
+description: "Helps improve writing style and clarity"
+author: "User"
+name: "Echo"
+avatar: "🔊"
+enabled: "true"
+type: "conversational"      # conversational | task | scheduled
+provider: "ollama"
+#TODO: add in interface
+temperature: 0.7
+max_tokens: 2000
+top_p: 0.9
+stream: true              # Streaming delle risposte
+strategy: "inject_all"
+max_context_tokens: 4000
+vault_root_access: "false"
+confirm_destructive: "true"
+logging_enabled: "false"
+logging_path: "logs"
+logging_format: "daily"
+logging_include_metadata: "true"
 ---
 
 Sei un bot di echo. Ripeti esattamente quello che dice l'utente,
@@ -641,34 +642,30 @@ preceduto da "Echo: ". Non aggiungere nient'altro.
 ```
 
 ### Esempio `agents/file_tester/agent.md`
+
 ```yaml
 ---
-metadata:
-  name: "File Tester"
-  avatar: "🔧"
-agent:
-  enabled: true
-  model:
-    primary: "gpt_oss_free"
-  parameters:
-    temperature: 0.3
-    max_tokens: 1000
-knowledge:
-  sources:
-    - "knowledge/test/**"
-  strategy: "inject_all"
-permissions:
-  read: ["test_sandbox/**", "knowledge/test/**"]
-  write: ["test_sandbox/**"]
-  create: ["test_sandbox/**"]
-  move: ["test_sandbox/**"]
-  delete: []
-  confirm_destructive: true
-logging:
-  enabled: true
-  format: "daily"
+description: "Helps improve writing style and clarity"
+author: "User"
+name: "File Tester"
+avatar: "🔧"
+enabled: "true"
+type: "conversational" # conversational | task | scheduled
+provider: "ollama"
+#TODO: add in interface
+temperature: 0.7
+max_tokens: 2000
+top_p: 0.9
+stream: true # Streaming delle risposte
+strategy: "inject_all"
+max_context_tokens: 4000
+vault_root_access: "false"
+confirm_destructive: "true"
+logging_enabled: "false"
+logging_path: "logs"
+logging_format: "daily"
+logging_include_metadata: "true"
 ---
-
 Sei un agente di test per le operazioni file. Quando l'utente ti chiede
 di leggere, scrivere, creare o spostare file, esegui l'operazione
 richiesta nella cartella test_sandbox/.

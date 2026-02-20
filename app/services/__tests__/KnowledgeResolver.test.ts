@@ -5,7 +5,7 @@
  */
 
 import { App, TFile } from "obsidian";
-import { resolveGlobs, loadKnowledgeContent, wrapBlock } from "../KnowledgeResolver";
+import { resolveGlobs, loadKnowledgeContent, wrapBlock } from "@app/services/KnowledgeResolver";
 
 // ---------------------------------------------------------------------------
 // Helpers

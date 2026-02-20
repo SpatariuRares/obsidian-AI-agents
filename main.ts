@@ -41,7 +41,7 @@ export default class AIAgentsPlugin extends Plugin {
 
     // Ribbon icon — opens the chat panel
     this.addRibbonIcon("bot", "Open AI agents chat", () => {
-      this.activateChatView();
+      this.activateChatView().catch((e: Error) => console.error("Failed to activate chat view", e));
     });
 
     // Commands
@@ -49,7 +49,7 @@ export default class AIAgentsPlugin extends Plugin {
       id: "open-chat",
       name: "Open agent chat",
       callback: () => {
-        this.activateChatView();
+        this.activateChatView().catch((e: Error) => console.error("Failed to activate chat view", e));
       },
     });
 
@@ -63,7 +63,7 @@ export default class AIAgentsPlugin extends Plugin {
   }
 
   onunload(): void {
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_CHAT);
+    // L'interfaccia utente verrà gestita da Obsidian: this.app.workspace.detachLeavesOfType(VIEW_TYPE_CHAT);
     LocalizationService.getInstance()?.destroy();
   }
 
@@ -76,7 +76,7 @@ export default class AIAgentsPlugin extends Plugin {
 
     if (existing.length > 0) {
       // Already open — just reveal it
-      this.app.workspace.revealLeaf(existing[0]);
+      this.app.workspace.revealLeaf(existing[0]).catch((e: Error) => console.error("Reveal leaf error:", e));
       return;
     }
 
@@ -84,7 +84,7 @@ export default class AIAgentsPlugin extends Plugin {
     const leaf = this.app.workspace.getRightLeaf(false);
     if (leaf) {
       await leaf.setViewState({ type: VIEW_TYPE_CHAT, active: true });
-      this.app.workspace.revealLeaf(leaf);
+      this.app.workspace.revealLeaf(leaf).catch((e: Error) => console.error("Reveal leaf error:", e));
     }
   }
 

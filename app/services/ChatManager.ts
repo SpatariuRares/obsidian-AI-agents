@@ -95,4 +95,8 @@ export class ChatManager {
   updateSettings(settings: PluginSettings): void {
     this.settings = settings;
   }
+
+  getSettings(): PluginSettings {
+    return this.settings;
+  }
 }

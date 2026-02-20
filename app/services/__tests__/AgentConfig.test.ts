@@ -6,7 +6,7 @@
  *   - parseAgentFile: full parsing with validation and defaults
  */
 
-import { splitFrontmatter, parseAgentFile, AgentConfigError } from "../AgentConfig";
+import { splitFrontmatter, parseAgentFile, AgentConfigError } from "@app/services/AgentConfig";
 
 // ---------------------------------------------------------------------------
 // Helpers — sample agent.md contents
