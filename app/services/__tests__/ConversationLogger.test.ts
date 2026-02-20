@@ -1,5 +1,5 @@
 import { ConversationLogger } from "../ConversationLogger";
-import { App } from "obsidian";
+import { App, TFile } from "obsidian";
 import { ParsedAgent, ChatMessage } from "@app/types/AgentTypes";
 
 describe("ConversationLogger", () => {
@@ -13,7 +13,8 @@ describe("ConversationLogger", () => {
             getAbstractFileByPath: jest.fn(),
             create: jest.fn(),
             createFolder: jest.fn(),
-            append: jest.fn()
+            append: jest.fn(),
+            getFolderByPath: jest.fn()
         };
         mockFileManager = {
             processFrontMatter: jest.fn(async (file, cb) => {
@@ -62,16 +63,17 @@ describe("ConversationLogger", () => {
         expect(createArgs[1]).toContain("total_tokens: 15");
         expect(mockVault.append).toHaveBeenCalled();
         const appendArgs = mockVault.append.mock.calls[0];
-        expect(appendArgs[1]).toContain("🔧 Tool calls: test_tool");
+        expect(appendArgs[1]).toContain("**🔧 Tool calls:** test_tool");
     });
 
     it("should append to existing file and update frontmatter", async () => {
-        const mockFile = {};
+        const mockFile = Object.create(TFile.prototype);
         // Simulate folder exists, file exists
         mockVault.getAbstractFileByPath.mockImplementation((path: string) => {
-            if (path.includes("logs/")) return mockFile;
-            return {}; // folder exists
+            if (path.includes(".md")) return mockFile;
+            return null;
         });
+        mockVault.getFolderByPath.mockReturnValue({});
 
         await logger.appendLog(mockAgent, mockUserMsg, mockAsstMsg, undefined, false);
 

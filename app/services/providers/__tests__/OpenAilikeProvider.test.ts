@@ -5,6 +5,14 @@ import { requestUrl } from "obsidian";
 
 jest.mock("obsidian", () => ({
     requestUrl: jest.fn(),
+    Modal: class { },
+    Setting: class {
+        addButton() { return this; }
+        setButtonText() { return this; }
+        setCta() { return this; }
+        onClick() { return this; }
+        setWarning() { return this; }
+    }
 }));
 
 describe("OpenAilikeProvider", () => {

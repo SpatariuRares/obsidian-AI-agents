@@ -1,6 +1,17 @@
 import { ToolHandler } from "@app/services/ToolHandler";
 import { AgentConfig, DEFAULT_CONFIG } from "@app/types/AgentTypes";
 
+jest.mock("obsidian", () => ({
+    Modal: class { },
+    Setting: class {
+        addButton() { return this; }
+        setButtonText() { return this; }
+        setCta() { return this; }
+        onClick() { return this; }
+        setWarning() { return this; }
+    }
+}));
+
 describe("ToolHandler", () => {
     it("should return empty list if no permissions are granted", () => {
         const config: AgentConfig = { ...DEFAULT_CONFIG, name: "Test", read: [], write: [], create: [], move: [], delete: [] };

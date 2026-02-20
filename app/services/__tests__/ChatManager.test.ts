@@ -20,6 +20,7 @@ function makeApp(): App {
   app.vault.getFiles = jest.fn().mockReturnValue([]);
   app.vault.getAbstractFileByPath = jest.fn().mockReturnValue(null);
   app.vault.read = jest.fn().mockResolvedValue("");
+  app.workspace = { trigger: jest.fn() } as any;
   return app;
 }
 

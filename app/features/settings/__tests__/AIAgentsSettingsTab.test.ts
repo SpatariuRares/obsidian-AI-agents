@@ -19,7 +19,7 @@ jest.mock("obsidian", () => {
     ...actual,
     Notice: class {
       constructor(msg: string) { noticeSpy(msg); }
-      hide() {}
+      hide() { }
     },
   };
 });
@@ -161,7 +161,7 @@ describe("AIAgentsSettingsTab", () => {
       expect(
         (plugin.agentRegistry as unknown as { scan: jest.Mock }).scan,
       ).toHaveBeenCalledWith("agents");
-      expect(noticeSpy).toHaveBeenCalledWith("Default agent created successfully.");
+      expect(noticeSpy).toHaveBeenCalledWith("notices.defaultAgentCreated");
     });
 
     it("should not create if agent file already exists", async () => {
@@ -171,7 +171,7 @@ describe("AIAgentsSettingsTab", () => {
       await (tab as unknown as { createDefaultAgent(): Promise<void> }).createDefaultAgent();
 
       expect(app.vault.create).not.toHaveBeenCalled();
-      expect(noticeSpy).toHaveBeenCalledWith("Default agent already exists.");
+      expect(noticeSpy).toHaveBeenCalledWith("notices.defaultAgentExists");
     });
 
     it("should show error notice when vault.create fails", async () => {
@@ -180,7 +180,7 @@ describe("AIAgentsSettingsTab", () => {
 
       await (tab as unknown as { createDefaultAgent(): Promise<void> }).createDefaultAgent();
 
-      expect(noticeSpy).toHaveBeenCalledWith("Failed to create agent: disk full");
+      expect(noticeSpy).toHaveBeenCalledWith("notices.defaultAgentFailed");
     });
 
     it("should use default folder when agentsFolder is empty", async () => {

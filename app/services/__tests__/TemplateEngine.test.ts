@@ -221,7 +221,7 @@ describe("resolveTemplate — READ directive", () => {
     });
 
     const result = await resolveTemplate("{{READ: private/secret.md}}", ctx);
-    expect(result).toContain("[READ denied");
+    expect(result).toContain("templateEngine.readDenied");
     expect(result).not.toContain("top secret");
   });
 
@@ -235,7 +235,7 @@ describe("resolveTemplate — READ directive", () => {
     });
 
     const result = await resolveTemplate("{{READ: data/missing.md}}", ctx);
-    expect(result).toContain("[READ failed: data/missing.md not found]");
+    expect(result).toContain("templateEngine.readFailed");
   });
 
   it("should resolve multiple READ directives in one template", async () => {

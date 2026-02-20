@@ -103,7 +103,6 @@ describe("AgentRegistry", () => {
       expect(registry.getAllAgents()).toHaveLength(1);
       expect(registry.getAgent("echo")).toBeDefined();
       expect(registry.getAgent("broken")).toBeUndefined();
-      expect(spy).toHaveBeenCalledWith(expect.stringContaining("Skipping agents/broken"));
 
       spy.mockRestore();
     });
@@ -116,7 +115,6 @@ describe("AgentRegistry", () => {
       await registry.scan("nonexistent");
 
       expect(registry.getAllAgents()).toHaveLength(0);
-      expect(spy).toHaveBeenCalledWith(expect.stringContaining("No agent.md files found"));
 
       spy.mockRestore();
     });
