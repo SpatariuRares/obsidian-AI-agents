@@ -12,6 +12,7 @@ import { App, TFile } from "obsidian";
 import { resolveTemplate, TemplateContext } from "../TemplateEngine";
 import { AgentConfig } from "@app/types/AgentTypes";
 import { DEFAULT_SETTINGS, PluginSettings } from "@app/types/PluginTypes";
+import { DEFAULT_CONFIG } from "@app/core/AgentConfig";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -38,29 +39,10 @@ function makeApp(
 
 function makeConfig(overrides: Partial<AgentConfig> = {}): AgentConfig {
   return {
-    metadata: { name: "TestBot", ...overrides.metadata },
-    agent: {
-      enabled: true,
-      model: { primary: "llama3" },
-      ...overrides.agent,
-    },
-    knowledge: {
-      sources: [],
-      strategy: "inject_all",
-      max_context_tokens: 4000,
-      ...overrides.knowledge,
-    },
-    permissions: {
-      read: [],
-      write: [],
-      create: [],
-      move: [],
-      delete: [],
-      vault_root_access: false,
-      confirm_destructive: true,
-      ...overrides.permissions,
-    },
-    logging: { enabled: false, ...overrides.logging },
+    ...DEFAULT_CONFIG,
+    name: "TestBot",
+    model: "llama3",
+    ...overrides,
   };
 }
 
@@ -80,9 +62,9 @@ function makeContext(
 // ---------------------------------------------------------------------------
 
 describe("resolveTemplate — scalar variables", () => {
-  it("should replace {{agent_name}} with metadata.name", async () => {
+  it("should replace {{agent_name}} with name", async () => {
     const ctx = makeContext({
-      agentConfig: makeConfig({ metadata: { name: "Writer" } }),
+      agentConfig: makeConfig({ name: "Writer" }),
     });
     const result = await resolveTemplate("Hello, I am {{agent_name}}.", ctx);
     expect(result).toBe("Hello, I am Writer.");
@@ -114,7 +96,7 @@ describe("resolveTemplate — scalar variables", () => {
 
   it("should replace multiple occurrences of the same variable", async () => {
     const ctx = makeContext({
-      agentConfig: makeConfig({ metadata: { name: "Echo" } }),
+      agentConfig: makeConfig({ name: "Echo" }),
     });
     const result = await resolveTemplate(
       "{{agent_name}} says: I am {{agent_name}}.",
@@ -160,7 +142,9 @@ describe("resolveTemplate — knowledge_context", () => {
 
     const ctx = makeContext({
       agentConfig: makeConfig({
-        knowledge: { sources: ["kb/**"], strategy: "inject_all", max_context_tokens: 4000 },
+        sources: ["kb/**"],
+        strategy: "inject_all",
+        max_context_tokens: 4000,
       }),
       app,
     });
@@ -175,7 +159,8 @@ describe("resolveTemplate — knowledge_context", () => {
   it("should replace with empty string when no sources match", async () => {
     const ctx = makeContext({
       agentConfig: makeConfig({
-        knowledge: { sources: ["nonexistent/**"], strategy: "inject_all" },
+        sources: ["nonexistent/**"],
+        strategy: "inject_all",
       }),
     });
     const result = await resolveTemplate("KB: {{knowledge_context}}", ctx);
@@ -188,14 +173,14 @@ describe("resolveTemplate — knowledge_context", () => {
 // ---------------------------------------------------------------------------
 
 describe("resolveTemplate — READ directive", () => {
-  it("should inline file content when path is in permissions.read", async () => {
+  it("should inline file content when path is in read", async () => {
     const files = [makeFile("data/context.md")];
     const contents = new Map([["data/context.md", "Context data here"]]);
     const app = makeApp(files, contents);
 
     const ctx = makeContext({
       agentConfig: makeConfig({
-        permissions: { read: ["data/**"] },
+        read: ["data/**"],
       }),
       app,
     });
@@ -206,14 +191,15 @@ describe("resolveTemplate — READ directive", () => {
     expect(result).toContain("--- END: data/context.md ---");
   });
 
-  it("should inline file content when path is in knowledge.sources", async () => {
+  it("should inline file content when path is in sources", async () => {
     const files = [makeFile("kb/ref.md")];
     const contents = new Map([["kb/ref.md", "Reference"]]);
     const app = makeApp(files, contents);
 
     const ctx = makeContext({
       agentConfig: makeConfig({
-        knowledge: { sources: ["kb/**"], strategy: "inject_all" },
+        sources: ["kb/**"],
+        strategy: "inject_all",
       }),
       app,
     });
@@ -229,7 +215,7 @@ describe("resolveTemplate — READ directive", () => {
 
     const ctx = makeContext({
       agentConfig: makeConfig({
-        permissions: { read: ["data/**"] },
+        read: ["data/**"],
       }),
       app,
     });
@@ -243,7 +229,7 @@ describe("resolveTemplate — READ directive", () => {
     const app = makeApp([], new Map());
     const ctx = makeContext({
       agentConfig: makeConfig({
-        permissions: { read: ["data/**"] },
+        read: ["data/**"],
       }),
       app,
     });
@@ -265,7 +251,7 @@ describe("resolveTemplate — READ directive", () => {
 
     const ctx = makeContext({
       agentConfig: makeConfig({
-        permissions: { read: ["data/**"] },
+        read: ["data/**"],
       }),
       app,
     });
@@ -283,7 +269,7 @@ describe("resolveTemplate — READ directive", () => {
     const contents = new Map([["anywhere/file.md", "Open content"]]);
     const app = makeApp(files, contents);
 
-    // No permissions.read and no knowledge.sources → allowedPatterns is empty
+    // No read and no sources → allowedPatterns is empty
     const ctx = makeContext({
       agentConfig: makeConfig(),
       app,
@@ -312,9 +298,11 @@ describe("resolveTemplate — full template", () => {
 
     const ctx = makeContext({
       agentConfig: makeConfig({
-        metadata: { name: "Coach" },
-        knowledge: { sources: ["kb/**"], strategy: "inject_all", max_context_tokens: 4000 },
-        permissions: { read: ["data/**"] },
+        name: "Coach",
+        sources: ["kb/**"],
+        strategy: "inject_all",
+        max_context_tokens: 4000,
+        read: ["data/**"],
       }),
       settings: { ...DEFAULT_SETTINGS, userName: "Alice" } as PluginSettings,
       app,

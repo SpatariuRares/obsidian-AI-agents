@@ -6,10 +6,12 @@
  *   - Part 2 (after second ---) → raw prompt template string
  *
  * Validates that required fields are present and returns a typed result.
+ *
+ * Uses a flat YAML schema — all fields are top-level keys.
  */
 
 import { parseYaml } from "obsidian";
-import { AgentConfig, KnowledgeConfig, LoggingConfig, PermissionsConfig } from "@app/types/AgentTypes";
+import { AgentConfig, AgentType, LogFormat } from "@app/types/AgentTypes";
 
 // ---------------------------------------------------------------------------
 // Parse result
@@ -32,16 +34,21 @@ export class AgentConfigError extends Error {
 }
 
 // ---------------------------------------------------------------------------
-// Default values for optional sections
+// Default flat config
 // ---------------------------------------------------------------------------
 
-const DEFAULT_KNOWLEDGE: KnowledgeConfig = {
+export const DEFAULT_CONFIG: AgentConfig = {
+  name: "",
+  description: "",
+  author: "",
+  avatar: "",
+  enabled: true,
+  type: "conversational",
+  provider: "ollama",
+  model: "",
   sources: [],
   strategy: "inject_all",
   max_context_tokens: 4000,
-};
-
-const DEFAULT_PERMISSIONS: PermissionsConfig = {
   read: [],
   write: [],
   create: [],
@@ -49,13 +56,10 @@ const DEFAULT_PERMISSIONS: PermissionsConfig = {
   delete: [],
   vault_root_access: false,
   confirm_destructive: true,
-};
-
-const DEFAULT_LOGGING: LoggingConfig = {
-  enabled: false,
-  path: "logs",
-  format: "daily",
-  include_metadata: true,
+  logging_enabled: false,
+  logging_path: "logs",
+  logging_format: "daily",
+  logging_include_metadata: true,
 };
 
 // ---------------------------------------------------------------------------
@@ -88,86 +92,66 @@ export function splitFrontmatter(raw: string): { yaml: string; body: string } {
 }
 
 /**
+ * Parse a string boolean from YAML frontmatter.
+ * Obsidian frontmatter stores booleans as strings ("true"/"false")
+ * but parseYaml may return actual booleans, so handle both.
+ */
+function parseBool(value: unknown, fallback: boolean): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") return value === "true";
+  return fallback;
+}
+
+/**
  * Parse an agent.md file content into a typed AgentConfig + prompt template.
  *
  * Validates required fields:
- *  - metadata.name (string)
- *  - agent.model.primary (string)
+ *  - name (string)
+ *  - model (string)
  *
- * Optional sections (knowledge, permissions, logging) are filled with defaults.
+ * All other fields are filled with defaults from DEFAULT_CONFIG.
  */
 export function parseAgentFile(raw: string): AgentParseResult {
   const { yaml, body } = splitFrontmatter(raw);
   const parsed = parseYaml(yaml) as Record<string, unknown>;
 
-  // --- metadata ---
-  const metadata = parsed.metadata as Record<string, unknown> | undefined;
-  if (!metadata || typeof metadata.name !== "string" || !metadata.name.trim()) {
-    throw new AgentConfigError("metadata.name is required and must be a non-empty string");
+  // --- required: name ---
+  if (typeof parsed.name !== "string" || !parsed.name.trim()) {
+    throw new AgentConfigError("name is required and must be a non-empty string");
   }
 
-  // --- agent ---
-  const agent = parsed.agent as Record<string, unknown> | undefined;
-  if (!agent) {
-    throw new AgentConfigError("agent section is required");
+  // --- required: model ---
+  if (typeof parsed.model !== "string" || !parsed.model.trim()) {
+    throw new AgentConfigError("model is required and must be a non-empty string");
   }
-
-  const model = agent.model as Record<string, unknown> | undefined;
-  if (!model || typeof model.primary !== "string" || !model.primary.trim()) {
-    throw new AgentConfigError("agent.model.primary is required and must be a non-empty string");
-  }
-
-  // --- knowledge (optional, merge with defaults) ---
-  const rawKnowledge = (parsed.knowledge ?? {}) as Record<string, unknown>;
-  const knowledge: KnowledgeConfig = {
-    ...DEFAULT_KNOWLEDGE,
-    ...rawKnowledge,
-    sources: Array.isArray(rawKnowledge.sources) ? rawKnowledge.sources : [],
-  };
-
-  // --- permissions (optional, merge with defaults) ---
-  const rawPermissions = (parsed.permissions ?? {}) as Record<string, unknown>;
-  const permissions: PermissionsConfig = {
-    ...DEFAULT_PERMISSIONS,
-    ...rawPermissions,
-    read: Array.isArray(rawPermissions.read) ? rawPermissions.read : [],
-    write: Array.isArray(rawPermissions.write) ? rawPermissions.write : [],
-    create: Array.isArray(rawPermissions.create) ? rawPermissions.create : [],
-    move: Array.isArray(rawPermissions.move) ? rawPermissions.move : [],
-    delete: Array.isArray(rawPermissions.delete) ? rawPermissions.delete : [],
-  };
-
-  // --- logging (optional, merge with defaults) ---
-  const rawLogging = (parsed.logging ?? {}) as Record<string, unknown>;
-  const logging: LoggingConfig = {
-    ...DEFAULT_LOGGING,
-    ...rawLogging,
-  };
 
   const config: AgentConfig = {
-    metadata: {
-      name: metadata.name as string,
-      version: (metadata.version as string) ?? undefined,
-      description: (metadata.description as string) ?? undefined,
-      author: (metadata.author as string) ?? undefined,
-      avatar: (metadata.avatar as string) ?? undefined,
-      created: (metadata.created as string) ?? undefined,
-      updated: (metadata.updated as string) ?? undefined,
-    },
-    agent: {
-      enabled: agent.enabled !== false,
-      type: (agent.type as AgentConfig["agent"]["type"]) ?? "conversational",
-      model: {
-        primary: model.primary as string,
-        fallback: (model.fallback as string) ?? undefined,
-      },
-      parameters: agent.parameters
-        ? (agent.parameters as AgentConfig["agent"]["parameters"])
-        : undefined,
-    },
-    knowledge,
-    permissions,
-    logging,
+    name: parsed.name as string,
+    description: typeof parsed.description === "string" ? parsed.description : DEFAULT_CONFIG.description,
+    author: typeof parsed.author === "string" ? parsed.author : DEFAULT_CONFIG.author,
+    avatar: typeof parsed.avatar === "string" ? parsed.avatar : DEFAULT_CONFIG.avatar,
+    enabled: parseBool(parsed.enabled, DEFAULT_CONFIG.enabled),
+    type: typeof parsed.type === "string" ? parsed.type as AgentType : DEFAULT_CONFIG.type,
+    provider: typeof parsed.provider === "string" ? parsed.provider : DEFAULT_CONFIG.provider,
+    model: parsed.model as string,
+    sources: Array.isArray(parsed.sources) ? parsed.sources : DEFAULT_CONFIG.sources,
+    strategy: typeof parsed.strategy === "string" ? parsed.strategy : DEFAULT_CONFIG.strategy,
+    max_context_tokens: typeof parsed.max_context_tokens === "number"
+      ? parsed.max_context_tokens
+      : DEFAULT_CONFIG.max_context_tokens,
+    read: Array.isArray(parsed.read) ? parsed.read : DEFAULT_CONFIG.read,
+    write: Array.isArray(parsed.write) ? parsed.write : DEFAULT_CONFIG.write,
+    create: Array.isArray(parsed.create) ? parsed.create : DEFAULT_CONFIG.create,
+    move: Array.isArray(parsed.move) ? parsed.move : DEFAULT_CONFIG.move,
+    delete: Array.isArray(parsed.delete) ? parsed.delete : DEFAULT_CONFIG.delete,
+    vault_root_access: parseBool(parsed.vault_root_access, DEFAULT_CONFIG.vault_root_access),
+    confirm_destructive: parseBool(parsed.confirm_destructive, DEFAULT_CONFIG.confirm_destructive),
+    logging_enabled: parseBool(parsed.logging_enabled, DEFAULT_CONFIG.logging_enabled),
+    logging_path: typeof parsed.logging_path === "string" ? parsed.logging_path : DEFAULT_CONFIG.logging_path,
+    logging_format: typeof parsed.logging_format === "string"
+      ? parsed.logging_format as LogFormat
+      : DEFAULT_CONFIG.logging_format,
+    logging_include_metadata: parseBool(parsed.logging_include_metadata, DEFAULT_CONFIG.logging_include_metadata),
   };
 
   return { config, promptTemplate: body };

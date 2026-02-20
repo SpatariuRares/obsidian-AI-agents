@@ -23,9 +23,12 @@ export default class AIAgentsPlugin extends Plugin {
 
     // Core services
     this.agentRegistry = new AgentRegistry(this.app);
-    await this.agentRegistry.scan(this.settings.agentsFolder);
-
     this.chatManager = new ChatManager(this.app, this.settings);
+
+    // Defer agent scan until vault is fully indexed
+    this.app.workspace.onLayoutReady(async () => {
+      await this.agentRegistry.scan(this.settings.agentsFolder);
+    });
 
     // Chat sidebar view
     this.registerView(VIEW_TYPE_CHAT, (leaf) => new ChatView(leaf, {

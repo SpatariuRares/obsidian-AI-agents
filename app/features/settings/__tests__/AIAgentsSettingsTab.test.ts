@@ -7,9 +7,22 @@
  *   - Re-rendering works correctly (idempotent)
  */
 
-import { App } from "obsidian";
+import { App, TFile } from "obsidian";
 import { AIAgentsSettingsTab } from "../AIAgentsSettingsTab";
 import { DEFAULT_SETTINGS, PluginSettings } from "@app/types/PluginTypes";
+
+// Spy on Notice to verify toast messages
+const noticeSpy = jest.fn();
+jest.mock("obsidian", () => {
+  const actual = jest.requireActual("obsidian");
+  return {
+    ...actual,
+    Notice: class {
+      constructor(msg: string) { noticeSpy(msg); }
+      hide() {}
+    },
+  };
+});
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -30,6 +43,7 @@ function makePlugin(overrides: Partial<PluginSettings> = {}) {
   return {
     app: new App(),
     settings: base,
+    agentRegistry: { scan: jest.fn().mockResolvedValue(undefined) },
     saveSettings: jest.fn().mockResolvedValue(undefined),
     addCommand: jest.fn(),
     addSettingTab: jest.fn(),
@@ -117,6 +131,65 @@ describe("AIAgentsSettingsTab", () => {
       expect(
         (tab.containerEl as unknown as { empty: jest.Mock }).empty,
       ).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe("createDefaultAgent()", () => {
+    function makeTab(overrides: Partial<PluginSettings> = {}) {
+      const app = new App();
+      const plugin = makePlugin(overrides);
+      const tab = new AIAgentsSettingsTab(app, plugin);
+      tab.containerEl = makeContainerEl();
+      return { app, plugin, tab };
+    }
+
+    beforeEach(() => {
+      noticeSpy.mockClear();
+    });
+
+    it("should create the agent folder and file, then rescan registry", async () => {
+      const { app, plugin, tab } = makeTab({ agentsFolder: "agents" });
+
+      await (tab as unknown as { createDefaultAgent(): Promise<void> }).createDefaultAgent();
+
+      expect(app.vault.createFolder).toHaveBeenCalledWith("agents");
+      expect(app.vault.createFolder).toHaveBeenCalledWith("agents/assistant");
+      expect(app.vault.create).toHaveBeenCalledWith(
+        "agents/assistant/agent.md",
+        expect.stringContaining("name:"),
+      );
+      expect(
+        (plugin.agentRegistry as unknown as { scan: jest.Mock }).scan,
+      ).toHaveBeenCalledWith("agents");
+      expect(noticeSpy).toHaveBeenCalledWith("Default agent created successfully.");
+    });
+
+    it("should not create if agent file already exists", async () => {
+      const { app, tab } = makeTab({ agentsFolder: "agents" });
+      app.vault.getAbstractFileByPath = jest.fn().mockReturnValue(new TFile("agents/assistant/agent.md"));
+
+      await (tab as unknown as { createDefaultAgent(): Promise<void> }).createDefaultAgent();
+
+      expect(app.vault.create).not.toHaveBeenCalled();
+      expect(noticeSpy).toHaveBeenCalledWith("Default agent already exists.");
+    });
+
+    it("should show error notice when vault.create fails", async () => {
+      const { app, tab } = makeTab({ agentsFolder: "agents" });
+      app.vault.create = jest.fn().mockRejectedValue(new Error("disk full"));
+
+      await (tab as unknown as { createDefaultAgent(): Promise<void> }).createDefaultAgent();
+
+      expect(noticeSpy).toHaveBeenCalledWith("Failed to create agent: disk full");
+    });
+
+    it("should use default folder when agentsFolder is empty", async () => {
+      const { app, tab } = makeTab({ agentsFolder: "" });
+
+      await (tab as unknown as { createDefaultAgent(): Promise<void> }).createDefaultAgent();
+
+      expect(app.vault.createFolder).toHaveBeenCalledWith("agents");
+      expect(app.vault.createFolder).toHaveBeenCalledWith("agents/assistant");
     });
   });
 });

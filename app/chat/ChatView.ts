@@ -84,6 +84,11 @@ export class ChatView extends ItemView {
       this.onAgentSelected();
     });
 
+    // Refresh the agent list each time the dropdown is opened
+    this.agentSelectEl.addEventListener("mousedown", () => {
+      this.refreshAgentSelect();
+    });
+
     const newSessionBtn = header.createEl("button", {
       cls: "ai-agents-chat__new-session clickable-icon",
       attr: { "aria-label": "New session" },
@@ -177,7 +182,7 @@ export class ChatView extends ItemView {
 
     for (const agent of agents) {
       const opt = this.agentSelectEl.createEl("option", {
-        text: `${agent.config.metadata.avatar ?? ""} ${agent.config.metadata.name}`.trim(),
+        text: `${agent.config.avatar || ""} ${agent.config.name}`.trim(),
         attr: { value: agent.id },
       });
       if (activeAgent && activeAgent.id === agent.id) {
@@ -261,7 +266,7 @@ export class ChatView extends ItemView {
     if (msg.role === "user") {
       label.textContent = "You";
     } else if (msg.role === "assistant") {
-      label.textContent = agent?.config.metadata.name ?? "Assistant";
+      label.textContent = agent?.config.name ?? "Assistant";
     }
 
     const content = bubble.createDiv({ cls: "ai-agents-chat__message-content" });

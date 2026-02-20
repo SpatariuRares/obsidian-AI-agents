@@ -2,13 +2,13 @@
  * @fileoverview TemplateEngine - Resolves {{variables}} in agent prompt templates
  *
  * Supported variables:
- *   {{agent_name}}           — metadata.name from agent config
+ *   {{agent_name}}           — name from agent config
  *   {{user_name}}            — from plugin settings
  *   {{date}}                 — current date YYYY-MM-DD
  *   {{time}}                 — current time HH:MM
  *   {{datetime}}             — full ISO-ish date + time
  *   {{READ: path/to/file}}   — inline file content (permission-checked)
- *   {{knowledge_context}}    — all knowledge.sources files concatenated
+ *   {{knowledge_context}}    — all sources files concatenated
  *   {{conversation_summary}} — placeholder (resolved externally, empty for now)
  *   {{vault_structure}}      — placeholder (resolved externally, empty for now)
  */
@@ -52,9 +52,9 @@ export async function resolveTemplate(
   // 2. {{knowledge_context}} — async, loads files from vault
   if (result.includes("{{knowledge_context}}")) {
     const knowledgeContent = await loadKnowledgeContent(
-      ctx.agentConfig.knowledge.sources,
+      ctx.agentConfig.sources,
       ctx.app,
-      ctx.agentConfig.knowledge.max_context_tokens,
+      ctx.agentConfig.max_context_tokens,
     );
     result = result.replace(/\{\{knowledge_context\}\}/g, knowledgeContent);
   }
@@ -78,7 +78,7 @@ function replaceScalarVariables(
   const time = formatTime(now);
 
   const replacements: Record<string, string> = {
-    "{{agent_name}}": ctx.agentConfig.metadata.name,
+    "{{agent_name}}": ctx.agentConfig.name,
     "{{user_name}}": ctx.settings.userName,
     "{{date}}": date,
     "{{time}}": time,
@@ -127,7 +127,7 @@ async function resolveReadDirectives(
 
 /**
  * Read a file from the vault after verifying the path is allowed.
- * Allowed means: listed in permissions.read OR in knowledge.sources.
+ * Allowed means: listed in read OR in sources.
  */
 async function readFileChecked(
   rawPath: string,
@@ -137,12 +137,12 @@ async function readFileChecked(
 
   // Build the list of allowed patterns
   const allowedPatterns = [
-    ...(ctx.agentConfig.permissions.read ?? []),
-    ...ctx.agentConfig.knowledge.sources,
+    ...ctx.agentConfig.read,
+    ...ctx.agentConfig.sources,
   ];
 
   if (allowedPatterns.length > 0 && !micromatch.isMatch(filePath, allowedPatterns)) {
-    return `[READ denied: ${filePath} is not in permissions.read or knowledge.sources]`;
+    return `[READ denied: ${filePath} is not in read or sources]`;
   }
 
   const file = ctx.app.vault.getAbstractFileByPath(filePath);

@@ -5,10 +5,11 @@
  * getVisibleMessages, clearSession, and settings update.
  */
 
-import { App, TFile } from "obsidian";
+import { App } from "obsidian";
 import { ChatManager } from "../ChatManager";
 import { ParsedAgent } from "@app/types/AgentTypes";
 import { DEFAULT_SETTINGS, PluginSettings } from "@app/types/PluginTypes";
+import { DEFAULT_CONFIG } from "@app/core/AgentConfig";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -28,14 +29,9 @@ function makeAgent(overrides: Partial<ParsedAgent> = {}): ParsedAgent {
     folderPath: "agents/echo",
     filePath: "agents/echo/agent.md",
     config: {
-      metadata: { name: "Echo" },
-      agent: { enabled: true, model: { primary: "llama3" } },
-      knowledge: { sources: [], strategy: "inject_all", max_context_tokens: 4000 },
-      permissions: {
-        read: [], write: [], create: [], move: [], delete: [],
-        vault_root_access: false, confirm_destructive: true,
-      },
-      logging: { enabled: false },
+      ...DEFAULT_CONFIG,
+      name: "Echo",
+      model: "llama3",
     },
     promptTemplate: "You are {{agent_name}}. User: {{user_name}}",
     ...overrides,

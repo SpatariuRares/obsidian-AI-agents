@@ -13,69 +13,44 @@ import { splitFrontmatter, parseAgentFile, AgentConfigError } from "../AgentConf
 // ---------------------------------------------------------------------------
 
 const MINIMAL_AGENT = `---
-metadata:
-  name: "Echo"
-  avatar: "🔊"
-agent:
-  enabled: true
-  model:
-    primary: "gpt_oss_free"
-  parameters:
-    temperature: 0
-    max_tokens: 500
-knowledge:
-  sources: []
-permissions: {}
-logging:
-  enabled: false
+name: "Echo"
+avatar: "🔊"
+enabled: "true"
+model: "gpt_oss_free"
 ---
 
 You are an echo bot. Repeat what the user says.`;
 
 const FULL_AGENT = `---
-metadata:
-  name: "Writing Coach"
-  version: "1.0"
-  description: "Helps improve writing"
-  author: "Rares"
-  avatar: "✍️"
-  created: "2026-01-24"
-  updated: "2026-01-25"
-agent:
-  enabled: true
-  type: "conversational"
-  model:
-    primary: "gemini-flash"
-    fallback: "gpt_oss_free"
-  parameters:
-    temperature: 0.7
-    max_tokens: 2000
-    top_p: 0.9
-    stream: true
-knowledge:
-  sources:
-    - "knowledge/company/**"
-    - "data/context.md"
-  strategy: "inject_all"
-  max_context_tokens: 4000
-permissions:
-  read:
-    - "data/**"
-    - "journal/**"
-  write:
-    - "data/context.md"
-  create:
-    - "logs/**"
-  move:
-    - "inbox/**"
-  delete: []
-  vault_root_access: false
-  confirm_destructive: true
-logging:
-  enabled: true
-  path: "logs"
-  format: "daily"
-  include_metadata: true
+name: "Writing Coach"
+description: "Helps improve writing"
+author: "Rares"
+avatar: "✍️"
+enabled: "true"
+type: "conversational"
+provider: "openrouter"
+model: "gemini-flash"
+sources:
+  - "knowledge/company/**"
+  - "data/context.md"
+strategy: "inject_all"
+max_context_tokens: 4000
+read:
+  - "data/**"
+  - "journal/**"
+write:
+  - "data/context.md"
+create:
+  - "logs/**"
+move:
+  - "inbox/**"
+delete: []
+vault_root_access: "false"
+confirm_destructive: "true"
+logging_enabled: "true"
+logging_path: "logs"
+logging_format: "daily"
+logging_include_metadata: "true"
 ---
 
 You are a **Writing Coach**.
@@ -112,7 +87,7 @@ describe("splitFrontmatter", () => {
   });
 
   it("should return empty body when nothing follows the closing ---", () => {
-    const raw = "---\nmetadata:\n  name: test\n---";
+    const raw = "---\nname: test\n---";
     const { body } = splitFrontmatter(raw);
     expect(body).toBe("");
   });
@@ -128,49 +103,48 @@ describe("parseAgentFile", () => {
   it("should parse a minimal agent.md correctly", () => {
     const result = parseAgentFile(MINIMAL_AGENT);
 
-    expect(result.config.metadata.name).toBe("Echo");
-    expect(result.config.metadata.avatar).toBe("🔊");
-    expect(result.config.agent.enabled).toBe(true);
-    expect(result.config.agent.model.primary).toBe("gpt_oss_free");
+    expect(result.config.name).toBe("Echo");
+    expect(result.config.avatar).toBe("🔊");
+    expect(result.config.enabled).toBe(true);
+    expect(result.config.model).toBe("gpt_oss_free");
     expect(result.promptTemplate).toBe("You are an echo bot. Repeat what the user says.");
   });
 
   it("should parse a full agent.md with all fields", () => {
     const result = parseAgentFile(FULL_AGENT);
 
-    // metadata
-    expect(result.config.metadata.name).toBe("Writing Coach");
-    expect(result.config.metadata.version).toBe("1.0");
-    expect(result.config.metadata.description).toBe("Helps improve writing");
-    expect(result.config.metadata.author).toBe("Rares");
+    // identity
+    expect(result.config.name).toBe("Writing Coach");
+    expect(result.config.description).toBe("Helps improve writing");
+    expect(result.config.author).toBe("Rares");
 
     // agent
-    expect(result.config.agent.type).toBe("conversational");
-    expect(result.config.agent.model.primary).toBe("gemini-flash");
-    expect(result.config.agent.model.fallback).toBe("gpt_oss_free");
-    expect(result.config.agent.parameters?.temperature).toBe(0.7);
-    expect(result.config.agent.parameters?.stream).toBe(true);
+    expect(result.config.type).toBe("conversational");
+    expect(result.config.provider).toBe("openrouter");
+    expect(result.config.model).toBe("gemini-flash");
 
     // knowledge
-    expect(result.config.knowledge.sources).toEqual([
+    expect(result.config.sources).toEqual([
       "knowledge/company/**",
       "data/context.md",
     ]);
-    expect(result.config.knowledge.strategy).toBe("inject_all");
-    expect(result.config.knowledge.max_context_tokens).toBe(4000);
+    expect(result.config.strategy).toBe("inject_all");
+    expect(result.config.max_context_tokens).toBe(4000);
 
     // permissions
-    expect(result.config.permissions.read).toEqual(["data/**", "journal/**"]);
-    expect(result.config.permissions.write).toEqual(["data/context.md"]);
-    expect(result.config.permissions.create).toEqual(["logs/**"]);
-    expect(result.config.permissions.move).toEqual(["inbox/**"]);
-    expect(result.config.permissions.delete).toEqual([]);
-    expect(result.config.permissions.vault_root_access).toBe(false);
-    expect(result.config.permissions.confirm_destructive).toBe(true);
+    expect(result.config.read).toEqual(["data/**", "journal/**"]);
+    expect(result.config.write).toEqual(["data/context.md"]);
+    expect(result.config.create).toEqual(["logs/**"]);
+    expect(result.config.move).toEqual(["inbox/**"]);
+    expect(result.config.delete).toEqual([]);
+    expect(result.config.vault_root_access).toBe(false);
+    expect(result.config.confirm_destructive).toBe(true);
 
     // logging
-    expect(result.config.logging.enabled).toBe(true);
-    expect(result.config.logging.format).toBe("daily");
+    expect(result.config.logging_enabled).toBe(true);
+    expect(result.config.logging_path).toBe("logs");
+    expect(result.config.logging_format).toBe("daily");
+    expect(result.config.logging_include_metadata).toBe(true);
 
     // prompt
     expect(result.promptTemplate).toContain("Writing Coach");
@@ -179,147 +153,132 @@ describe("parseAgentFile", () => {
 
   // --- Defaults ---------------------------------------------------------
 
-  it("should fill default knowledge when section is missing", () => {
+  it("should fill default sources when not provided", () => {
     const raw = `---
-metadata:
-  name: "Test"
-agent:
-  enabled: true
-  model:
-    primary: "llama3"
+name: "Test"
+model: "llama3"
 ---
 prompt`;
 
     const result = parseAgentFile(raw);
-    expect(result.config.knowledge.sources).toEqual([]);
-    expect(result.config.knowledge.strategy).toBe("inject_all");
-    expect(result.config.knowledge.max_context_tokens).toBe(4000);
+    expect(result.config.sources).toEqual([]);
+    expect(result.config.strategy).toBe("inject_all");
+    expect(result.config.max_context_tokens).toBe(4000);
   });
 
-  it("should fill default permissions when section is missing", () => {
+  it("should fill default permissions when not provided", () => {
     const raw = `---
-metadata:
-  name: "Test"
-agent:
-  enabled: true
-  model:
-    primary: "llama3"
+name: "Test"
+model: "llama3"
 ---
 prompt`;
 
     const result = parseAgentFile(raw);
-    expect(result.config.permissions.read).toEqual([]);
-    expect(result.config.permissions.write).toEqual([]);
-    expect(result.config.permissions.delete).toEqual([]);
-    expect(result.config.permissions.vault_root_access).toBe(false);
-    expect(result.config.permissions.confirm_destructive).toBe(true);
+    expect(result.config.read).toEqual([]);
+    expect(result.config.write).toEqual([]);
+    expect(result.config.delete).toEqual([]);
+    expect(result.config.vault_root_access).toBe(false);
+    expect(result.config.confirm_destructive).toBe(true);
   });
 
-  it("should default agent.enabled to true when not explicitly false", () => {
+  it("should default enabled to true when not provided", () => {
     const raw = `---
-metadata:
-  name: "Test"
-agent:
-  model:
-    primary: "llama3"
+name: "Test"
+model: "llama3"
 ---
 prompt`;
 
     const result = parseAgentFile(raw);
-    expect(result.config.agent.enabled).toBe(true);
+    expect(result.config.enabled).toBe(true);
   });
 
-  it("should set agent.enabled to false when explicitly false", () => {
+  it("should set enabled to false when explicitly false", () => {
     const raw = `---
-metadata:
-  name: "Test"
-agent:
-  enabled: false
-  model:
-    primary: "llama3"
+name: "Test"
+enabled: "false"
+model: "llama3"
 ---
 prompt`;
 
     const result = parseAgentFile(raw);
-    expect(result.config.agent.enabled).toBe(false);
+    expect(result.config.enabled).toBe(false);
   });
 
-  it("should default agent.type to conversational", () => {
+  it("should handle boolean enabled values (not just strings)", () => {
     const raw = `---
-metadata:
-  name: "Test"
-agent:
-  enabled: true
-  model:
-    primary: "llama3"
+name: "Test"
+enabled: false
+model: "llama3"
 ---
 prompt`;
 
     const result = parseAgentFile(raw);
-    expect(result.config.agent.type).toBe("conversational");
+    expect(result.config.enabled).toBe(false);
+  });
+
+  it("should fill default logging when not provided", () => {
+    const raw = `---
+name: "Test"
+model: "llama3"
+---
+prompt`;
+
+    const result = parseAgentFile(raw);
+    expect(result.config.logging_enabled).toBe(false);
+    expect(result.config.logging_path).toBe("logs");
+    expect(result.config.logging_format).toBe("daily");
+    expect(result.config.logging_include_metadata).toBe(true);
+  });
+
+  it("should default type to conversational", () => {
+    const raw = `---
+name: "Test"
+model: "llama3"
+---
+prompt`;
+
+    const result = parseAgentFile(raw);
+    expect(result.config.type).toBe("conversational");
   });
 
   // --- Validation errors ------------------------------------------------
 
-  it("should throw when metadata.name is missing", () => {
+  it("should throw when name is missing", () => {
     const raw = `---
-metadata:
-  avatar: "🤖"
-agent:
-  enabled: true
-  model:
-    primary: "llama3"
+avatar: "🤖"
+model: "llama3"
 ---
 prompt`;
 
-    expect(() => parseAgentFile(raw)).toThrow("metadata.name is required");
+    expect(() => parseAgentFile(raw)).toThrow("name is required");
   });
 
-  it("should throw when metadata section is missing entirely", () => {
+  it("should throw when name is empty", () => {
     const raw = `---
-agent:
-  enabled: true
-  model:
-    primary: "llama3"
+name: ""
+model: "llama3"
 ---
 prompt`;
 
-    expect(() => parseAgentFile(raw)).toThrow("metadata.name is required");
+    expect(() => parseAgentFile(raw)).toThrow("name is required");
   });
 
-  it("should throw when agent section is missing", () => {
+  it("should throw when model is missing", () => {
     const raw = `---
-metadata:
-  name: "Test"
+name: "Test"
 ---
 prompt`;
 
-    expect(() => parseAgentFile(raw)).toThrow("agent section is required");
+    expect(() => parseAgentFile(raw)).toThrow("model is required");
   });
 
-  it("should throw when agent.model.primary is missing", () => {
+  it("should throw when model is empty", () => {
     const raw = `---
-metadata:
-  name: "Test"
-agent:
-  enabled: true
-  model:
-    fallback: "gpt4"
+name: "Test"
+model: ""
 ---
 prompt`;
 
-    expect(() => parseAgentFile(raw)).toThrow("agent.model.primary is required");
-  });
-
-  it("should throw when agent.model is missing entirely", () => {
-    const raw = `---
-metadata:
-  name: "Test"
-agent:
-  enabled: true
----
-prompt`;
-
-    expect(() => parseAgentFile(raw)).toThrow("agent.model.primary is required");
+    expect(() => parseAgentFile(raw)).toThrow("model is required");
   });
 });

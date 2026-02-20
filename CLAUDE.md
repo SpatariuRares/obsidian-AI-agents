@@ -395,6 +395,78 @@ collectCoverageFrom: [
 - **Use `Vault.process()`** - For atomic file modifications
 - **Use `FileManager.processFrontMatter()`** - For frontmatter modifications
 
+#### Vault API Reference (`Vault` extends `Events`)
+
+**Properties:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `adapter` | `DataAdapter` | Low-level file system adapter (prefer Vault methods over direct adapter use) |
+| `configDir` | `string` | Path to config folder (typically `.obsidian`) |
+
+**File Operations:**
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `create` | `(path: string, data: string, options?: DataWriteOptions) → Promise<TFile>` | Create a new plaintext file |
+| `createBinary` | `(path: string, data: ArrayBuffer, options?: DataWriteOptions) → Promise<TFile>` | Create a new binary file |
+| `read` | `(file: TFile) → Promise<string>` | Read plaintext file directly from disk (always fresh) |
+| `cachedRead` | `(file: TFile) → Promise<string>` | Read plaintext file from cache (faster, may not reflect latest disk changes) |
+| `readBinary` | `(file: TFile) → Promise<ArrayBuffer>` | Read binary file content |
+| `modify` | `(file: TFile, data: string, options?: DataWriteOptions) → Promise<void>` | Overwrite plaintext file contents |
+| `modifyBinary` | `(file: TFile, data: ArrayBuffer, options?: DataWriteOptions) → Promise<void>` | Overwrite binary file contents |
+| `append` | `(file: TFile, data: string, options?: DataWriteOptions) → Promise<void>` | Append text to end of plaintext file |
+| `process` | `(file: TFile, fn: (data: string) → string, options?: DataWriteOptions) → Promise<string>` | Atomically read, modify, and save (preferred for safe edits) |
+| `delete` | `(file: TAbstractFile, force?: boolean) → Promise<void>` | Permanently delete a file or folder |
+| `trash` | `(file: TAbstractFile, system?: boolean) → Promise<void>` | Move to trash (system trash if `system=true`, else `.trash/`) |
+| `rename` | `(file: TAbstractFile, newPath: string) → Promise<void>` | Rename or move a file/folder |
+| `copy` | `(file: TFile, newPath: string) → Promise<TFile>` | Duplicate a file |
+
+**Folder Operations:**
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `createFolder` | `(path: string) → Promise<TFolder>` | Create a new folder |
+| `getAllFolders` | `(includeRoot?: boolean) → TFolder[]` | Get all folders in the vault |
+| `getFolderByPath` | `(path: string) → TFolder \| null` | Get a folder by path (returns `null` if not found) |
+| `getRoot` | `() → TFolder` | Get the vault root folder |
+
+**Retrieval Methods:**
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `getAbstractFileByPath` | `(path: string) → TAbstractFile \| null` | Get file or folder by path (use `instanceof TFile`/`TFolder` to distinguish) |
+| `getFileByPath` | `(path: string) → TFile \| null` | Get a file by path (`null` if not found) |
+| `getFiles` | `() → TFile[]` | Get all files in the vault |
+| `getAllLoadedFiles` | `() → TAbstractFile[]` | Get all files and folders |
+| `getMarkdownFiles` | `() → TFile[]` | Get only Markdown files |
+
+**Utility Methods:**
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `getName` | `() → string` | Get the vault name |
+| `getResourcePath` | `(file: TFile) → string` | Get a browser-compatible URI for embedded resources |
+| `recurseChildren` | `(root: TFolder, cb: (file: TAbstractFile) → void) → void` | Static method: recursively iterate all children |
+
+**Events (via `this.app.vault.on()`):**
+
+| Event | Callback Signature | Description |
+|-------|--------------------|-------------|
+| `'create'` | `(file: TAbstractFile) → void` | Fired when a file is created (also fires during vault load) |
+| `'modify'` | `(file: TAbstractFile) → void` | Fired when a file is modified |
+| `'delete'` | `(file: TAbstractFile) → void` | Fired when a file is deleted |
+| `'rename'` | `(file: TAbstractFile, oldPath: string) → void` | Fired when a file is renamed/moved |
+
+**Usage Guidelines:**
+
+- Use `cachedRead()` for display purposes (faster), `read()` when you need guaranteed latest content
+- Use `process()` for atomic read-modify-write operations (prevents race conditions)
+- Use `trash()` instead of `delete()` to respect user preferences (reversible)
+- Always use `normalizePath()` on user-provided paths before passing to Vault methods
+- Register vault events with `this.registerEvent(this.app.vault.on(...))` for automatic cleanup
+- Use `getFileByPath()` / `getFolderByPath()` instead of `getAbstractFileByPath()` when the type is known
+
 ### Styling
 
 - **Use Obsidian CSS variables**:

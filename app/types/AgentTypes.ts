@@ -3,74 +3,46 @@
  *
  * Maps the YAML frontmatter of an agent.md file to TypeScript interfaces.
  * The body of agent.md (below the closing ---) is the raw prompt template.
+ *
+ * Uses a flat schema — all fields are top-level keys in the frontmatter.
+ * Obsidian's parseYaml does not reliably handle deeply nested YAML.
  */
 
 // ---------------------------------------------------------------------------
-// Frontmatter sections
+// Enums / unions
 // ---------------------------------------------------------------------------
 
-export interface AgentMetadata {
-  name: string;
-  version?: string;
-  description?: string;
-  author?: string;
-  avatar?: string;
-  created?: string;
-  updated?: string;
-}
+export type AgentType = "conversational" | "task" | "scheduled";
 
-export interface AgentModelConfig {
-  primary: string;
-  fallback?: string;
-}
-
-export interface AgentParameters {
-  temperature?: number;
-  max_tokens?: number;
-  top_p?: number;
-  stream?: boolean;
-}
-
-export interface AgentSection {
-  enabled: boolean;
-  type?: "conversational" | "task" | "scheduled";
-  model: AgentModelConfig;
-  parameters?: AgentParameters;
-}
-
-export interface KnowledgeConfig {
-  sources: string[];
-  strategy?: "inject_all" | "on_demand" | "rag";
-  max_context_tokens?: number;
-}
-
-export interface PermissionsConfig {
-  read?: string[];
-  write?: string[];
-  create?: string[];
-  move?: string[];
-  delete?: string[];
-  vault_root_access?: boolean;
-  confirm_destructive?: boolean;
-}
-
-export interface LoggingConfig {
-  enabled: boolean;
-  path?: string;
-  format?: "daily" | "per_session" | "single";
-  include_metadata?: boolean;
-}
+export type LogFormat = "daily" | "per_session" | "single";
 
 // ---------------------------------------------------------------------------
-// Full agent config (parsed YAML frontmatter)
+// Full agent config (parsed YAML frontmatter — flat)
 // ---------------------------------------------------------------------------
 
 export interface AgentConfig {
-  metadata: AgentMetadata;
-  agent: AgentSection;
-  knowledge: KnowledgeConfig;
-  permissions: PermissionsConfig;
-  logging: LoggingConfig;
+  name: string;
+  description: string;
+  author: string;
+  avatar: string;
+  enabled: boolean;
+  type: AgentType;
+  provider: string;
+  model: string;
+  sources: string[];
+  strategy: string;
+  max_context_tokens: number;
+  read: string[];
+  write: string[];
+  create: string[];
+  move: string[];
+  delete: string[];
+  vault_root_access: boolean;
+  confirm_destructive: boolean;
+  logging_enabled: boolean;
+  logging_path: string;
+  logging_format: LogFormat;
+  logging_include_metadata: boolean;
 }
 
 // ---------------------------------------------------------------------------

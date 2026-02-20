@@ -20,6 +20,8 @@ export class App {
     getFiles: jest.fn().mockReturnValue([]),
     getAbstractFileByPath: jest.fn().mockReturnValue(null),
     read: jest.fn().mockResolvedValue(""),
+    create: jest.fn().mockResolvedValue(new TFile()),
+    createFolder: jest.fn().mockResolvedValue(undefined),
   };
   workspace = {
     detachLeavesOfType: jest.fn(),
@@ -28,6 +30,7 @@ export class App {
       setViewState: jest.fn().mockResolvedValue(undefined),
     }),
     revealLeaf: jest.fn(),
+    onLayoutReady: jest.fn((cb: () => void) => { cb(); }),
   };
 }
 
@@ -164,7 +167,19 @@ export class Setting {
     return this;
   }
 
-  addButton(_cb: (btn: unknown) => unknown): this {
+  addButton(
+    cb: (btn: {
+      setButtonText(text: string): unknown;
+      setCta(): unknown;
+      onClick(handler: () => void): unknown;
+    }) => unknown,
+  ): this {
+    const control = {
+      setButtonText: (_text: string) => control,
+      setCta: () => control,
+      onClick: (_handler: () => void) => control,
+    };
+    cb(control);
     return this;
   }
 }

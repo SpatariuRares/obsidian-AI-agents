@@ -9,7 +9,7 @@
  * Provides lookup by id, listing, and hot-reload per agent.
  */
 
-import { App, TFile, TFolder, normalizePath } from "obsidian";
+import { App, TFile, normalizePath } from "obsidian";
 import { parseAgentFile, AgentConfigError } from "@app/core/AgentConfig";
 import { ParsedAgent } from "@app/types/AgentTypes";
 
@@ -22,35 +22,34 @@ export class AgentRegistry {
   }
 
   /**
-   * Scan the agents folder for subfolders that contain an agent.md file.
-   * Each valid agent is parsed and stored in the registry.
-   * Invalid agents are logged to console and skipped.
+   * Scan the agents folder for agent.md files.
+   *
+   * Uses getMarkdownFiles() to find all markdown files in the vault, then
+   * filters for files matching `<agentsFolder>/`agent.md`.
+   * This avoids relying on getAbstractFileByPath for folders, which can
+   * fail in some Obsidian environments.
    */
   async scan(agentsFolder: string): Promise<void> {
     this.agents.clear();
 
-    const folderPath = normalizePath(agentsFolder);
-    const folder = this.app.vault.getAbstractFileByPath(folderPath);
+    const prefix = normalizePath(agentsFolder) + "/";
+    const agentFiles = this.findAgentFiles(prefix);
 
-    if (!(folder instanceof TFolder)) {
-      console.warn(`[AI Agents] Agents folder not found: ${folderPath}`);
+    if (agentFiles.length === 0) {
+      console.warn(`[AI Agents] No agent.md files found in: ${prefix}`);
       return;
     }
 
-    for (const child of folder.children) {
-      if (!(child instanceof TFolder)) continue;
-
-      const agentFilePath = normalizePath(`${child.path}/agent.md`);
-      const agentFile = this.app.vault.getAbstractFileByPath(agentFilePath);
-
-      if (!(agentFile instanceof TFile)) continue;
+    for (const file of agentFiles) {
+      // Extract folder path: "agents/writer/agent.md" → "agents/writer"
+      const folderPath = file.path.substring(0, file.path.lastIndexOf("/"));
 
       try {
-        const agent = await this.parseAgentAt(child.path, agentFile);
+        const agent = await this.parseAgentAt(folderPath, file);
         this.agents.set(agent.id, agent);
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        console.warn(`[AI Agents] Skipping ${child.path}: ${msg}`);
+        console.warn(`[AI Agents] Skipping ${folderPath}: ${msg}`);
       }
     }
   }
@@ -58,20 +57,37 @@ export class AgentRegistry {
   /**
    * Reload a single agent by its id.
    * Reads the agent.md file again and replaces the registry entry.
-   * Throws if the agent folder or file no longer exists.
+   * Throws if the agent file no longer exists.
    */
   async reloadAgent(id: string, agentsFolder: string): Promise<void> {
     const folderPath = normalizePath(`${agentsFolder}/${id}`);
     const agentFilePath = normalizePath(`${folderPath}/agent.md`);
-    const agentFile = this.app.vault.getAbstractFileByPath(agentFilePath);
 
-    if (!(agentFile instanceof TFile)) {
+    const file = this.app.vault.getMarkdownFiles().find(
+      (f) => f.path === agentFilePath,
+    );
+
+    if (!file) {
       this.agents.delete(id);
       throw new AgentConfigError(`Agent file not found: ${agentFilePath}`);
     }
 
-    const agent = await this.parseAgentAt(folderPath, agentFile);
+    const agent = await this.parseAgentAt(folderPath, file);
     this.agents.set(agent.id, agent);
+  }
+
+  /**
+   * Find all agent.md files that are direct children of the agents folder.
+   * Matches pattern: <prefix><agentId>/agent.md (exactly one level deep).
+   */
+  private findAgentFiles(prefix: string): TFile[] {
+    return this.app.vault.getMarkdownFiles().filter((f) => {
+      if (!f.path.startsWith(prefix)) return false;
+      // remainder after prefix should be "<id>/agent.md" (one slash only)
+      const remainder = f.path.substring(prefix.length);
+      const parts = remainder.split("/");
+      return parts.length === 2 && parts[1] === "agent.md";
+    });
   }
 
   getAgent(id: string): ParsedAgent | undefined {
@@ -83,7 +99,7 @@ export class AgentRegistry {
   }
 
   getEnabledAgents(): ParsedAgent[] {
-    return this.getAllAgents().filter((a) => a.config.agent.enabled);
+    return this.getAllAgents().filter((a) => a.config.enabled);
   }
 
   // -------------------------------------------------------------------------

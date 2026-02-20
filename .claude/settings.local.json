@@ -11,7 +11,10 @@
       "Bash(cd:*)",
       "Bash(dir:*)",
       "Bash(ls:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(del \"app\\\\features\\\\settings\\\\ExampleSettingsTab.ts\")",
+      "Bash(del \"app\\\\features\\\\settings\\\\__tests__\\\\ExampleSettingsTab.test.ts\")",
+      "WebFetch(domain:docs.obsidian.md)"
     ],
     "deny": []
   }
