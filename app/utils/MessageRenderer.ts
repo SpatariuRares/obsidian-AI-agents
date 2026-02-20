@@ -27,7 +27,7 @@ export class MessageRenderer {
     try {
       containerEl.empty();
       await MarkdownRenderer.render(app, content, containerEl, sourcePath, component);
-    } catch (_error) {
+    } catch {
       containerEl.empty();
       containerEl.createDiv({
         text: "Error rendering message. Showing raw text:",

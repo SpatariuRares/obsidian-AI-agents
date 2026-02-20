@@ -63,11 +63,12 @@ export class ChatManager {
   /**
    * Append a message to the conversation.
    */
-  addMessage(role: "user" | "assistant", content: string): void {
+  addMessage(role: "user" | "assistant" | "tool", content: string, extra?: Partial<ChatMessage>): void {
     this.messages.push({
       role,
       content,
       timestamp: Date.now(),
+      ...extra
     });
   }
 

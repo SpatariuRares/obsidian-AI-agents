@@ -1,3 +1,4 @@
+/* eslint-disable i18next/no-literal-string */
 /**
  * @fileoverview ConversationLogger - Writes chat logs to markdown files in the vault.
  */
@@ -36,7 +37,8 @@ export class ConversationLogger {
 
         await this.ensureFolder(logFolderPath);
 
-        let file = this.app.vault.getFileByPath(logFilePath) as TFile;
+        const abstractFile = this.app.vault.getAbstractFileByPath(logFilePath);
+        let file: TFile | null = abstractFile instanceof TFile ? abstractFile : null;
         let sessionNum = 1;
         let isNewFile = false;
 
@@ -56,23 +58,18 @@ total_tokens: ${usage?.totalTokens || 0}
             file = await this.app.vault.create(logFilePath, initialContent);
             isNewSession = true;
         } else {
-            // Update frontmatter
-            try {
-                await this.app.fileManager.processFrontMatter(file, (fm) => {
-                    if (isNewSession) {
-                        fm.sessions = (fm.sessions || 1) + 1;
-                    }
-                    sessionNum = fm.sessions || 1;
-                    if (usage) {
-                        fm.total_tokens = (fm.total_tokens || 0) + usage.totalTokens;
-                    }
-                });
-            } catch (e) {
-                console.error("[ConversationLogger] Failed to update frontmatter:", e);
-            }
+            await this.app.fileManager.processFrontMatter(file, (fm) => {
+                if (isNewSession) {
+                    fm.sessions = (fm.sessions || 1) + 1;
+                }
+                sessionNum = fm.sessions || 1;
+                if (usage) {
+                    fm.total_tokens = (fm.total_tokens || 0) + usage.totalTokens;
+                }
+            });
+
         }
 
-        // Prepare append string
         let appendStr = "";
 
         if (isNewSession && !isNewFile) {
@@ -91,11 +88,8 @@ total_tokens: ${usage?.totalTokens || 0}
             appendStr += `**🔧 Tool calls:** ${toolNames}\n\n`;
         }
 
-        try {
-            await this.app.vault.append(file, appendStr);
-        } catch (e) {
-            console.error("[ConversationLogger] Failed to append to log:", e);
-        }
+        await this.app.vault.append(file, appendStr);
+
     }
 
     private async ensureFolder(path: string): Promise<void> {
@@ -107,11 +101,7 @@ total_tokens: ${usage?.totalTokens || 0}
             const normalized = normalizePath(current);
             const folder = this.app.vault.getFolderByPath(normalized);
             if (!folder) {
-                try {
-                    await this.app.vault.createFolder(normalized);
-                } catch (e) {
-                    console.error(`[ConversationLogger] Failed to create folder ${normalized}:`, e);
-                }
+                await this.app.vault.createFolder(normalized);
             }
         }
     }

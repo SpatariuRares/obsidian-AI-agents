@@ -6,6 +6,7 @@ import { App, TFile, TFolder } from "obsidian";
 import { AgentConfig } from "@app/types/AgentTypes";
 import { PermissionGuard, FileOperationType } from "@app/services/PermissionGuard";
 import { PermissionModal } from "@app/ui/PermissionModal";
+import { t } from "@app/i18n";
 
 export class FileOperations {
     /**
@@ -82,7 +83,7 @@ export class FileOperations {
         PermissionGuard.assertPermission(config, "move", toPath);
 
         if (config.confirm_destructive) {
-            const allowed = await FileOperations.requestUserConfirmation(app, config.name, "move", `${fromPath} to ${toPath}`);
+            const allowed = await FileOperations.requestUserConfirmation(app, config.name, "move", t("permission.movePath", { from: fromPath, to: toPath }));
             if (!allowed) throw new Error("Operation rejected by user.");
         }
 
@@ -111,7 +112,7 @@ export class FileOperations {
             throw new Error(`File not found: ${path}`);
         }
 
-        await app.vault.delete(file);
+        await app.fileManager.trashFile(file);
     }
 
     /**

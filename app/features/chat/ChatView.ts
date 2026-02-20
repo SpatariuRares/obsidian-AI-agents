@@ -18,6 +18,8 @@ import { MessageRenderer } from "@app/utils/MessageRenderer";
 import { ApiRouter } from "@app/services/ApiRouter";
 import { AgentSelectorModal, CREATE_AGENT_ID } from "@app/ui/AgentSelectorModal";
 import { AgentEditor } from "@app/ui/AgentEditor";
+import { ToolHandler } from "@app/services/ToolHandler";
+import { t } from "@app/i18n";
 
 export const VIEW_TYPE_CHAT = "ai-agents-chat";
 
@@ -55,10 +57,11 @@ export class ChatView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "AI agents";
+    return t("chat.title");
   }
 
   getIcon(): string {
+    // eslint-disable-next-line i18next/no-literal-string
     return "bot";
   }
 
@@ -91,7 +94,7 @@ export class ChatView extends ItemView {
 
     this.agentSelectBtnEl = header.createEl("button", {
       cls: "ai-agents-chat__agent-select-btn",
-      text: "Choose an agent...",
+      text: t("chat.chooseAgent"),
     });
 
     this.agentSelectBtnEl.addEventListener("click", () => {
@@ -100,10 +103,10 @@ export class ChatView extends ItemView {
 
     this.editAgentBtnEl = header.createEl("button", {
       cls: "ai-agents-chat__edit-agent clickable-icon",
-      attr: { "aria-label": "Edit agent" },
+      attr: { "aria-label": t("chat.editAgent") },
     });
     setIcon(this.editAgentBtnEl, "pencil");
-    this.editAgentBtnEl.style.display = "none";
+    this.editAgentBtnEl.setCssProps({ display: "none" });
     this.editAgentBtnEl.addEventListener("click", () => {
       const activeAgent = this.host.chatManager.getActiveAgent();
       if (activeAgent) this.showEditor(activeAgent);
@@ -111,11 +114,11 @@ export class ChatView extends ItemView {
 
     const newSessionBtn = header.createEl("button", {
       cls: "ai-agents-chat__new-session clickable-icon",
-      attr: { "aria-label": "New session" },
+      attr: { "aria-label": t("chat.newSession") },
     });
     setIcon(newSessionBtn, "rotate-ccw");
     newSessionBtn.addEventListener("click", () => {
-      this.onNewSession().catch((e: Error) => console.error("New session error:", e));
+      this.onNewSession().catch((_e: Error) => { /* no-op */ });
     });
   }
 
@@ -128,14 +131,14 @@ export class ChatView extends ItemView {
 
     this.emptyStateEl = wrapper.createDiv({ cls: "ai-agents-chat__empty-state" });
     this.emptyStateEl.createEl("p", {
-      text: "Select an agent to start chatting.",
+      text: t("chat.selectAgentPrompt"),
       cls: "ai-agents-chat__empty-text",
     });
 
     this.messageListEl = wrapper.createDiv({ cls: "ai-agents-chat__messages" });
 
     this.editorWrapperEl = container.createDiv({ cls: "ai-agents-chat__editor-wrapper" });
-    this.editorWrapperEl.style.display = "none";
+    this.editorWrapperEl.setCssProps({ display: "none" });
   }
 
   // -------------------------------------------------------------------------
@@ -148,32 +151,32 @@ export class ChatView extends ItemView {
     this.inputEl = inputArea.createEl("textarea", {
       cls: "ai-agents-chat__input",
       attr: {
-        placeholder: "Type a message...",
+        placeholder: t("chat.inputPlaceholder"),
         rows: "1",
       },
     });
 
     // Auto-resize textarea as user types
     this.inputEl.addEventListener("input", () => {
-      this.inputEl.style.height = "auto";
-      this.inputEl.style.height = Math.min(this.inputEl.scrollHeight, 120) + "px";
+      this.inputEl.setCssProps({ height: "auto" });
+      this.inputEl.setCssProps({ height: Math.min(this.inputEl.scrollHeight, 120) + "px" });
     });
 
     // Send on Enter (Shift+Enter for newline)
     this.inputEl.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        this.onSendMessage().catch((err: Error) => console.error("Send message error:", err));
+        this.onSendMessage().catch((_err: Error) => { /* no-op */ });
       }
     });
 
     const sendBtn = inputArea.createEl("button", {
       cls: "ai-agents-chat__send clickable-icon",
-      attr: { "aria-label": "Send message" },
+      attr: { "aria-label": t("chat.sendMessage") },
     });
     setIcon(sendBtn, "send");
     sendBtn.addEventListener("click", () => {
-      this.onSendMessage().catch((err: Error) => console.error("Send message error:", err));
+      this.onSendMessage().catch((_err: Error) => { /* no-op */ });
     });
   }
 
@@ -186,10 +189,10 @@ export class ChatView extends ItemView {
 
     if (activeAgent) {
       this.agentSelectBtnEl.textContent = `${activeAgent.config.avatar || ""} ${activeAgent.config.name}`.trim();
-      this.editAgentBtnEl.style.display = "flex";
+      this.editAgentBtnEl.setCssProps({ display: "flex" });
     } else {
-      this.agentSelectBtnEl.textContent = "Choose an agent...";
-      this.editAgentBtnEl.style.display = "none";
+      this.agentSelectBtnEl.textContent = t("chat.chooseAgent");
+      this.editAgentBtnEl.setCssProps({ display: "none" });
     }
   }
 
@@ -198,12 +201,12 @@ export class ChatView extends ItemView {
 
     if (agents.length === 0) {
       // Could show a notice here
-      console.warn("[ChatView] No enabled agents found.");
+      // console.warn("[ChatView] No enabled agents found.");
       return;
     }
 
     const modal = new AgentSelectorModal(this.app, agents, (agent) => {
-      this.onAgentSelected(agent).catch((e: Error) => console.error("Agent select error:", e));
+      this.onAgentSelected(agent).catch((_e: Error) => { /* no-op */ });
     });
     modal.open();
   }
@@ -231,13 +234,13 @@ export class ChatView extends ItemView {
   private showEditor(agent: ParsedAgent | null): void {
     this.viewMode = "edit";
     // Hide chat elements
-    this.emptyStateEl.style.display = "none";
-    this.messageListEl.style.display = "none";
+    this.emptyStateEl.setCssProps({ display: "none" });
+    this.messageListEl.setCssProps({ display: "none" });
     const inputArea = this.containerEl.querySelector(".ai-agents-chat__input-area") as HTMLElement;
-    if (inputArea) inputArea.style.display = "none";
+    if (inputArea) inputArea.setCssProps({ display: "none" });
 
     // Show editor 
-    this.editorWrapperEl.style.display = "block";
+    this.editorWrapperEl.setCssProps({ display: "block" });
     const editor = new AgentEditor(
       this.app,
       this.editorWrapperEl,
@@ -257,7 +260,7 @@ export class ChatView extends ItemView {
         this.showChat();
         if (!this.host.chatManager.getActiveAgent()) {
           this.refreshAgentSelectBtn();
-          this.renderMessages();
+          this.renderMessages().catch((_e: Error) => { /* no-op */ });
         }
       }
     );
@@ -266,13 +269,13 @@ export class ChatView extends ItemView {
 
   private showChat(): void {
     this.viewMode = "chat";
-    this.editorWrapperEl.style.display = "none";
+    this.editorWrapperEl.setCssProps({ display: "none" });
     this.editorWrapperEl.empty();
 
     const inputArea = this.containerEl.querySelector(".ai-agents-chat__input-area") as HTMLElement;
-    if (inputArea) inputArea.style.display = "flex";
+    if (inputArea) inputArea.setCssProps({ display: "flex" });
 
-    this.renderMessages();
+    this.renderMessages().catch((_e: Error) => { /* no-op */ });
   }
 
   private async onNewSession(): Promise<void> {
@@ -291,51 +294,93 @@ export class ChatView extends ItemView {
 
     this.host.chatManager.addMessage("user", text);
     this.inputEl.value = "";
-    this.inputEl.style.height = "auto";
+    this.inputEl.setCssProps({ height: "auto" });
     await this.renderMessages();
 
     const activeAgent = this.host.chatManager.getActiveAgent();
     if (!activeAgent) return;
 
     try {
-      const messagesForApi = this.host.chatManager.getMessages();
-      const userMsg = messagesForApi[messagesForApi.length - 1]; // user message we just added
+      let isToolLoop = true;
       let usageResponse;
+      const initialUserMsg = this.host.chatManager.getMessages()[this.host.chatManager.getMessages().length - 1];
 
-      if (activeAgent.config.stream) {
-        this.host.chatManager.addMessage("assistant", "");
-        await this.renderMessages();
+      while (isToolLoop) {
+        const messagesForApi = this.host.chatManager.getMessages();
 
-        const response = await ApiRouter.send(
-          messagesForApi,
-          activeAgent.config,
-          this.host.chatManager.getSettings(),
-          async (chunk: string) => {
-            this.host.chatManager.appendChunkToLastMessage(chunk);
-            await this.updateLastMessage();
+        let response;
+        if (activeAgent.config.stream) {
+          this.host.chatManager.addMessage("assistant", "");
+          await this.renderMessages();
+
+          response = await ApiRouter.send(
+            messagesForApi,
+            activeAgent.config,
+            this.host.chatManager.getSettings(),
+            async (chunk: string) => {
+              this.host.chatManager.appendChunkToLastMessage(chunk);
+              await this.updateLastMessage();
+            }
+          );
+        } else {
+          response = await ApiRouter.send(
+            messagesForApi,
+            activeAgent.config,
+            this.host.chatManager.getSettings()
+          );
+          this.host.chatManager.addMessage("assistant", response.text);
+          await this.renderMessages();
+        }
+
+        usageResponse = response?.usage;
+
+        if (response.tool_calls && response.tool_calls.length > 0) {
+          // If we streamed, the assistant message is already there but empty text. 
+          // If not streamed, we added it above with text.
+          // Let's ensure the assistant message actually reflects the tool_calls for future requests.
+          const msgs = this.host.chatManager.getMessages();
+          const lastMsg = msgs[msgs.length - 1];
+          lastMsg.tool_calls = response.tool_calls;
+
+          // Process tool calls
+          for (const call of response.tool_calls) {
+            const toolName = call.function.name;
+            let args = {};
+            try {
+              args = JSON.parse(call.function.arguments);
+            } catch {
+              // console.warn("[ChatView] Failed to parse tool arguments:", call.function.arguments);
+            }
+
+            const toolResult = await ToolHandler.executeTool(this.app, activeAgent.config, toolName, args);
+
+            // Add tool response to history
+            this.host.chatManager.addMessage("tool", JSON.stringify(toolResult), {
+              name: toolName,
+              tool_call_id: call.id
+            });
           }
-        );
-        usageResponse = response?.usage;
-      } else {
-        const response = await ApiRouter.send(
-          messagesForApi,
-          activeAgent.config,
-          this.host.chatManager.getSettings()
-        );
-        this.host.chatManager.addMessage("assistant", response.text);
-        await this.renderMessages();
-        usageResponse = response?.usage;
+          await this.renderMessages();
+
+          // Loop continues to send tool results back to LLM...
+        } else {
+          isToolLoop = false;
+        }
       }
 
       const visibleMsgs = this.host.chatManager.getVisibleMessages();
       const asstMsg = visibleMsgs[visibleMsgs.length - 1];
 
-      await this.host.chatManager.logTurn(userMsg, asstMsg, usageResponse);
+      await this.host.chatManager.logTurn(initialUserMsg, asstMsg, usageResponse);
     } catch (error: unknown) {
-      console.error("[ChatView] API Error:", error);
+      // console.error("[ChatView] API Error:", error);
       const errMessage = error instanceof Error ? error.message : String(error);
 
-      new Notice(`AI Agent Error: ${errMessage}`, 5000);
+      if (errMessage.includes("does not support tools")) {
+        new Notice(t("notices.aiAgentErrorNoTools"), 8000);
+      } else {
+        new Notice(t("notices.aiAgentError", { message: errMessage }), 5000);
+      }
 
       // Clean up the empty assistant message if we added it for streaming
       const msgs = this.host.chatManager.getMessages();
@@ -357,8 +402,8 @@ export class ChatView extends ItemView {
 
     if (this.viewMode === "chat") {
       // Toggle empty state vs message list
-      this.emptyStateEl.style.display = hasSession ? "none" : "flex";
-      this.messageListEl.style.display = hasSession ? "flex" : "none";
+      this.emptyStateEl.setCssProps({ display: hasSession ? "none" : "flex" });
+      this.messageListEl.setCssProps({ display: hasSession ? "flex" : "none" });
     }
 
     if (!hasSession || this.viewMode === "edit") return;
@@ -420,9 +465,9 @@ export class ChatView extends ItemView {
     const agent = this.host.chatManager.getActiveAgent();
 
     if (msg.role === "user") {
-      label.textContent = "You";
+      label.textContent = t("chat.youLabel");
     } else if (msg.role === "assistant") {
-      label.textContent = agent?.config.name ?? "Assistant";
+      label.textContent = agent?.config.name ?? t("chat.assistantLabel");
     }
 
     const content = bubble.createDiv({ cls: "ai-agents-chat__message-content" });

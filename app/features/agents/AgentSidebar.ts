@@ -5,6 +5,7 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { AgentRegistry } from "@app/services/AgentRegistry";
 import { ParsedAgent } from "@app/types/AgentTypes";
+import { t } from "@app/i18n";
 
 export const VIEW_TYPE_AGENT_SIDEBAR = "ai-agents-sidebar";
 
@@ -26,7 +27,7 @@ export class AgentSidebar extends ItemView {
     }
 
     getDisplayText(): string {
-        return "AI Agents List";
+        return t("sidebar.title");
     }
 
     getIcon(): string {
@@ -38,7 +39,7 @@ export class AgentSidebar extends ItemView {
         container.empty();
         container.addClass("ai-agents-sidebar");
 
-        container.createEl("h3", { text: "My AI Agents", cls: "ai-agents-sidebar__title" });
+        container.createEl("h3", { text: t("sidebar.heading"), cls: "ai-agents-sidebar__title" });
 
         const agentsList = container.createDiv({ cls: "ai-agents-sidebar__list" });
         this.renderAgents(agentsList);
@@ -52,7 +53,7 @@ export class AgentSidebar extends ItemView {
         const agents = this.host.agentRegistry.getAllAgents();
 
         if (agents.length === 0) {
-            container.createEl("p", { text: "No agents found.", cls: "ai-agents-sidebar__empty" });
+            container.createEl("p", { text: t("sidebar.noAgents"), cls: "ai-agents-sidebar__empty" });
             return;
         }
 
@@ -65,16 +66,16 @@ export class AgentSidebar extends ItemView {
             const header = item.createDiv({ cls: "ai-agents-sidebar__item-header" });
 
             const avatar = header.createDiv({ cls: "ai-agents-sidebar__avatar" });
-            avatar.setText(agent.config.avatar || "🤖");
+            avatar.setText(agent.config.avatar || t("icons.defaultAvatar"));
 
             const info = header.createDiv({ cls: "ai-agents-sidebar__info" });
             info.createDiv({ cls: "ai-agents-sidebar__name", text: agent.config.name });
 
             const status = header.createDiv({ cls: "ai-agents-sidebar__status" });
             if (agent.config.enabled) {
-                status.setText("🟢");
+                status.setText(t("icons.enabled"));
             } else {
-                status.setText("🔴");
+                status.setText(t("icons.disabled"));
             }
 
             if (agent.config.description) {
@@ -83,7 +84,7 @@ export class AgentSidebar extends ItemView {
 
             item.addEventListener("click", () => {
                 if (agent.config.enabled) {
-                    this.host.startSessionAndOpenChat(agent).catch((e: Error) => console.error(e));
+                    this.host.startSessionAndOpenChat(agent).catch(() => { /* no-op */ });
                 }
             });
         }

@@ -12,6 +12,8 @@ import { App, Notice, Plugin, PluginSettingTab, Setting, normalizePath } from "o
 import { PluginSettings } from "@app/types/PluginTypes";
 import { AgentRegistry } from "@app/services/AgentRegistry";
 import { FolderSuggest } from "@app/features/common/suggest/FolderSuggest";
+import { t } from "@app/i18n";
+import { CONSTANTS } from "@app/constants/constants";
 
 /** Default agent.md content used by the "Create default agent" button. */
 const DEFAULT_AGENT_MD = `---
@@ -75,12 +77,12 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
     // =======================================================================
     // SECTION: AI Providers
     // =======================================================================
-    new Setting(containerEl).setHeading().setName("AI providers");
+    new Setting(containerEl).setHeading().setName(t("settings.providers.heading"));
 
     // --- Ollama -----------------------------------------------------------
     new Setting(containerEl)
-      .setName("Enable Ollama")
-      .setDesc("Use a local Ollama instance for AI inference.")
+      .setName(t("settings.providers.ollamaEnable"))
+      .setDesc(t("settings.providers.ollamaEnableDesc"))
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.ollama.enabled)
@@ -91,11 +93,11 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Ollama server URL")
-      .setDesc("Base URL of your Ollama server.")
+      .setName(t("settings.providers.ollamaUrl"))
+      .setDesc(t("settings.providers.ollamaUrlDesc"))
       .addText((text) =>
         text
-          .setPlaceholder("http://localhost:11434")
+          .setPlaceholder(t("settings.providers.ollamaUrlPlaceholder"))
           .setValue(this.plugin.settings.ollama.baseUrl)
           .onChange(async (value) => {
             this.plugin.settings.ollama.baseUrl = value;
@@ -105,10 +107,8 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
 
     // --- OpenRouter -------------------------------------------------------
     new Setting(containerEl)
-      .setName("Enable OpenRouter")
-      .setDesc(
-        "Use OpenRouter to access multiple AI models via a single API key.",
-      )
+      .setName(t("settings.providers.openrouterEnable"))
+      .setDesc(t("settings.providers.openrouterEnableDesc"))
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.openRouter.enabled)
@@ -119,11 +119,11 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("OpenRouter API key")
-      .setDesc("Your OpenRouter API key. Stored locally in the plugin data.")
+      .setName(t("settings.providers.openrouterApiKey"))
+      .setDesc(t("settings.providers.openrouterApiKeyDesc"))
       .addText((text) =>
         text
-          .setPlaceholder("sk-or-...")
+          .setPlaceholder(t("settings.providers.openrouterApiKeyPlaceholder"))
           .setValue(this.plugin.settings.openRouter.apiKey)
           .onChange(async (value) => {
             this.plugin.settings.openRouter.apiKey = value;
@@ -133,13 +133,13 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
 
     // --- Default provider -------------------------------------------------
     new Setting(containerEl)
-      .setName("Default provider")
-      .setDesc("Provider used when an agent does not specify one.")
+      .setName(t("settings.providers.defaultProvider"))
+      .setDesc(t("settings.providers.defaultProviderDesc"))
       .addDropdown((dropdown) =>
         dropdown
           .addOptions({
-            ollama: "Ollama",
-            openrouter: "OpenRouter",
+            ollama: t("settings.providers.providerOllama"),
+            openrouter: t("settings.providers.providerOpenRouter"),
           })
           .setValue(this.plugin.settings.defaultProvider)
           .onChange(async (value) => {
@@ -153,17 +153,15 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
     // =======================================================================
     // SECTION: General
     // =======================================================================
-    new Setting(containerEl).setHeading().setName("General");
+    new Setting(containerEl).setHeading().setName(t("settings.general.heading"));
 
     new Setting(containerEl)
-      .setName("Agents folder")
-      .setDesc(
-        "Path relative to vault root where agent definitions are stored.",
-      )
+      .setName(t("settings.general.agentsFolder"))
+      .setDesc(t("settings.general.agentsFolderDesc"))
       .addText((text) => {
         new FolderSuggest(this.app, text.inputEl);
         text
-          .setPlaceholder("agents")
+          .setPlaceholder(t("settings.general.agentsFolderPlaceholder"))
           .setValue(this.plugin.settings.agentsFolder)
           .onChange(async (value) => {
             this.plugin.settings.agentsFolder = value;
@@ -172,11 +170,11 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName("User name")
-      .setDesc("Your name, available as {{user_name}} in agent prompts.")
+      .setName(t("settings.general.userName"))
+      .setDesc(t("settings.general.userNameDesc"))
       .addText((text) =>
         text
-          .setPlaceholder("Enter your name")
+          .setPlaceholder(t("settings.general.userNamePlaceholder"))
           .setValue(this.plugin.settings.userName)
           .onChange(async (value) => {
             this.plugin.settings.userName = value;
@@ -185,13 +183,11 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Create default agent")
-      .setDesc(
-        "Scaffold a starter agent in the agents folder with a ready-to-use configuration.",
-      )
+      .setName(t("settings.general.createDefaultAgent"))
+      .setDesc(t("settings.general.createDefaultAgentDesc"))
       .addButton((btn) =>
         (btn as unknown as ButtonApi)
-          .setButtonText("Create")
+          .setButtonText(t("settings.general.createDefaultAgentBtn"))
           .setCta()
           .onClick(() => {
             void this.createDefaultAgent();
@@ -201,16 +197,14 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
     // =======================================================================
     // SECTION: Behaviour
     // =======================================================================
-    new Setting(containerEl).setHeading().setName("Behaviour");
+    new Setting(containerEl).setHeading().setName(t("settings.behaviour.heading"));
 
     new Setting(containerEl)
-      .setName("Default model")
-      .setDesc(
-        "Model identifier used when an agent does not specify one (e.g. llama3, mistral).",
-      )
+      .setName(t("settings.behaviour.defaultModel"))
+      .setDesc(t("settings.behaviour.defaultModelDesc"))
       .addText((text) =>
         text
-          .setPlaceholder("llama3")
+          .setPlaceholder(t("settings.behaviour.defaultModelPlaceholder", { defaultValue: "llama3" } as any) || "llama3")
           .setValue(this.plugin.settings.defaultModel)
           .onChange(async (value) => {
             this.plugin.settings.defaultModel = value;
@@ -219,8 +213,8 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Max history messages")
-      .setDesc("Number of messages to keep in the conversation context.")
+      .setName(t("settings.behaviour.maxHistory"))
+      .setDesc(t("settings.behaviour.maxHistoryDesc"))
       .addText((text) =>
         text
           .setPlaceholder("50")
@@ -235,8 +229,8 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Auto-save interval")
-      .setDesc("Seconds between automatic log saves (0 to disable).")
+      .setName(t("settings.behaviour.autoSave"))
+      .setDesc(t("settings.behaviour.autoSaveDesc"))
       .addText((text) =>
         text
           .setPlaceholder("30")
@@ -251,10 +245,8 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Confirm destructive operations")
-      .setDesc(
-        "Show a confirmation modal before agents write, move, or delete files.",
-      )
+      .setName(t("settings.behaviour.confirmDestructive"))
+      .setDesc(t("settings.behaviour.confirmDestructiveDesc"))
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.confirmDestructiveOps)
@@ -265,8 +257,8 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Max file operations per message")
-      .setDesc("Rate limit: maximum file operations an agent can perform per message.")
+      .setName(t("settings.behaviour.maxFileOps"))
+      .setDesc(t("settings.behaviour.maxFileOpsDesc"))
       .addText((text) =>
         text
           .setPlaceholder("10")
@@ -283,17 +275,17 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
     // =======================================================================
     // SECTION: Interface
     // =======================================================================
-    new Setting(containerEl).setHeading().setName("Interface");
+    new Setting(containerEl).setHeading().setName(t("settings.interface.heading"));
 
     new Setting(containerEl)
-      .setName("Chat position")
-      .setDesc("Where the chat panel opens in the workspace.")
+      .setName(t("settings.interface.chatPosition"))
+      .setDesc(t("settings.interface.chatPositionDesc"))
       .addDropdown((dropdown) =>
         dropdown
           .addOptions({
-            right: "Right sidebar",
-            left: "Left sidebar",
-            tab: "New tab",
+            right: t("settings.interface.chatPositionRight"),
+            left: t("settings.interface.chatPositionLeft"),
+            tab: t("settings.interface.chatPositionTab"),
           })
           .setValue(this.plugin.settings.chatPosition)
           .onChange(async (value) => {
@@ -306,8 +298,8 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Show status bar")
-      .setDesc("Display active agent info in the status bar.")
+      .setName(t("settings.interface.showStatusBar"))
+      .setDesc(t("settings.interface.showStatusBarDesc"))
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.showStatusBar)
@@ -318,8 +310,8 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Show token count")
-      .setDesc("Display token usage in the status bar.")
+      .setName(t("settings.interface.showTokenCount"))
+      .setDesc(t("settings.interface.showTokenCountDesc"))
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.showTokenCount)
@@ -335,14 +327,14 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
   // -----------------------------------------------------------------------
 
   private async createDefaultAgent(): Promise<void> {
-    const folder = this.plugin.settings.agentsFolder || "agents";
+    const folder = this.plugin.settings.agentsFolder || CONSTANTS.DEFAULT_AGENTS_FOLDER;
     const agentFolder = normalizePath(`${folder}/assistant`);
     const agentFile = normalizePath(`${agentFolder}/agent.md`);
 
     // Check if the file already exists
     const existing = this.app.vault.getAbstractFileByPath(agentFile);
     if (existing) {
-      new Notice("Default agent already exists.");
+      new Notice(t("notices.defaultAgentExists"));
       return;
     }
 
@@ -353,10 +345,10 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
 
       await this.app.vault.create(agentFile, DEFAULT_AGENT_MD.trimStart());
       await this.plugin.agentRegistry.scan(folder);
-      new Notice("Default agent created successfully.");
+      new Notice(t("notices.defaultAgentCreated"));
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      new Notice(`Failed to create agent: ${msg}`);
+      new Notice(t("notices.defaultAgentFailed", { message: msg }));
     }
   }
 

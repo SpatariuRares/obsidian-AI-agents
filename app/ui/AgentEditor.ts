@@ -1,10 +1,12 @@
-import { App, Notice, Setting, TextComponent, TextAreaComponent } from "obsidian";
+import { App, Notice, Setting, TextAreaComponent } from "obsidian";
 import { ParsedAgent, AgentConfig } from "@app/types/AgentTypes";
 import { DEFAULT_CONFIG } from "@app/services/AgentConfig";
 import { AgentWriter } from "@app/utils/AgentWriter";
 import { AgentRegistry } from "@app/services/AgentRegistry";
 import { PluginSettings } from "@app/types/PluginTypes";
 import { PathSuggest } from "@app/features/common/suggest/PathSuggest";
+import { t } from "@app/i18n";
+import { CONSTANTS } from "@app/constants/constants";
 
 export class AgentEditor {
     private app: App;
@@ -59,16 +61,16 @@ export class AgentEditor {
         this.containerEl.empty();
 
         const headerEl = this.containerEl.createDiv({ cls: "ai-agents-chat__editor-header" });
-        headerEl.createEl("h3", { text: this.isEdit ? `Edit Agent: ${this.config.name}` : "Create New Agent" });
+        headerEl.createEl("h3", { text: this.isEdit ? t("editor.editTitle", { name: this.config.name }) : t("editor.createTitle") });
 
         const formContainer = this.containerEl.createDiv({ cls: "ai-agents-chat__editor-form" });
 
         // --- GENERAL ---
-        new Setting(formContainer).setHeading().setName("General Information");
+        new Setting(formContainer).setHeading().setName(t("editor.generalHeading"));
 
         new Setting(formContainer)
-            .setName("Folder/ID")
-            .setDesc("The unique folder name for this agent (lowercase, no spaces).")
+            .setName(t("editor.folderId"))
+            .setDesc(t("editor.folderIdDesc"))
             .addText(text => {
                 text.setValue(this.idInput);
                 text.setDisabled(this.isEdit);
@@ -76,58 +78,58 @@ export class AgentEditor {
             });
 
         new Setting(formContainer)
-            .setName("Name")
-            .setDesc("The display name of the agent.")
+            .setName(t("editor.name"))
+            .setDesc(t("editor.nameDesc"))
             .addText(text => {
                 text.setValue(this.config.name);
                 text.onChange(value => { this.config.name = value; });
             });
 
         new Setting(formContainer)
-            .setName("Description")
-            .setDesc("A short description of what this agent does.")
+            .setName(t("editor.description"))
+            .setDesc(t("editor.descriptionDesc"))
             .addText(text => {
                 text.setValue(this.config.description);
                 text.onChange(value => { this.config.description = value; });
             });
 
         new Setting(formContainer)
-            .setName("Author")
-            .setDesc("Author of this agent.")
+            .setName(t("editor.author"))
+            .setDesc(t("editor.authorDesc"))
             .addText(text => {
                 text.setValue(this.config.author || "");
                 text.onChange(value => { this.config.author = value; });
             });
 
         new Setting(formContainer)
-            .setName("Avatar")
-            .setDesc("Emoji or short string (e.g., 🤖).")
+            .setName(t("editor.avatar"))
+            .setDesc(t("editor.avatarDesc"))
             .addText(text => {
                 text.setValue(this.config.avatar);
                 text.onChange(value => { this.config.avatar = value; });
             });
 
         new Setting(formContainer)
-            .setName("Enabled")
-            .setDesc("If disabled, the agent won't show up in the selector.")
+            .setName(t("editor.enabled"))
+            .setDesc(t("editor.enabledDesc"))
             .addToggle(toggle => {
                 toggle.setValue(this.config.enabled);
                 toggle.onChange(value => { this.config.enabled = value; });
             });
 
         new Setting(formContainer)
-            .setName("Type")
+            .setName(t("editor.type"))
             .addDropdown(dropdown => {
-                dropdown.addOptions({ conversational: "Conversational", task: "Task", scheduled: "Scheduled" });
+                dropdown.addOptions({ conversational: t("editor.typeConversational"), task: t("editor.typeTask"), scheduled: t("editor.typeScheduled") });
                 dropdown.setValue(this.config.type);
                 dropdown.onChange(value => { this.config.type = value as any; });
             });
 
         // --- AI SETTINGS ---
-        new Setting(formContainer).setHeading().setName("AI & Model Settings");
+        new Setting(formContainer).setHeading().setName(t("editor.aiHeading"));
 
         new Setting(formContainer)
-            .setName("Provider")
+            .setName(t("editor.provider"))
             .addDropdown(dropdown => {
                 dropdown.addOptions({ ollama: "Ollama", openrouter: "OpenRouter" });
                 dropdown.setValue(this.config.provider);
@@ -135,21 +137,21 @@ export class AgentEditor {
             });
 
         new Setting(formContainer)
-            .setName("Model")
+            .setName(t("editor.model"))
             .addText(text => {
                 text.setValue(this.config.model);
                 text.onChange(value => { this.config.model = value; });
             });
 
         new Setting(formContainer)
-            .setName("Stream Responses")
+            .setName(t("editor.streamResponses"))
             .addToggle(toggle => {
                 toggle.setValue(!!this.config.stream);
                 toggle.onChange(value => { this.config.stream = value; });
             });
 
         new Setting(formContainer)
-            .setName("Max Context Tokens")
+            .setName(t("editor.maxContextTokens"))
             .addText(text => {
                 text.setValue(this.config.max_context_tokens.toString());
                 text.onChange(value => {
@@ -159,14 +161,14 @@ export class AgentEditor {
             });
 
         new Setting(formContainer)
-            .setName("Strategy")
+            .setName(t("editor.strategy"))
             .addText(text => {
-                text.setValue(this.config.strategy || "inject_all");
+                text.setValue(this.config.strategy || CONSTANTS.DEFAULT_AGENT_STRATEGY);
                 text.onChange(value => { this.config.strategy = value; });
             });
 
         // --- KNOWLEDGE & PERMISSIONS ---
-        new Setting(formContainer).setHeading().setName("Knowledge & File Permissions");
+        new Setting(formContainer).setHeading().setName(t("editor.permissionsHeading"));
 
         const createPathListSetting = (name: string, desc: string, field: keyof AgentConfig) => {
             const arr = (this.config[field] as string[]) || [];
@@ -177,37 +179,18 @@ export class AgentEditor {
 
             const container = setting.controlEl;
             container.empty();
-            container.style.display = "flex";
-            container.style.flexDirection = "column";
-            container.style.alignItems = "flex-end";
-            container.style.gap = "8px";
-            container.style.width = "100%";
-            container.style.maxWidth = "350px";
+            container.addClass("ai-agents-chat__editor-permissions-control");
 
-            const listContainer = container.createDiv();
-            listContainer.style.display = "flex";
-            listContainer.style.flexDirection = "column";
-            listContainer.style.gap = "4px";
-            listContainer.style.width = "100%";
+            const listContainer = container.createDiv({ cls: "ai-agents-chat__editor-permissions-list" });
 
             const renderList = () => {
                 listContainer.empty();
                 arr.forEach((item, index) => {
-                    const pill = listContainer.createDiv();
-                    pill.style.display = "flex";
-                    pill.style.alignItems = "center";
-                    pill.style.justifyContent = "space-between";
-                    pill.style.background = "var(--background-secondary-alt)";
-                    pill.style.padding = "4px 8px";
-                    pill.style.borderRadius = "4px";
-                    pill.style.fontSize = "12px";
-                    pill.style.border = "1px solid var(--background-modifier-border)";
+                    const pill = listContainer.createDiv({ cls: "ai-agents-chat__editor-permissions-pill" });
 
                     pill.createSpan({ text: item });
 
-                    const removeBtn = pill.createSpan({ text: "✕" });
-                    removeBtn.style.cursor = "pointer";
-                    removeBtn.style.color = "var(--text-muted)";
+                    const removeBtn = pill.createSpan({ text: "✕", cls: "ai-agents-chat__editor-permissions-remove" });
                     removeBtn.addEventListener("click", () => {
                         arr.splice(index, 1);
                         // @ts-ignore
@@ -218,17 +201,13 @@ export class AgentEditor {
             };
             renderList();
 
-            const inputContainer = container.createDiv();
-            inputContainer.style.display = "flex";
-            inputContainer.style.gap = "8px";
-            inputContainer.style.width = "100%";
+            const inputContainer = container.createDiv({ cls: "ai-agents-chat__editor-permissions-input-container" });
 
-            const input = inputContainer.createEl("input", { type: "text", placeholder: "Add path or glob..." });
-            input.style.flex = "1";
+            const input = inputContainer.createEl("input", { type: "text", placeholder: t("editor.pathPlaceholder"), cls: "ai-agents-chat__editor-permissions-input" });
 
             new PathSuggest(this.app, input);
 
-            const addBtn = inputContainer.createEl("button", { text: "Add" });
+            const addBtn = inputContainer.createEl("button", { text: t("editor.addBtn") });
             addBtn.addEventListener("click", () => {
                 const val = input.value.trim();
                 if (val && !arr.includes(val)) {
@@ -241,56 +220,56 @@ export class AgentEditor {
             });
         };
 
-        createPathListSetting("Sources", "Paths to include in the knowledge context.", "sources");
-        createPathListSetting("Read Permissions", "Paths this agent can read.", "read");
-        createPathListSetting("Write Permissions", "Paths this agent can write to.", "write");
-        createPathListSetting("Create Permissions", "Paths this agent can create files in.", "create");
-        createPathListSetting("Move Permissions", "Paths this agent can move/rename.", "move");
-        createPathListSetting("Delete Permissions", "Paths this agent can delete.", "delete");
+        createPathListSetting(t("editor.sources"), t("editor.sourcesDesc"), "sources");
+        createPathListSetting(t("editor.readPermissions"), t("editor.readPermissionsDesc"), "read");
+        createPathListSetting(t("editor.writePermissions"), t("editor.writePermissionsDesc"), "write");
+        createPathListSetting(t("editor.createPermissions"), t("editor.createPermissionsDesc"), "create");
+        createPathListSetting(t("editor.movePermissions"), t("editor.movePermissionsDesc"), "move");
+        createPathListSetting(t("editor.deletePermissions"), t("editor.deletePermissionsDesc"), "delete");
 
         new Setting(formContainer)
-            .setName("Vault Root Access")
-            .setDesc("Allow access beyond the specified folders.")
+            .setName(t("editor.vaultRootAccess"))
+            .setDesc(t("editor.vaultRootAccessDesc"))
             .addToggle(toggle => {
                 toggle.setValue(this.config.vault_root_access);
                 toggle.onChange(value => { this.config.vault_root_access = value; });
             });
 
         new Setting(formContainer)
-            .setName("Confirm Destructive")
-            .setDesc("Require user confirmation for write, move, delete operations.")
+            .setName(t("editor.confirmDestructive"))
+            .setDesc(t("editor.confirmDestructiveDesc"))
             .addToggle(toggle => {
                 toggle.setValue(this.config.confirm_destructive);
                 toggle.onChange(value => { this.config.confirm_destructive = value; });
             });
 
         // --- LOGGING ---
-        new Setting(formContainer).setHeading().setName("Logging");
+        new Setting(formContainer).setHeading().setName(t("editor.loggingHeading"));
 
         new Setting(formContainer)
-            .setName("Enable Logging")
+            .setName(t("editor.enableLogging"))
             .addToggle(toggle => {
                 toggle.setValue(this.config.logging_enabled);
                 toggle.onChange(value => { this.config.logging_enabled = value; });
             });
 
         new Setting(formContainer)
-            .setName("Logging Path")
+            .setName(t("editor.loggingPath"))
             .addText(text => {
                 text.setValue(this.config.logging_path);
                 text.onChange(value => { this.config.logging_path = value; });
             });
 
         new Setting(formContainer)
-            .setName("Logging Format")
+            .setName(t("editor.loggingFormat"))
             .addDropdown(dropdown => {
-                dropdown.addOptions({ daily: "Daily", per_session: "Per Session", single: "Single File" });
+                dropdown.addOptions({ daily: t("editor.formatDaily"), per_session: t("editor.formatPerSession"), single: t("editor.formatSingle") });
                 dropdown.setValue(this.config.logging_format);
                 dropdown.onChange(value => { this.config.logging_format = value as any; });
             });
 
         new Setting(formContainer)
-            .setName("Include Metadata")
+            .setName(t("editor.includeMetadata"))
             .addToggle(toggle => {
                 toggle.setValue(this.config.logging_include_metadata);
                 toggle.onChange(value => { this.config.logging_include_metadata = value; });
@@ -298,19 +277,18 @@ export class AgentEditor {
 
         // --- PROMPT ---
         const promptSetting = new Setting(formContainer)
-            .setName("System Prompt")
+            .setName(t("editor.systemPrompt"))
             .setHeading();
 
         promptSetting.descEl.createEl("p", {
-            text: "The main instructions for this agent. Supports variables like {{user_name}}, {{date}}, etc.",
+            text: t("editor.systemPromptDesc"),
             cls: "setting-item-description"
         });
 
         const textareaContainer = formContainer.createDiv({ cls: "ai-agents-chat__editor-prompt-container" });
         const textarea = new TextAreaComponent(textareaContainer);
         textarea.setValue(this.promptTemplate);
-        textarea.inputEl.style.width = "100%";
-        textarea.inputEl.style.minHeight = "200px";
+        textarea.inputEl.addClass("ai-agents-chat__editor-prompt-textarea");
         textarea.onChange(value => {
             this.promptTemplate = value;
         });
@@ -318,21 +296,21 @@ export class AgentEditor {
         // --- ACTIONS ---
         const actionsContainer = this.containerEl.createDiv({ cls: "ai-agents-chat__editor-actions" });
 
-        const cancelBtn = actionsContainer.createEl("button", { text: "Cancel" });
+        const cancelBtn = actionsContainer.createEl("button", { text: t("editor.cancelBtn") });
         cancelBtn.addEventListener("click", () => this.onCancel());
 
-        const saveBtn = actionsContainer.createEl("button", { text: "Save Agent", cls: "mod-cta" });
+        const saveBtn = actionsContainer.createEl("button", { text: t("editor.saveBtn"), cls: "mod-cta" });
         saveBtn.addEventListener("click", () => this.handleSave());
     }
 
     private async handleSave() {
         if (!this.idInput) {
-            new Notice("Folder/ID is required.");
+            new Notice(t("notices.folderIdRequired"));
             return;
         }
 
         if (!this.config.name || !this.config.model) {
-            new Notice("Name and Model are required.");
+            new Notice(t("notices.nameModelRequired"));
             return;
         }
 
@@ -346,12 +324,12 @@ export class AgentEditor {
             );
 
             await this.agentRegistry.scan(this.settings.agentsFolder);
-            new Notice(`Agent '${this.config.name}' saved successfully!`);
+            new Notice(t("notices.agentSaved", { name: this.config.name }));
             this.onSave(this.idInput);
         } catch (error) {
             const msg = error instanceof Error ? error.message : String(error);
-            new Notice(`Failed to save agent: ${msg}`);
-            console.error(error);
+            new Notice(t("notices.agentSaveFailed", { message: msg }));
+            // console.error(error);
         }
     }
 }

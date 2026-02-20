@@ -2,9 +2,9 @@
  * @fileoverview AIAgentsStatusBar - Displays the active agent and its token usage in Obsidian's status bar.
  */
 
-import { App, Plugin } from "obsidian";
+import { Plugin } from "obsidian";
 import { ChatManager } from "@app/services/ChatManager";
-import { PluginSettings } from "@app/types/PluginTypes";
+import { t } from "@app/i18n";
 
 export class AIAgentsStatusBar {
     private el: HTMLElement;
@@ -31,25 +31,24 @@ export class AIAgentsStatusBar {
         const settings = this.chatManager.getSettings();
 
         if (!settings.showStatusBar) {
-            this.el.style.display = "none";
+            this.el.addClass("ai-agents-hidden");
             return;
         }
 
-        this.el.style.display = ""; // Reset to default (e.g. inline-block for status bar items)
+        this.el.removeClass("ai-agents-hidden");
         this.el.empty();
 
         const agent = this.chatManager.getActiveAgent();
         if (!agent) {
-            // Either show nothing or "🤖 No Agent"
-            this.el.setText("🤖 No Agent");
+            this.el.setText(t("statusBar.noAgentWithIcon"));
             return;
         }
 
-        let text = `${agent.config.avatar || "🤖"} ${agent.config.name}`;
+        let text = t("statusBar.noAgentWithIcon", { icon: agent.config.avatar || t("icons.defaultAgent") });
 
         if (settings.showTokenCount) {
             const tokens = this.chatManager.tokenTracker.getTotalTokens(agent.id);
-            text += ` | 🪙 ${tokens}`;
+            text += t("statusBar.tokenFormat", { icon: t("icons.token"), tokens });
         }
 
         this.el.setText(text);

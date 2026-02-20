@@ -107,11 +107,11 @@ export class LocalizationService {
       if (this.currentLocale !== this.DEFAULT_LOCALE) {
         this.fallbackTranslations = this.loadLocaleFile(this.DEFAULT_LOCALE);
       }
-    } catch (error) {
-      console.error(
-        `[i18n] Error loading translations for locale "${this.currentLocale}":`,
-        error,
-      );
+    } catch {
+      // console.error(
+      //   `[i18n] Error loading translations for locale "${this.currentLocale}":`,
+      //   _error,
+      // );
       // If loading fails, use fallback
       this.translations = this.loadLocaleFile(this.DEFAULT_LOCALE);
     }
@@ -126,8 +126,8 @@ export class LocalizationService {
       // NOTE: This will be bundled by esbuild
       const localeFile = require(`./locales/${locale}.json`);
       return localeFile as Translations;
-    } catch (_error) {
-      console.warn(`[i18n] Locale file not found: ${locale}.json`);
+    } catch {
+      // console.warn(`[i18n] Locale file not found: ${locale}.json`);
       // Return empty object if file doesn't exist
       return {};
     }
@@ -158,7 +158,7 @@ export class LocalizationService {
 
     // If still not found, return the key itself (for debugging)
     if (translation === undefined) {
-      console.warn(`[i18n] Translation not found for key: "${key}"`);
+      // console.warn(`[i18n] Translation not found for key: "${key}"`);
       return key;
     }
 

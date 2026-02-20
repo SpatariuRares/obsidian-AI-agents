@@ -1,3 +1,4 @@
+/* eslint-disable i18next/no-literal-string */
 /**
  * @fileoverview PermissionGuard - Validates file operations against AgentConfig
  * 

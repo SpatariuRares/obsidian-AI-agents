@@ -4,7 +4,7 @@ import { PluginSettings } from "@app/types/PluginTypes";
 export interface ProviderResponse {
     text: string;
     usage?: import("@app/types/AgentTypes").TokenUsage;
-    // Future: tool_calls, usage data, etc.
+    tool_calls?: any[];
 }
 
 /**

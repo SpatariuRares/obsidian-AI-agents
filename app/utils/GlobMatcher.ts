@@ -21,7 +21,7 @@ export class GlobMatcher {
 
         // Path traversal protection
         if (this.containsPathTraversal(path)) {
-            console.warn(`Blocked path traversal attempt: ${path}`);
+            // console.warn(`Blocked path traversal attempt: ${path}`);
             return false;
         }
 

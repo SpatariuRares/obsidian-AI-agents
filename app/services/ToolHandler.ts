@@ -119,9 +119,10 @@ export class ToolHandler {
     static async executeTool(app: App, config: AgentConfig, toolName: string, args: any): Promise<any> {
         try {
             switch (toolName) {
-                case "read_file":
+                case "read_file": {
                     const content = await FileOperations.readFile(app, config, args.path);
                     return { success: true, content };
+                }
 
                 case "write_file":
                     await FileOperations.writeFile(app, config, args.path, args.content, args.mode || "overwrite");
@@ -139,15 +140,16 @@ export class ToolHandler {
                     await FileOperations.deleteFile(app, config, args.path);
                     return { success: true, message: `File deleted successfully: ${args.path}` };
 
-                case "list_files":
+                case "list_files": {
                     const files = await FileOperations.listFiles(app, config, args.path, args.recursive === true);
                     return { success: true, files };
+                }
 
                 default:
                     return { success: false, error: `Tool ${toolName} not recognized.` };
             }
         } catch (e: any) {
-            console.error(`Tool execution error [${toolName}]:`, e);
+            // console.error(`Tool execution error [${toolName}]:`, e);
             return { success: false, error: e.message };
         }
     }

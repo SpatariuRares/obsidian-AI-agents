@@ -4,6 +4,7 @@
 
 import { App, Modal, Setting } from "obsidian";
 import { FileOperationType } from "@app/services/PermissionGuard";
+import { t } from "@app/i18n";
 
 export class PermissionModal extends Modal {
     private agentName: string;
@@ -18,7 +19,7 @@ export class PermissionModal extends Modal {
         this.agentName = agentName;
         this.operation = operation;
         this.path = path;
-        this.description = description || `Agent '${this.agentName}' wants to ${this.operation} file '${this.path}'.`;
+        this.description = description || t("permission.defaultDescription", { agentName: this.agentName, operation: this.operation, path: this.path });
     }
 
     /**
@@ -35,15 +36,15 @@ export class PermissionModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
 
-        contentEl.createEl("h2", { text: "Agent Permission Request" });
+        contentEl.createEl("h2", { text: t("permission.title") });
 
         contentEl.createEl("p", { text: this.description });
-        contentEl.createEl("p", { text: "Do you want to allow this operation?" });
+        contentEl.createEl("p", { text: t("permission.confirmQuestion") });
 
         new Setting(contentEl)
             .addButton((btn) =>
                 btn
-                    .setButtonText("Decline")
+                    .setButtonText(t("permission.decline"))
                     .setCta()
                     .onClick(() => {
                         this.resolvePromise(false);
@@ -52,7 +53,7 @@ export class PermissionModal extends Modal {
             )
             .addButton((btn) =>
                 btn
-                    .setButtonText("Allow")
+                    .setButtonText(t("permission.allow"))
                     .setWarning()
                     .onClick(() => {
                         this.resolvePromise(true);

@@ -18,6 +18,7 @@ import * as micromatch from "micromatch";
 import { AgentConfig } from "@app/types/AgentTypes";
 import { PluginSettings } from "@app/types/PluginTypes";
 import { loadKnowledgeContent, wrapBlock } from "@app/services/KnowledgeResolver";
+import { t } from "@app/i18n";
 
 // ---------------------------------------------------------------------------
 // Context passed to the resolver
@@ -142,12 +143,12 @@ async function readFileChecked(
   ];
 
   if (allowedPatterns.length > 0 && !micromatch.isMatch(filePath, allowedPatterns)) {
-    return `[READ denied: ${filePath} is not in read or sources]`;
+    return t("templateEngine.readDenied", { path: filePath });
   }
 
   const file = ctx.app.vault.getAbstractFileByPath(filePath);
   if (!(file instanceof TFile)) {
-    return `[READ failed: ${filePath} not found]`;
+    return t("templateEngine.readFailed", { path: filePath });
   }
 
   const content = await ctx.app.vault.read(file);

@@ -36,7 +36,7 @@ export class AgentRegistry {
     const agentFiles = this.findAgentFiles(prefix);
 
     if (agentFiles.length === 0) {
-      console.warn(`[AI Agents] No agent.md files found in: ${prefix}`);
+      // console.warn(`[AI Agents] No agent.md files found in: ${prefix}`);
       return;
     }
 
@@ -48,8 +48,8 @@ export class AgentRegistry {
         const agent = await this.parseAgentAt(folderPath, file);
         this.agents.set(agent.id, agent);
       } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error);
-        console.warn(`[AI Agents] Skipping ${folderPath}: ${msg}`);
+        const _msg = error instanceof Error ? error.message : String(error);
+        // console.warn(`[AI Agents] Skipping ${folderPath}: ${_msg}`);
       }
     }
   }

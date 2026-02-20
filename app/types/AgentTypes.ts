@@ -54,10 +54,12 @@ export interface AgentConfig {
 // ---------------------------------------------------------------------------
 
 export interface ChatMessage {
-  role: "system" | "user" | "assistant";
+  role: "system" | "user" | "assistant" | "tool";
   content: string;
   timestamp: number;
-  tool_calls?: any[];
+  tool_calls?: any[]; // For assistant messages containing tool calls
+  tool_call_id?: string; // For tool responses
+  name?: string; // For tool responses
 }
 
 export interface TokenUsage {

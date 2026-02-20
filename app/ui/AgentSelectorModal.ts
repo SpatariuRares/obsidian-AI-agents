@@ -1,5 +1,6 @@
 import { App, SuggestModal } from "obsidian";
 import { ParsedAgent } from "@app/types/AgentTypes";
+import { t } from "@app/i18n";
 
 export const CREATE_AGENT_ID = "__CREATE__";
 
@@ -12,7 +13,7 @@ export class AgentSelectorModal extends SuggestModal<ParsedAgent> {
         this.agents = agents;
         this.onChoose = onChoose;
 
-        this.setPlaceholder("Cerca un agente...");
+        this.setPlaceholder(t("agentSelector.searchPlaceholder"));
     }
 
     getSuggestions(query: string): ParsedAgent[] {
@@ -27,9 +28,9 @@ export class AgentSelectorModal extends SuggestModal<ParsedAgent> {
             folderPath: "",
             filePath: "",
             config: {
-                name: "Create new agent",
+                name: t("agentSelector.createNewAgent"),
                 avatar: "➕",
-                description: "Click here to build a new AI agent."
+                description: t("agentSelector.createNewAgentDesc")
             } as any,
             promptTemplate: ""
         };

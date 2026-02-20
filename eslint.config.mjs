@@ -4,6 +4,7 @@ import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import globals from "globals";
 import importPlugin from "eslint-plugin-import";
+import i18nextPlugin from "eslint-plugin-i18next";
 
 export default [
   // Ignore build output and dependencies
@@ -60,7 +61,8 @@ export default [
     plugins: {
       obsidianmd,
       import: importPlugin,
-      "@typescript-eslint": tsPlugin
+      "@typescript-eslint": tsPlugin,
+      i18next: i18nextPlugin
     },
 
     settings: {
@@ -98,6 +100,81 @@ export default [
       "@typescript-eslint/no-unused-vars": ["warn", {
         "argsIgnorePattern": "^_",
         "varsIgnorePattern": "^_"
+      }],
+
+      // i18n - Enforce usage of LocalizationService instead of hardcoded strings
+      "i18next/no-literal-string": ["warn", {
+        mode: "all",
+        "should-validate-template": true,
+        message: "Use LocalizationService.t() instead of hardcoded strings",
+        callees: {
+          exclude: [
+            "t",
+            "i18n(ext)?",
+            "require",
+            "addEventListener",
+            "removeEventListener",
+            "getElementById",
+            "querySelector(All)?",
+            "setAttribute",
+            "getAttribute",
+            "hasAttribute",
+            "removeAttribute",
+            "createElement",
+            "createDiv",
+            "createSpan",
+            "addClass",
+            "removeClass",
+            "toggleClass",
+            "hasClass",
+            "setCssProps",
+            "registerMarkdownCodeBlockProcessor",
+            "registerView",
+            "addCommand",
+            "addRibbonIcon",
+            "console\\.(log|warn|error|info|debug)",
+            "includes",
+            "indexOf",
+            "endsWith",
+            "startsWith",
+            "split",
+            "replace",
+            "match",
+            "join",
+            "trim",
+            "Error",
+            "TypeError",
+            "RangeError",
+            // Obsidian-specific: icon names, events, paths
+            "setIcon",
+            "normalizePath",
+            "TextDecoder",
+            "AgentConfigError",
+            "PermissionError",
+            ".*\\.trigger",
+            ".*\\.on",
+            ".*\\.classList\\.contains",
+            ".*\\.getAbstractFileByPath",
+            ".*\\.getFileByPath",
+            ".*\\.getFolderByPath",
+          ]
+        },
+        words: {
+          exclude: [
+            "[0-9!-/:-@\\[-`{-~]+",
+            "[A-Z_-]+",
+          ]
+        },
+        "object-properties": {
+          exclude: [
+            ".*",
+          ]
+        },
+        "class-properties": {
+          exclude: [
+            ".*",
+          ]
+        },
       }],
     }
   }

@@ -71,8 +71,8 @@ export default class AIAgentsPlugin extends Plugin {
               }
 
               this.app.workspace.trigger("ai-agents:update" as any);
-            } catch (e) {
-              console.error(`[AI Agents] Hot reload failed for ${id}:`, e);
+            } catch {
+              // ignore
             }
           }
         }
@@ -84,7 +84,7 @@ export default class AIAgentsPlugin extends Plugin {
 
     // Ribbon icon — opens the chat panel
     this.addRibbonIcon("bot", "Open AI agents chat", () => {
-      this.activateChatView().catch((e: Error) => console.error("Failed to activate chat view", e));
+      this.activateChatView().catch(() => { /* no-op */ });
     });
 
     // Commands
@@ -92,7 +92,7 @@ export default class AIAgentsPlugin extends Plugin {
       id: "open-chat",
       name: "Open agent chat",
       callback: () => {
-        this.activateChatView().catch((e: Error) => console.error("Failed to activate chat view", e));
+        this.activateChatView().catch(() => { /* no-op */ });
       },
     });
 
@@ -100,7 +100,7 @@ export default class AIAgentsPlugin extends Plugin {
       id: "open-agent-sidebar",
       name: "Open agent list sidebar",
       callback: () => {
-        this.activateSidebarView().catch((e: Error) => console.error("Failed to activate sidebar view", e));
+        this.activateSidebarView().catch(() => { /* no-op */ });
       },
     });
 
@@ -127,7 +127,7 @@ export default class AIAgentsPlugin extends Plugin {
 
     if (existing.length > 0) {
       // Already open — just reveal it
-      this.app.workspace.revealLeaf(existing[0]).catch((e: Error) => console.error("Reveal leaf error:", e));
+      this.app.workspace.revealLeaf(existing[0]).catch(() => { /* no-op */ });
       return;
     }
 
@@ -135,7 +135,7 @@ export default class AIAgentsPlugin extends Plugin {
     const leaf = this.app.workspace.getRightLeaf(false);
     if (leaf) {
       await leaf.setViewState({ type: VIEW_TYPE_CHAT, active: true });
-      this.app.workspace.revealLeaf(leaf).catch((e: Error) => console.error("Reveal leaf error:", e));
+      this.app.workspace.revealLeaf(leaf).catch(() => { /* no-op */ });
     }
   }
 
@@ -143,7 +143,7 @@ export default class AIAgentsPlugin extends Plugin {
     const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_AGENT_SIDEBAR);
 
     if (existing.length > 0) {
-      this.app.workspace.revealLeaf(existing[0]).catch((e: Error) => console.error("Reveal leaf error:", e));
+      this.app.workspace.revealLeaf(existing[0]).catch(() => { /* no-op */ });
       return;
     }
 
@@ -151,7 +151,7 @@ export default class AIAgentsPlugin extends Plugin {
     const leaf = this.app.workspace.getLeftLeaf(false);
     if (leaf) {
       await leaf.setViewState({ type: VIEW_TYPE_AGENT_SIDEBAR, active: true });
-      this.app.workspace.revealLeaf(leaf).catch((e: Error) => console.error("Reveal leaf error:", e));
+      this.app.workspace.revealLeaf(leaf).catch(() => { /* no-op */ });
     }
   }
 
