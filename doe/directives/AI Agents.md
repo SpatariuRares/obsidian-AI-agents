@@ -525,8 +525,12 @@ interface PluginSettings {
 
 ### Fase 3 — Provider (settimana 5)
 
-- [ ] Streaming responses per tutti i provider
+- [x] **DONE** Streaming responses per tutti i provider
 - [ ] Test: verificare tutti i provider, fallback, streaming
+
+### Fase 3.5 — Modal
+
+- [x] **DONE** pagina per la creazione e modifica degli agenti
 
 ### Fase 4 — File Operations (settimana 6-7)
 

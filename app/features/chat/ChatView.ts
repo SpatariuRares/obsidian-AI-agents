@@ -16,7 +16,8 @@ import { ParsedAgent, ChatMessage } from "@app/types/AgentTypes";
 import { AgentRegistry } from "@app/services/AgentRegistry";
 import { MessageRenderer } from "@app/utils/MessageRenderer";
 import { ApiRouter } from "@app/services/ApiRouter";
-import { AgentSelectorModal } from "@app/ui/AgentSelectorModal";
+import { AgentSelectorModal, CREATE_AGENT_ID } from "@app/ui/AgentSelectorModal";
+import { AgentEditor } from "@app/ui/AgentEditor";
 
 export const VIEW_TYPE_CHAT = "ai-agents-chat";
 
@@ -34,7 +35,11 @@ export class ChatView extends ItemView {
   private messageListEl!: HTMLElement;
   private inputEl!: HTMLTextAreaElement;
   private agentSelectBtnEl!: HTMLButtonElement;
+  private editAgentBtnEl!: HTMLButtonElement;
   private emptyStateEl!: HTMLElement;
+  private editorWrapperEl!: HTMLElement;
+
+  private viewMode: "chat" | "edit" = "chat";
 
   // Streaming render queue state
   private isRenderingLastMessage = false;
@@ -93,6 +98,17 @@ export class ChatView extends ItemView {
       this.openAgentModal();
     });
 
+    this.editAgentBtnEl = header.createEl("button", {
+      cls: "ai-agents-chat__edit-agent clickable-icon",
+      attr: { "aria-label": "Edit agent" },
+    });
+    setIcon(this.editAgentBtnEl, "pencil");
+    this.editAgentBtnEl.style.display = "none";
+    this.editAgentBtnEl.addEventListener("click", () => {
+      const activeAgent = this.host.chatManager.getActiveAgent();
+      if (activeAgent) this.showEditor(activeAgent);
+    });
+
     const newSessionBtn = header.createEl("button", {
       cls: "ai-agents-chat__new-session clickable-icon",
       attr: { "aria-label": "New session" },
@@ -117,6 +133,9 @@ export class ChatView extends ItemView {
     });
 
     this.messageListEl = wrapper.createDiv({ cls: "ai-agents-chat__messages" });
+
+    this.editorWrapperEl = container.createDiv({ cls: "ai-agents-chat__editor-wrapper" });
+    this.editorWrapperEl.style.display = "none";
   }
 
   // -------------------------------------------------------------------------
@@ -167,8 +186,10 @@ export class ChatView extends ItemView {
 
     if (activeAgent) {
       this.agentSelectBtnEl.textContent = `${activeAgent.config.avatar || ""} ${activeAgent.config.name}`.trim();
+      this.editAgentBtnEl.style.display = "flex";
     } else {
       this.agentSelectBtnEl.textContent = "Choose an agent...";
+      this.editAgentBtnEl.style.display = "none";
     }
   }
 
@@ -192,10 +213,66 @@ export class ChatView extends ItemView {
   // -------------------------------------------------------------------------
 
   private async onAgentSelected(agent: ParsedAgent): Promise<void> {
+    if (agent.id === CREATE_AGENT_ID) {
+      this.showEditor(null);
+      return;
+    }
+
+    if (this.viewMode === "edit") {
+      this.showChat();
+    }
+
     await this.host.chatManager.startSession(agent);
     this.refreshAgentSelectBtn();
     await this.renderMessages();
     this.inputEl.focus();
+  }
+
+  private showEditor(agent: ParsedAgent | null): void {
+    this.viewMode = "edit";
+    // Hide chat elements
+    this.emptyStateEl.style.display = "none";
+    this.messageListEl.style.display = "none";
+    const inputArea = this.containerEl.querySelector(".ai-agents-chat__input-area") as HTMLElement;
+    if (inputArea) inputArea.style.display = "none";
+
+    // Show editor 
+    this.editorWrapperEl.style.display = "block";
+    const editor = new AgentEditor(
+      this.app,
+      this.editorWrapperEl,
+      this.host.agentRegistry,
+      this.host.chatManager.getSettings(),
+      agent,
+      async (newAgentId) => {
+        // On save success
+        this.showChat();
+        const newAgent = this.host.agentRegistry.getAgent(newAgentId);
+        if (newAgent) {
+          await this.onAgentSelected(newAgent);
+        }
+      },
+      () => {
+        // On cancel
+        this.showChat();
+        if (!this.host.chatManager.getActiveAgent()) {
+          this.refreshAgentSelectBtn();
+          this.renderMessages();
+        }
+      }
+    );
+    editor.render();
+  }
+
+  private showChat(): void {
+    this.viewMode = "chat";
+    this.editorWrapperEl.style.display = "none";
+    this.editorWrapperEl.empty();
+
+    const inputArea = this.containerEl.querySelector(".ai-agents-chat__input-area") as HTMLElement;
+    if (inputArea) inputArea.style.display = "flex";
+
+    this.renderMessages();
   }
 
   private async onNewSession(): Promise<void> {
@@ -260,11 +337,13 @@ export class ChatView extends ItemView {
   async renderMessages(): Promise<void> {
     const hasSession = this.host.chatManager.hasActiveSession();
 
-    // Toggle empty state vs message list
-    this.emptyStateEl.style.display = hasSession ? "none" : "flex";
-    this.messageListEl.style.display = hasSession ? "flex" : "none";
+    if (this.viewMode === "chat") {
+      // Toggle empty state vs message list
+      this.emptyStateEl.style.display = hasSession ? "none" : "flex";
+      this.messageListEl.style.display = hasSession ? "flex" : "none";
+    }
 
-    if (!hasSession) return;
+    if (!hasSession || this.viewMode === "edit") return;
 
     this.messageListEl.empty();
 

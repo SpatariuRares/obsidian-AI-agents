@@ -1,6 +1,8 @@
 import { App, SuggestModal } from "obsidian";
 import { ParsedAgent } from "@app/types/AgentTypes";
 
+export const CREATE_AGENT_ID = "__CREATE__";
+
 export class AgentSelectorModal extends SuggestModal<ParsedAgent> {
     private agents: ParsedAgent[];
     private onChoose: (agent: ParsedAgent) => void;
@@ -15,14 +17,32 @@ export class AgentSelectorModal extends SuggestModal<ParsedAgent> {
 
     getSuggestions(query: string): ParsedAgent[] {
         const lowerQuery = query.toLowerCase();
-        return this.agents.filter((agent) =>
+        const filtered = this.agents.filter((agent) =>
             agent.config.name.toLowerCase().includes(lowerQuery) ||
             agent.config.description.toLowerCase().includes(lowerQuery)
         );
+
+        const createDummy: ParsedAgent = {
+            id: CREATE_AGENT_ID,
+            folderPath: "",
+            filePath: "",
+            config: {
+                name: "Create new agent",
+                avatar: "➕",
+                description: "Click here to build a new AI agent."
+            } as any,
+            promptTemplate: ""
+        };
+
+        return [createDummy, ...filtered];
     }
 
     renderSuggestion(agent: ParsedAgent, el: HTMLElement) {
         el.addClass("ai-agents-chat__suggestion-item");
+
+        if (agent.id === CREATE_AGENT_ID) {
+            el.addClass("ai-agents-chat__suggestion-item--create");
+        }
 
         const titleContainer = el.createDiv({ cls: "ai-agents-chat__suggestion-title" });
         titleContainer.createSpan({ text: agent.config.avatar ? `${agent.config.avatar} ` : "🤖 " });
