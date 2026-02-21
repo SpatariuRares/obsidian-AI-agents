@@ -1,215 +1,56 @@
-# Obsidian Plugin Template
+# AI Agents for Obsidian
 
-A clean, opinionated starting point for building [Obsidian](https://obsidian.md) plugins with TypeScript, esbuild, Jest, ESLint, and SCSS.
+Transform your Obsidian vault into an ecosystem of configurable AI agents defined entirely by Markdown files.
+
+## Overview
+
+AI Agents is an Obsidian plugin that allows you to create, manage, and interact with multiple AI assistants directly within your notes. Instead of generic AI chatbots, you can define custom agents with specific roles, system prompts, and tool permissions just by creating Markdown files in your vault.
 
 ## Features
 
-- **TypeScript** with strict mode and `@app/*` path aliases
-- **esbuild** bundler for fast builds
-- **Jest + ts-jest** test suite with 90% coverage threshold
-- **ESLint** with Obsidian-specific rules
-- **SCSS** compilation pipeline
-- **i18n** with a minimal English locale and a ready-to-extend `LocalizationService`
-- Working examples: command, ribbon icon, settings tab, and code block processor
+- **Markdown-Defined Agents:** Create a new agent simply by creating a standard markdown file with specific properties.
+- **Dedicated Chat Interface:** Interact with your agents through a fully integrated, modern chat view.
+- **Vault Context:** Agents can read from your vault and analyze your notes.
+- **Configurable Tools & Memory:** Control which agents have access to tools (e.g., file reading, workspace access) and manage their conversation memory.
+- **Conversation Logging:** Save your valuable chats as markdown notes to keep an accessible history of your AI interactions.
+- **Interrupt Generation:** Stop the LLM response generation at any point directly from the UI.
+- **Example Generator:** Quickly bootstrap new agents with the built-in default agent generator.
 
-## Getting Started
+## Setup & Configuration
 
-### 1. Clone or fork
+1. Install the plugin and enable it in your Obsidian settings.
+2. Complete the initial setup in the plugin settings by configuring your preferred default agent and settings.
+3. Define the LLM model configurations and API keys as required.
+4. Open the AI Agents chat view via the ribbon icon or command palette.
 
-```bash
-git clone https://github.com/your-username/obsidian-plugin-template my-plugin
-cd my-plugin
-```
+## Creating an Agent
 
-### 2. Update identity
+You can create a new agent by adding a Markdown file to your designated agents folder. The agent's behavior is shaped by its properties (YAML frontmatter or Obsidian properties).
 
-Edit **`manifest.json`**:
+**Example Agent Definition:**
 
-```json
-{
-  "id": "my-plugin",
-  "name": "My Plugin",
-  "version": "1.0.0",
-  "description": "What my plugin does",
-  "author": "Your Name",
-  "authorUrl": "https://github.com/your-username"
-}
-```
+```yaml
+---
+name: Proofreader
+description: An agent that helps proofread and edit markdown notes.
+prompt: You are a strict editor. Review the text provided and suggest improvements for clarity, grammar, and tone.
+tools: false
+memory: true
+---
+# Proofreader Agent
 
-Edit **`package.json`** — update `name`, `description`, and `author`.
-
-### 3. Install dependencies and start developing
-
-```bash
-npm install
-npm run dev
-```
-
-Then copy the plugin folder into your vault's `.obsidian/plugins/` directory, enable it in Obsidian, and start iterating.
-
-## Template Structure
-
-```
-my-plugin/
-├── main.ts                          # Plugin entry point (ObsidianPluginTemplate)
-├── manifest.json                    # Plugin metadata (id, name, version)
-├── package.json
-├── styles.source.scss               # SCSS entry point
-├── app/
-│   ├── features/
-│   │   ├── example/
-│   │   │   ├── ExampleView.ts       # Code block processor (MarkdownRenderChild)
-│   │   │   └── __tests__/
-│   │   └── settings/
-│   │       ├── ExampleSettingsTab.ts # Settings tab (PluginSettingTab)
-│   │       └── __tests__/
-│   ├── i18n/
-│   │   ├── LocalizationService.ts   # Singleton i18n service
-│   │   ├── index.ts                 # Barrel export
-│   │   ├── locales/
-│   │   │   └── en.json              # English strings (add more locales here)
-│   │   └── __tests__/
-│   ├── styles/
-│   │   ├── _base.scss               # Base plugin styles (BEM)
-│   │   └── _variables.scss          # Obsidian CSS variable documentation
-│   ├── types/
-│   │   └── PluginTypes.ts           # PluginSettings interface + DEFAULT_SETTINGS
-│   └── utils/
-│       ├── ExampleUtils.ts          # Example pure utility function
-│       └── __tests__/
-└── __mocks__/
-    └── obsidian.ts                  # Jest mocks for Obsidian API
+This agent ensures my notes are perfectly written and formatted.
 ```
 
 ## Development
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Watch mode — rebuilds CSS and JS on every save |
-| `npm run build` | Production build (type check + CSS + minified bundle) |
-| `npm test` | Run Jest test suite |
-| `npm run test:coverage` | Run tests with coverage report |
-| `npm run typecheck` | Type check without emitting files |
-| `npm run lint` | ESLint |
-| `npm run lint:fix` | ESLint with auto-fix |
+To build the plugin from source:
 
-Run a single test file:
-
-```bash
-npm test -- app/utils/__tests__/ExampleUtils.test.ts
-```
-
-## What the Examples Demonstrate
-
-### Example command
-
-`main.ts` registers one command (`Run example`) that shows an Obsidian `Notice`. Use this as a starting point for any command.
-
-### Ribbon icon
-
-A ribbon icon (star) is added to the left sidebar. Clicking it shows a `Notice`. Use `addRibbonIcon()` in `onload()` and `ribbonIconEl.remove()` in `onunload()` for proper cleanup.
-
-### Settings tab (`ExampleSettingsTab`)
-
-`app/features/settings/ExampleSettingsTab.ts` demonstrates all three core settings patterns:
-
-- **Toggle** (`addToggle`) — boolean preference
-- **Text input** (`addText`) — string preference with placeholder
-- **Dropdown** (`addDropdown`) — enum-style preference with labelled options
-
-All settings persist immediately via `plugin.saveSettings()` in each `onChange` callback. See `app/types/PluginTypes.ts` for the `PluginSettings` interface and `DEFAULT_SETTINGS`.
-
-### Code block processor (`ExampleView`)
-
-`app/features/example/ExampleView.ts` handles `example-block` fenced code blocks:
-
-````markdown
-```example-block
-title: Hello World
-color: accent
-```
-````
-
-It parses YAML parameters using Obsidian's `parseYaml()`, renders DOM safely with `createEl`/`createDiv` (no `innerHTML`), and extends `MarkdownRenderChild` for correct lifecycle management.
-
-## Adding New Features
-
-### New command
-
-```typescript
-// in main.ts → onload()
-this.addCommand({
-  id: 'my-action',
-  name: 'Do my action',
-  callback: () => new Notice('Hello!'),
-});
-```
-
-### New setting
-
-1. Add the field to `PluginSettings` in `app/types/PluginTypes.ts`
-2. Add a default to `DEFAULT_SETTINGS`
-3. Add a `Setting` entry in `ExampleSettingsTab.display()`
-4. Add the translation key to `app/i18n/locales/en.json`
-
-### New code block processor
-
-1. Create `app/features/[feature]/[Feature]View.ts` extending `MarkdownRenderChild`
-2. Implement `onload()` (parse + render) and `onunload()` (cleanup)
-3. Register in `main.ts`:
-   ```typescript
-   this.registerMarkdownCodeBlockProcessor('my-block', (source, el, ctx) => {
-     const view = new MyFeatureView(el, source);
-     ctx.addChild(view);
-   });
-   ```
-
-### New utility
-
-Create a pure function module in `app/utils/MyUtil.ts` and co-locate tests in `app/utils/__tests__/MyUtil.test.ts`. Import directly — no barrel file.
-
-## i18n
-
-Strings live in `app/i18n/locales/en.json`. The `LocalizationService` auto-detects the user's Obsidian locale via `window.moment.locale()` and loads the matching JSON, falling back to English.
-
-**Adding a new language:**
-
-1. Copy `app/i18n/locales/en.json` → `app/i18n/locales/<locale>.json` (e.g., `de.json`)
-2. Translate all values (keep the keys identical)
-3. Add a dynamic import case in `LocalizationService.loadLocaleFile()` for the new locale code
-
-**Using translations in your code:**
-
-```typescript
-import { LocalizationService } from '@app/i18n';
-
-const t = LocalizationService.getInstance()?.t.bind(LocalizationService.getInstance());
-const label = t?.('settings.title') ?? 'Settings';
-```
-
-## Releasing
-
-This template uses the standard Obsidian plugin release workflow:
-
-1. Bump the version:
-   ```bash
-   npm run version
-   ```
-   This updates `manifest.json` and `versions.json` together.
-
-2. Push a git tag matching the version (e.g., `1.0.1`):
-   ```bash
-   git tag 1.0.1 && git push origin 1.0.1
-   ```
-
-3. The included GitHub Actions workflow (`.github/workflows/release.yml`) triggers on the tag, runs `npm run build`, and creates a GitHub Release with `main.js`, `manifest.json`, and `styles.css` as assets.
-
-> Users install the plugin by downloading those three files into `.obsidian/plugins/<plugin-id>/`.
-
-## DOE Framework (Optional)
-
-This template is built with the **DOE Framework** (Directive / Orchestration / Execution) — a development methodology for AI-assisted coding that keeps logic deterministic and documentation current. See `CLAUDE.md` for the full methodology, architectural patterns, and Obsidian best practices.
+1. Clone the repository into your vault's `.obsidian/plugins/` directory.
+2. Run `npm install` to install dependencies.
+3. Run `npm run dev` to start compilation in watch mode.
+4. Run `npm run build` for a production build.
 
 ## License
 
-MIT
+MIT License

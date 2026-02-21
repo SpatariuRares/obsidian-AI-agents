@@ -1,10 +1,10 @@
 {
   "id": "obsidian-ai-agents",
   "name": "AI Agents",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "minAppVersion": "0.15.0",
   "description": "Transform your vault into an ecosystem of configurable AI agents defined by markdown files.",
-  "author": "Rares",
-  "authorUrl": "",
+  "author": "SpatariuRares",
+  "authorUrl": "https://github.com/SpatariuRares/",
   "isDesktopOnly": false
 }
