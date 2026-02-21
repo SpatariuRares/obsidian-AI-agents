@@ -15,10 +15,7 @@ export class OpenAilikeProvider extends BaseProvider {
    * as plain JSON instead of using the structured tool_calls field.
    * Only matches tool names that were actually sent in the request to avoid false positives.
    */
-  static extractToolCallsFromText(
-    text: string,
-    toolNames: string[],
-  ): ExtractedToolCalls | null {
+  static extractToolCallsFromText(text: string, toolNames: string[]): ExtractedToolCalls | null {
     if (!text || toolNames.length === 0) return null;
 
     // Quick check: does the text contain any known tool name?
@@ -52,9 +49,7 @@ export class OpenAilikeProvider extends BaseProvider {
           function: {
             name: call.name,
             arguments:
-              typeof call.arguments === "string"
-                ? call.arguments
-                : JSON.stringify(call.arguments),
+              typeof call.arguments === "string" ? call.arguments : JSON.stringify(call.arguments),
           },
         }));
 
@@ -111,6 +106,7 @@ export class OpenAilikeProvider extends BaseProvider {
     config: AgentConfig,
     settings: PluginSettings,
     onStream?: (chunk: string) => void,
+    abortSignal?: AbortSignal,
   ): Promise<ProviderResponse> {
     const isOllama = config.provider?.toLowerCase() === "ollama";
 
@@ -165,6 +161,7 @@ export class OpenAilikeProvider extends BaseProvider {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify(payload),
+        signal: abortSignal,
       });
 
       if (!response.ok) {

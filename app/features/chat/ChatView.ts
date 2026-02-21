@@ -138,8 +138,18 @@ export class ChatView extends ItemView {
 
   private buildInputArea(container: HTMLElement): void {
     this.inputArea = new ChatInputArea(this.app, container, {
-      onSendMessage: (text) => {
-        this.chatController.handleUserMessage(text).catch(() => {});
+      onSendMessage: async (text) => {
+        this.inputArea.setGenerating(true);
+        try {
+          await this.chatController.handleUserMessage(text);
+        } finally {
+          this.inputArea.setGenerating(false);
+        }
+      },
+      onStopGeneration: () => {
+        if (this.chatController) {
+          this.chatController.abortGeneration();
+        }
       },
     });
   }

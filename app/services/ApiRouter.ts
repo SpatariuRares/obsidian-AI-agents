@@ -12,6 +12,7 @@ export class ApiRouter {
     config: AgentConfig,
     settings: PluginSettings,
     onStream?: (chunk: string) => void,
+    abortSignal?: AbortSignal,
   ): Promise<ProviderResponse> {
     const providerName = config.provider?.toLowerCase() || settings.defaultProvider;
     let provider: BaseProvider;
@@ -24,6 +25,6 @@ export class ApiRouter {
       );
     }
 
-    return provider.chat(messages, config, settings, onStream);
+    return provider.chat(messages, config, settings, onStream, abortSignal);
   }
 }

@@ -16,6 +16,7 @@ export class ChatController {
   private chatManager: ChatManager;
   private onRenderMessages: () => Promise<void>;
   private onUpdateLastMessage: () => Promise<void>;
+  private currentAbortController: AbortController | null = null;
 
   constructor(options: ChatControllerOptions) {
     this.app = options.app;
@@ -43,6 +44,8 @@ export class ChatController {
       const initialUserMsg =
         this.chatManager.getMessages()[this.chatManager.getMessages().length - 1];
 
+      this.currentAbortController = new AbortController();
+
       while (isToolLoop) {
         const messagesForApi = this.chatManager.getMessages();
 
@@ -59,12 +62,15 @@ export class ChatController {
               this.chatManager.appendChunkToLastMessage(chunk);
               await this.onUpdateLastMessage();
             },
+            this.currentAbortController.signal,
           );
         } else {
           response = await ApiRouter.send(
             messagesForApi,
             activeAgent.config,
             this.chatManager.getSettings(),
+            undefined,
+            this.currentAbortController.signal,
           );
           this.chatManager.addMessage("assistant", response.text);
           await this.onRenderMessages();
@@ -116,13 +122,24 @@ export class ChatController {
 
       await this.chatManager.logTurn(initialUserMsg, asstMsg, usageResponse);
     } catch (error: unknown) {
-      // console.error("[ChatView] API Error:", error);
-      const errMessage = error instanceof Error ? error.message : String(error);
-
-      if (errMessage.includes("does not support tools")) {
-        new Notice(t("notices.aiAgentErrorNoTools"), 8000);
+      if (
+        error instanceof DOMException &&
+        (error.name === "AbortError" || error.message.includes("aborted"))
+      ) {
+        // Generation was intentionally stopped
+        // Ensure the last assistant message is clean if aborted mid-stream
+        new Notice(t("notices.aiAgentGenerationStopped") || "Generation stopped", 3000); // Wait, better to let user see partial message without error notice. We might need a translation key or just ignore Notice. Let's just break cleanly or log it.
+        // Actually, just re-render to ensure final state
+        await this.onRenderMessages();
       } else {
-        new Notice(t("notices.aiAgentError", { message: errMessage }), 5000);
+        // console.error("[ChatView] API Error:", error);
+        const errMessage = error instanceof Error ? error.message : String(error);
+
+        if (errMessage.includes("does not support tools")) {
+          new Notice(t("notices.aiAgentErrorNoTools"), 8000);
+        } else {
+          new Notice(t("notices.aiAgentError", { message: errMessage }), 5000);
+        }
       }
 
       // Clean up the empty assistant message if we added it for streaming
@@ -133,6 +150,15 @@ export class ChatController {
       }
 
       await this.onRenderMessages();
+    } finally {
+      this.currentAbortController = null;
+    }
+  }
+
+  public abortGeneration(): void {
+    if (this.currentAbortController) {
+      this.currentAbortController.abort();
+      this.currentAbortController = null;
     }
   }
 

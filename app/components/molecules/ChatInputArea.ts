@@ -9,6 +9,7 @@ import {
 
 export interface ChatInputAreaProps {
   onSendMessage: (text: string) => void;
+  onStopGeneration?: () => void;
 }
 
 export class ChatInputArea {
@@ -16,6 +17,8 @@ export class ChatInputArea {
   public inputEl: HTMLTextAreaElement;
   private mentionSuggest: InlineMentionSuggest | null = null;
   private props: ChatInputAreaProps;
+  private sendBtn: HTMLButtonElement;
+  private stopBtn: HTMLButtonElement;
 
   constructor(app: App, parent: HTMLElement, props: ChatInputAreaProps) {
     this.props = props;
@@ -45,12 +48,20 @@ export class ChatInputArea {
       }
     });
 
-    createIconButton(this.containerEl, {
+    this.sendBtn = createIconButton(this.containerEl, {
       icon: "send",
       cls: "ai-agents-chat__send",
-      ariaLabel: t("chat.sendMessage"),
+      ariaLabel: t("chat.sendMessage") || "Send message",
       onClick: () => this.submit(),
     });
+
+    this.stopBtn = createIconButton(this.containerEl, {
+      icon: "square",
+      cls: "ai-agents-chat__stop",
+      ariaLabel: t("chat.stopGeneration") || "Stop generation",
+      onClick: () => this.props.onStopGeneration?.(),
+    });
+    this.stopBtn.style.display = "none";
 
     // Inline @file and #tag mention suggest
     this.mentionSuggest = new InlineMentionSuggest(app, this.inputEl, this.containerEl, [
@@ -82,5 +93,15 @@ export class ChatInputArea {
   public detach() {
     this.mentionSuggest?.detach();
     this.mentionSuggest = null;
+  }
+
+  public setGenerating(isGenerating: boolean) {
+    if (isGenerating) {
+      this.sendBtn.style.display = "none";
+      this.stopBtn.style.display = "";
+    } else {
+      this.sendBtn.style.display = "";
+      this.stopBtn.style.display = "none";
+    }
   }
 }

@@ -24,5 +24,6 @@ export abstract class BaseProvider {
     config: AgentConfig,
     settings: PluginSettings,
     onStream?: (chunk: string) => void,
+    abortSignal?: AbortSignal,
   ): Promise<ProviderResponse>;
 }
