@@ -1,4 +1,5 @@
 /**
+ * @jest-environment jsdom
  * @fileoverview Tests for InlineMentionSuggest molecule
  *
  * Covers trigger detection, suggestion filtering, keyboard navigation,
@@ -11,6 +12,25 @@ import {
   MentionTrigger,
   MentionItem,
 } from "@app/components/molecules/InlineMentionSuggest";
+
+// Polyfill Obsidian's HTMLElement methods
+declare global {
+  interface HTMLElement {
+    empty(): void;
+    setText(text: string): void;
+    scrollIntoView(arg?: boolean | ScrollIntoViewOptions): void;
+  }
+}
+
+HTMLElement.prototype.empty = function (): void {
+  this.innerHTML = "";
+};
+
+HTMLElement.prototype.setText = function (text: string): void {
+  this.textContent = text;
+};
+
+HTMLElement.prototype.scrollIntoView = function (): void {};
 
 // ---------------------------------------------------------------------------
 // Helpers

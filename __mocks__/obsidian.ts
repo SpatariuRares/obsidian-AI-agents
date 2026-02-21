@@ -32,7 +32,9 @@ export class App {
       setViewState: jest.fn().mockResolvedValue(undefined),
     }),
     revealLeaf: jest.fn(),
-    onLayoutReady: jest.fn((cb: () => void) => { cb(); }),
+    onLayoutReady: jest.fn((cb: () => void) => {
+      cb();
+    }),
   };
   metadataCache = {
     getTags: jest.fn().mockReturnValue({}),
@@ -42,6 +44,20 @@ export class App {
 /** Stub for WorkspaceLeaf. */
 export class WorkspaceLeaf {
   view: unknown = null;
+}
+
+/** Stub for Modal. */
+export class Modal {
+  app: App;
+  contentEl: HTMLElement;
+  constructor(app: App) {
+    this.app = app;
+    this.contentEl = document.createElement("div");
+  }
+  open(): void {}
+  close(): void {}
+  onOpen(): void {}
+  onClose(): void {}
 }
 
 /** normalizePath — cleans up vault-relative paths. */
@@ -62,10 +78,21 @@ export class TFolder {
 export class TFile {
   path: string;
   basename: string;
-  stat = { mtime: 0 };
+  extension: string;
+  name: string;
+  stat = { mtime: 0, ctime: 0, size: 0 };
   constructor(path = "") {
     this.path = path;
-    this.basename = path.split("/").pop() ?? path;
+    const nameWithExt = path.split("/").pop() ?? path;
+    this.name = nameWithExt;
+    const parts = nameWithExt.split(".");
+    if (parts.length > 1) {
+      this.extension = parts.pop()!;
+      this.basename = parts.join(".");
+    } else {
+      this.extension = "";
+      this.basename = nameWithExt;
+    }
   }
 }
 
@@ -75,10 +102,12 @@ export class AbstractInputSuggest<T> {
   constructor(app: App, _inputEl: HTMLInputElement) {
     this.app = app;
   }
-  getSuggestions(_query: string): T[] { return []; }
-  renderSuggestion(_item: T, _el: HTMLElement): void { }
-  selectSuggestion(_item: T): void { }
-  close(): void { }
+  getSuggestions(_query: string): T[] {
+    return [];
+  }
+  renderSuggestion(_item: T, _el: HTMLElement): void {}
+  selectSuggestion(_item: T): void {}
+  close(): void {}
 }
 
 /**
@@ -86,8 +115,8 @@ export class AbstractInputSuggest<T> {
  * Tests can verify it was called without needing the real UI.
  */
 export class Notice {
-  constructor(_message: string, _timeout?: number) { }
-  hide(): void { }
+  constructor(_message: string, _timeout?: number) {}
+  hide(): void {}
 }
 
 /**
@@ -99,7 +128,7 @@ export class Notice {
  * test value so that onChange handler bodies execute during tests.
  */
 export class Setting {
-  constructor(_containerEl: unknown) { }
+  constructor(_containerEl: unknown) {}
 
   setName(_name: string): this {
     return this;
@@ -202,8 +231,8 @@ export class PluginSettingTab {
     this.app = app;
   }
 
-  display(): void { }
-  hide(): void { }
+  display(): void {}
+  hide(): void {}
 }
 
 /**
@@ -223,15 +252,21 @@ export class ItemView {
     this.containerEl.appendChild(document.createElement("div")); // [1] content
   }
 
-  getViewType(): string { return ""; }
-  getDisplayText(): string { return ""; }
-  getIcon(): string { return ""; }
-  async onOpen(): Promise<void> { }
-  async onClose(): Promise<void> { }
+  getViewType(): string {
+    return "";
+  }
+  getDisplayText(): string {
+    return "";
+  }
+  getIcon(): string {
+    return "";
+  }
+  async onOpen(): Promise<void> {}
+  async onClose(): Promise<void> {}
 }
 
 /** setIcon — sets a Lucide icon on an element. Stubbed as no-op. */
-export function setIcon(_el: HTMLElement, _icon: string): void { }
+export function setIcon(_el: HTMLElement, _icon: string): void {}
 
 /**
  * Plugin — base class for Obsidian plugins.
@@ -260,9 +295,9 @@ export class MarkdownRenderChild {
     this.containerEl = containerEl;
   }
 
-  onload(): void { }
-  onunload(): void { }
-  register(_cb: () => void): void { }
+  onload(): void {}
+  onunload(): void {}
+  register(_cb: () => void): void {}
   registerEvent = jest.fn();
 }
 
@@ -271,9 +306,7 @@ export class MarkdownRenderChild {
  * Uses js-yaml (same library Obsidian uses internally) for full YAML support.
  */
 const jsYaml = require("js-yaml");
-export const parseYaml = jest
-  .fn()
-  .mockImplementation((text: string): Record<string, unknown> => {
-    if (!text?.trim()) return {};
-    return jsYaml.load(text) as Record<string, unknown>;
-  });
+export const parseYaml = jest.fn().mockImplementation((text: string): Record<string, unknown> => {
+  if (!text?.trim()) return {};
+  return jsYaml.load(text) as Record<string, unknown>;
+});

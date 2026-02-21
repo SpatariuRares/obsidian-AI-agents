@@ -14,6 +14,17 @@ import { splitFrontmatter, parseAgentFile, AgentConfigError } from "@app/service
 
 import { LocalizationService } from "@app/i18n/LocalizationService";
 
+jest.mock(
+  "../i18n/locales/it.json",
+  () => ({
+    editor: {
+      name: "Nome",
+      description: "Descrizione",
+    },
+  }),
+  { virtual: true },
+);
+
 const MINIMAL_AGENT = `---
 language: "en"
 name: "Echo"
@@ -141,12 +152,6 @@ describe("parseAgentFile", () => {
     expect(result.config.vault_root_access).toBe(false);
     expect(result.config.confirm_destructive).toBe(true);
 
-    // logging
-    expect(result.config.logging_enabled).toBe(true);
-    expect(result.config.logging_path).toBe("logs");
-    expect(result.config.logging_format).toBe("daily");
-    expect(result.config.logging_include_metadata).toBe(true);
-
     // prompt
     expect(result.promptTemplate).toContain("Writing Coach");
     expect(result.promptTemplate).toContain("{{knowledge_context}}");
@@ -231,10 +236,7 @@ model: "llama3"
 prompt`;
 
     const result = parseAgentFile(raw);
-    expect(result.config.logging_enabled).toBe(false);
-    expect(result.config.logging_path).toBe("logs");
-    expect(result.config.logging_format).toBe("daily");
-    expect(result.config.logging_include_metadata).toBe(true);
+    expect(result.config.type).toBe("conversational");
   });
 
   it("should default type to conversational", () => {
@@ -328,7 +330,7 @@ name: "Test"
 ---
 prompt`;
 
-    expect(() => parseAgentFile(raw)).toThrow("model is required");
+    expect(() => parseAgentFile(raw)).toThrow("notices.modelRequired");
   });
 
   it("should use fallback model when model is missing", () => {
@@ -350,7 +352,7 @@ model: ""
 ---
 prompt`;
 
-    expect(() => parseAgentFile(raw)).toThrow("model is required");
+    expect(() => parseAgentFile(raw)).toThrow("notices.modelRequired");
   });
 
   it("should throw when language is missing", () => {

@@ -71,7 +71,10 @@ export class ToolTestView extends ItemView {
     selectorRow.createEl("label", { text: "Tool", cls: `${CLS}__label` });
 
     const select = selectorRow.createEl("select", { cls: `${CLS}__select` });
-    select.createEl("option", { text: "Select a tool...", attr: { value: "", disabled: "true", selected: "true" } });
+    select.createEl("option", {
+      text: "Select a tool...",
+      attr: { value: "", disabled: "true", selected: "true" },
+    });
     for (const tool of allTools) {
       select.createEl("option", {
         text: tool.definition.name,
@@ -95,7 +98,9 @@ export class ToolTestView extends ItemView {
     this.runBtn.addEventListener("click", () => this.runSelectedTool());
 
     // Output
-    container.createDiv({ cls: `${CLS}__output-header` }).createEl("label", { text: "Output", cls: `${CLS}__label` });
+    container
+      .createDiv({ cls: `${CLS}__output-header` })
+      .createEl("label", { text: "Output", cls: `${CLS}__label` });
     this.outputEl = container.createEl("pre", { cls: `${CLS}__output` });
     this.outputEl.setText("Results will appear here...");
   }
@@ -106,7 +111,7 @@ export class ToolTestView extends ItemView {
 
   /** Called when the user picks a different tool from the select. */
   private onToolSelected(toolName: string): void {
-    const tool = allTools.find(t => t.definition.name === toolName);
+    const tool = allTools.find((t) => t.definition.name === toolName);
     if (!tool) return;
 
     this.selectedTool = tool;
@@ -162,7 +167,10 @@ export class ToolTestView extends ItemView {
     } else if (schema.type === "boolean") {
       // Checkbox row for booleans
       const checkRow = fieldEl.createDiv({ cls: `${CLS}__check-row` });
-      const cb = checkRow.createEl("input", { attr: { type: "checkbox" }, cls: `${CLS}__checkbox` });
+      const cb = checkRow.createEl("input", {
+        attr: { type: "checkbox" },
+        cls: `${CLS}__checkbox`,
+      });
       checkRow.createSpan({ text: "enabled" });
       inputEl = cb;
     } else if (name === "content") {
@@ -192,7 +200,11 @@ export class ToolTestView extends ItemView {
     for (const [name, el] of this.inputMap.entries()) {
       if (el instanceof HTMLInputElement && el.type === "checkbox") {
         args[name] = el.checked;
-      } else if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) {
+      } else if (
+        el instanceof HTMLInputElement ||
+        el instanceof HTMLTextAreaElement ||
+        el instanceof HTMLSelectElement
+      ) {
         args[name] = el.value;
       }
     }

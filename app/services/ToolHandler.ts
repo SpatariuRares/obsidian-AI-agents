@@ -18,9 +18,7 @@ export class ToolHandler {
    * If an agent lacks a permission (e.g. `write: []`), the corresponding tool is entirely omitted.
    */
   static getAvailableTools(config: AgentConfig): ToolDefinition[] {
-    return allTools
-      .filter(t => t.isAvailable(config))
-      .map(t => t.definition);
+    return allTools.filter((t) => t.isAvailable(config)).map((t) => t.definition);
   }
 
   /**
@@ -33,7 +31,7 @@ export class ToolHandler {
     toolName: string,
     args: any,
   ): Promise<any> {
-    const tool = allTools.find(t => t.definition.name === toolName);
+    const tool = allTools.find((t) => t.definition.name === toolName);
     if (!tool) {
       return { success: false, error: `Tool ${toolName} not recognized.` };
     }

@@ -145,7 +145,8 @@ describe("OpenAilikeProvider", () => {
     });
 
     it("should extract tool calls from a JSON array", () => {
-      const text = '[{"name":"read_file","arguments":{"path":"a.md"}},{"name":"list_files","arguments":{"path":"/"}}]';
+      const text =
+        '[{"name":"read_file","arguments":{"path":"a.md"}},{"name":"list_files","arguments":{"path":"/"}}]';
       const result = OpenAilikeProvider.extractToolCallsFromText(text, ["read_file", "list_files"]);
 
       expect(result).not.toBeNull();
@@ -184,11 +185,14 @@ describe("OpenAilikeProvider", () => {
     (requestUrl as jest.Mock).mockResolvedValue({
       status: 200,
       json: {
-        choices: [{
-          message: {
-            content: 'I will read that file for you. {"name":"read_file","arguments":{"path":"note.md"}}',
+        choices: [
+          {
+            message: {
+              content:
+                'I will read that file for you. {"name":"read_file","arguments":{"path":"note.md"}}',
+            },
           },
-        }],
+        ],
       },
     });
 

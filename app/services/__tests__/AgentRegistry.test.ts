@@ -16,6 +16,7 @@ import { AgentRegistry } from "@app/services/AgentRegistry";
 // ---------------------------------------------------------------------------
 
 const ECHO_AGENT_MD = `---
+language: "en"
 name: "Echo"
 avatar: "🔊"
 enabled: "true"
@@ -26,6 +27,7 @@ sources: []
 You are an echo bot.`;
 
 const DISABLED_AGENT_MD = `---
+language: "en"
 name: "Disabled Agent"
 enabled: "false"
 model: "llama3"
@@ -34,6 +36,7 @@ model: "llama3"
 I am disabled.`;
 
 const INVALID_AGENT_MD = `---
+language: "en"
 avatar: "💀"
 ---
 

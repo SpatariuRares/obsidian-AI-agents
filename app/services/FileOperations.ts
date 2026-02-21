@@ -159,9 +159,7 @@ export class FileOperations {
     PermissionGuard.assertPermission(config, "read", null);
 
     const isRoot = path === "/" || path === "";
-    const folder = isRoot
-      ? app.vault.getRoot()
-      : app.vault.getAbstractFileByPath(path);
+    const folder = isRoot ? app.vault.getRoot() : app.vault.getAbstractFileByPath(path);
 
     if (!folder || !(folder instanceof TFolder)) {
       throw new Error(`Directory not found or is not a directory: ${path}`);
@@ -170,8 +168,7 @@ export class FileOperations {
     const results: string[] = [];
     if (recursive) {
       for (const file of app.vault.getFiles()) {
-        const inFolder =
-          isRoot || file.path.startsWith(folder.path + "/");
+        const inFolder = isRoot || file.path.startsWith(folder.path + "/");
         if (inFolder && PermissionGuard.hasPermission(config, "read", file.path)) {
           results.push(file.path);
         }
