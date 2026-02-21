@@ -6,6 +6,7 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 import { AgentRegistry } from "@app/services/AgentRegistry";
 import { ParsedAgent } from "@app/types/AgentTypes";
 import { t } from "@app/i18n";
+import { AgentListItem } from "@app/components/molecules/AgentListItem";
 
 export const VIEW_TYPE_AGENT_SIDEBAR = "ai-agents-sidebar";
 
@@ -58,36 +59,16 @@ export class AgentSidebar extends ItemView {
     }
 
     for (const agent of agents) {
-      const item = container.createDiv({ cls: "ai-agents-sidebar__item" });
-      if (!agent.config.enabled) {
-        item.addClass("ai-agents-sidebar__item--disabled");
-      }
-
-      const header = item.createDiv({ cls: "ai-agents-sidebar__item-header" });
-
-      const avatar = header.createDiv({ cls: "ai-agents-sidebar__avatar" });
-      avatar.setText(agent.config.avatar || t("icons.defaultAvatar"));
-
-      const info = header.createDiv({ cls: "ai-agents-sidebar__info" });
-      info.createDiv({ cls: "ai-agents-sidebar__name", text: agent.config.name });
-
-      const status = header.createDiv({ cls: "ai-agents-sidebar__status" });
-      if (agent.config.enabled) {
-        status.setText(t("icons.enabled"));
-      } else {
-        status.setText(t("icons.disabled"));
-      }
-
-      if (agent.config.description) {
-        item.createDiv({ cls: "ai-agents-sidebar__desc", text: agent.config.description });
-      }
-
-      item.addEventListener("click", () => {
-        if (agent.config.enabled) {
-          this.host.startSessionAndOpenChat(agent).catch(() => {
-            /* no-op */
-          });
-        }
+      AgentListItem.render({
+        container,
+        agent,
+        onClick: (a: ParsedAgent) => {
+          if (a.config.enabled) {
+            this.host.startSessionAndOpenChat(a).catch(() => {
+              /* no-op */
+            });
+          }
+        },
       });
     }
   }

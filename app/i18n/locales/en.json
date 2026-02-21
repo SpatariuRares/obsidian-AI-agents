@@ -133,7 +133,14 @@
     "stream": "Stream",
     "maxContextTokens": "Max context tokens",
     "maxContextTokensYaml": "max_context_tokens",
-    "strategy": "Strategy",
+    "strategy": "Injection strategy",
+    "toolsHeading": "Tools",
+    "tools": "Enabled Tools",
+    "toolsDesc": "Select which tools this agent is allowed to use.",
+    "addToolBtn": "Add Tool",
+    "selectTool": "Select a tool...",
+    "allToolsWildcard": "All tools (*)",
+    "allToolsWildcardTitle": "Give access to all available tools",
     "permissionsHeading": "Knowledge & file permissions",
     "sources": "Sources",
     "sourcesDesc": "Paths to include in the knowledge context.",
@@ -185,7 +192,8 @@
     "agentSaveFailed": "Failed to save agent: {message}",
     "aiAgentError": "AI Agent error: {message}",
     "modelNoTools": "The selected AI model does not support tools. Please change the model in the agent settings (e.g., to llama3.1 or qwen2.5-coder).",
-    "aiAgentErrorNoTools": "The selected AI model does not support tools. Please change the model in the agent settings (e.g., to llama3.1 or qwen2.5-coder)."
+    "aiAgentErrorNoTools": "The selected AI model does not support tools. Please change the model in the agent settings (e.g., to llama3.1 or qwen2.5-coder).",
+    "mockDataFailed": "Failed to generate mock data: {message}"
   },
   "templateEngine": {
     "readDenied": "[READ denied: {path} is not in read or sources]",

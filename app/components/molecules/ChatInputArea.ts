@@ -61,7 +61,7 @@ export class ChatInputArea {
       ariaLabel: t("chat.stopGeneration") || "Stop generation",
       onClick: () => this.props.onStopGeneration?.(),
     });
-    this.stopBtn.style.display = "none";
+    this.stopBtn.setCssProps({ display: "none" });
 
     // Inline @file and #tag mention suggest
     this.mentionSuggest = new InlineMentionSuggest(app, this.inputEl, this.containerEl, [
@@ -97,11 +97,11 @@ export class ChatInputArea {
 
   public setGenerating(isGenerating: boolean) {
     if (isGenerating) {
-      this.sendBtn.style.display = "none";
-      this.stopBtn.style.display = "";
+      this.sendBtn.setCssProps({ display: "none" });
+      this.stopBtn.setCssProps({ display: "" });
     } else {
-      this.sendBtn.style.display = "";
-      this.stopBtn.style.display = "none";
+      this.sendBtn.setCssProps({ display: "" });
+      this.stopBtn.setCssProps({ display: "none" });
     }
   }
 }

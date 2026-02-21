@@ -35,6 +35,7 @@ export interface AgentConfig {
   sources: string[];
   strategy: string;
   max_context_tokens: number;
+  tools: string[];
   read: string[];
   write: string[];
   create: string[];

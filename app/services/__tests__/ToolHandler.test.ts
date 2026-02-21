@@ -27,6 +27,7 @@ describe("ToolHandler", () => {
     const config: AgentConfig = {
       ...DEFAULT_CONFIG,
       name: "Test",
+      tools: ["*"],
       read: [],
       write: [],
       create: [],
@@ -38,7 +39,7 @@ describe("ToolHandler", () => {
   });
 
   it("should return read and list tools when read is permitted", () => {
-    const config: AgentConfig = { ...DEFAULT_CONFIG, name: "Test", read: ["**/*"] };
+    const config: AgentConfig = { ...DEFAULT_CONFIG, name: "Test", tools: ["*"], read: ["**/*"] };
     const tools = ToolHandler.getAvailableTools(config);
     const names = tools.map((t: any) => t.name);
     expect(names).toContain("read_file");
@@ -50,6 +51,7 @@ describe("ToolHandler", () => {
     const config: AgentConfig = {
       ...DEFAULT_CONFIG,
       name: "Test",
+      tools: ["*"],
       read: ["*"],
       write: ["*"],
       create: ["*"],
@@ -70,6 +72,7 @@ describe("ToolHandler", () => {
     const config: AgentConfig = {
       ...DEFAULT_CONFIG,
       name: "Test",
+      tools: ["*"],
       read: ["*"],
       write: ["*"],
       create: ["*"],

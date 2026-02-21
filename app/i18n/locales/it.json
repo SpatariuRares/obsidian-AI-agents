@@ -1,6 +1,13 @@
 {
   "editor": {
     "name": "Nome",
-    "description": "Descrizione"
+    "description": "Descrizione",
+    "strategy": "Strategia di iniezione",
+    "toolsHeading": "Strumenti",
+    "tools": "Strumenti Abilitati",
+    "toolsDesc": "Seleziona quali strumenti questo agente è autorizzato a utilizzare.",
+    "addToolBtn": "Aggiungi Strumento",
+    "allToolsWildcard": "Tutti gli strumenti (*)",
+    "sources": "Fonti"
   }
 }

@@ -50,6 +50,9 @@ sources:
   - "data/context.md"
 strategy: "inject_all"
 max_context_tokens: 4000
+tools:
+  - "read_file"
+  - "write_file"
 read:
   - "data/**"
   - "journal/**"
@@ -142,6 +145,7 @@ describe("parseAgentFile", () => {
     expect(result.config.sources).toEqual(["knowledge/company/**", "data/context.md"]);
     expect(result.config.strategy).toBe("inject_all");
     expect(result.config.max_context_tokens).toBe(4000);
+    expect(result.config.tools).toEqual(["read_file", "write_file"]);
 
     // permissions
     expect(result.config.read).toEqual(["data/**", "journal/**"]);
@@ -171,6 +175,20 @@ prompt`;
     expect(result.config.sources).toEqual([]);
     expect(result.config.strategy).toBe("inject_all");
     expect(result.config.max_context_tokens).toBe(4000);
+    expect(result.config.tools).toEqual(["*"]); // default is now wildcard
+  });
+
+  it("should parse an empty tools array correctly without defaulting to wildcard", () => {
+    const raw = `---
+language: "en"
+name: "Test"
+tools: []
+model: "llama3"
+---
+prompt`;
+
+    const result = parseAgentFile(raw);
+    expect(result.config.tools).toEqual([]);
   });
 
   it("should fill default permissions when not provided", () => {

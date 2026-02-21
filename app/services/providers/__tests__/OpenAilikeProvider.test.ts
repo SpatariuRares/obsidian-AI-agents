@@ -102,6 +102,7 @@ describe("OpenAilikeProvider", () => {
 
   it("should include tool_choice 'auto' in payload when tools are available", async () => {
     mockConfig.read = ["*"];
+    mockConfig.tools = ["*"];
 
     (requestUrl as jest.Mock).mockResolvedValue({
       status: 200,
@@ -181,6 +182,7 @@ describe("OpenAilikeProvider", () => {
 
   it("should use fallback parser when model returns tool calls as text (non-streaming)", async () => {
     mockConfig.read = ["*"];
+    mockConfig.tools = ["*"];
 
     (requestUrl as jest.Mock).mockResolvedValue({
       status: 200,

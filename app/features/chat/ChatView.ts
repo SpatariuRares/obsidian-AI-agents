@@ -24,6 +24,7 @@ import { ChatHeader } from "@app/components/molecules/ChatHeader";
 import { ChatInputArea } from "@app/components/molecules/ChatInputArea";
 import { ChatEmptyState } from "@app/components/molecules/ChatEmptyState";
 import { ChatController } from "@app/features/chat/ChatController";
+import { ChatMessageBubble } from "@app/components/molecules/ChatMessageBubble";
 
 export const VIEW_TYPE_CHAT = "ai-agents-chat";
 
@@ -203,7 +204,7 @@ export class ChatView extends ItemView {
           await this.renderMessages();
           this.refreshAgentSelectBtn();
         } else {
-          new Notice("Failed to load session logic: File might be corrupted.");
+          new Notice("Failed to load session logic: file might be corrupted.");
         }
       } catch (e) {
         new Notice("Failed to load session.");
@@ -236,7 +237,7 @@ export class ChatView extends ItemView {
       });
 
       const saveBtn = modal.contentEl.createEl("button", { text: "Save", cls: "mod-cta" });
-      saveBtn.style.marginTop = "10px";
+      saveBtn.setCssProps({ marginTop: "10px" });
       saveBtn.addEventListener("click", async () => {
         const val = text.getValue().trim();
         if (val && val !== currentTitle) {
@@ -397,98 +398,27 @@ export class ChatView extends ItemView {
   }
 
   private async renderMessage(msg: ChatMessage): Promise<void> {
-    // Skip assistant messages that only dispatch tool calls (no user-facing text)
-    if (msg.role === "assistant" && msg.tool_calls?.length && !msg.content.trim()) {
-      return;
-    }
-
-    // Tool messages render as collapsible blocks
-    if (msg.role === "tool") {
-      this.renderToolMessage(msg);
-      return;
-    }
-
-    const bubble = this.messageListEl.createDiv({
-      cls: `ai-agents-chat__message ai-agents-chat__message--${msg.role}`,
-    });
-
-    const label = bubble.createDiv({ cls: "ai-agents-chat__message-label" });
     const agent = this.host.chatManager.getActiveAgent();
 
-    if (msg.role === "user") {
-      label.textContent = t("chat.youLabel");
-    } else if (msg.role === "assistant") {
-      label.textContent = agent?.config.name ?? t("chat.assistantLabel");
-    }
+    // Create a temporary container to await the render if needed, or we can just
+    // let ChatMessageBubble render synchronously/asynchronously.
+    // However, the original code awaited MessageRenderer.render.
+    // To keep it simple, we just instantiate the bubble. It handles its own async render.
+    // BUT we might need to await it so that scrolling happens AFTER render.
+    // Instead of refactoring the whole async flow of the bubble right now,
+    // let's adjust ChatMessageBubble to expose an async create method, or just await a promise.
+    // Wait, since ChatMessageBubble's constructor calls an async method without awaiting,
+    // it will append to DOM immediately but MessageRenderer (which is async) will finish later.
+    // Let's create an async static method `render` on ChatMessageBubble instead.
 
-    const content = bubble.createDiv({ cls: "ai-agents-chat__message-content" });
-    await MessageRenderer.render(this.app, msg.content, content, "", this);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Tool message rendering
-  // ---------------------------------------------------------------------------
-
-  private renderToolMessage(msg: ChatMessage): void {
-    const wrapper = this.messageListEl.createDiv({
-      cls: "ai-agents-chat__message ai-agents-chat__message--tool",
+    await ChatMessageBubble.render({
+      app: this.app,
+      container: this.messageListEl,
+      msg,
+      agentName: agent?.config.name,
+      component: this,
+      findToolCallArgs: (id: string | undefined) => this.findToolCallArgs(id),
     });
-
-    const details = wrapper.createEl("details", {
-      cls: "ai-agents-chat__tool-block",
-    });
-
-    const toolArgs = this.findToolCallArgs(msg.tool_call_id);
-    const toolName = msg.name || t("chat.toolUnknown");
-
-    // Collapsed header
-    const summary = details.createEl("summary", {
-      cls: "ai-agents-chat__tool-summary",
-    });
-
-    const chevronEl = summary.createSpan({ cls: "ai-agents-chat__tool-chevron" });
-    setIcon(chevronEl, "chevron-right");
-
-    const iconEl = summary.createSpan({ cls: "ai-agents-chat__tool-icon" });
-    setIcon(iconEl, "wrench");
-
-    summary.createSpan({ text: toolName, cls: "ai-agents-chat__tool-name" });
-
-    if (toolArgs) {
-      const preview = this.formatArgPreview(toolArgs);
-      if (preview) {
-        summary.createSpan({
-          text: " " + preview,
-          cls: "ai-agents-chat__tool-arg-preview",
-        });
-      }
-    }
-
-    // Expanded body
-    const body = details.createDiv({ cls: "ai-agents-chat__tool-body" });
-
-    // Input section (arguments sent to the tool)
-    if (toolArgs && Object.keys(toolArgs).length > 0) {
-      body.createDiv({
-        text: t("chat.toolInput"),
-        cls: "ai-agents-chat__tool-section-label",
-      });
-      const argsBlock = body.createEl("pre", { cls: "ai-agents-chat__tool-code" });
-      argsBlock.createEl("code", { text: JSON.stringify(toolArgs, null, 2) });
-    }
-
-    // Output section (result returned by the tool)
-    body.createDiv({
-      text: t("chat.toolOutput"),
-      cls: "ai-agents-chat__tool-section-label",
-    });
-    const resultBlock = body.createEl("pre", { cls: "ai-agents-chat__tool-code" });
-    try {
-      const parsed = JSON.parse(msg.content);
-      resultBlock.createEl("code", { text: JSON.stringify(parsed, null, 2) });
-    } catch {
-      resultBlock.createEl("code", { text: msg.content });
-    }
   }
 
   /**
@@ -511,24 +441,5 @@ export class ChatView extends ItemView {
       }
     }
     return null;
-  }
-
-  /**
-   * Creates a short inline preview of tool arguments for the collapsed header.
-   * e.g. (path: "notes/todo.md", content: "Hello wo...")
-   */
-  private formatArgPreview(args: Record<string, any>): string {
-    const entries = Object.entries(args);
-    if (entries.length === 0) return "";
-    const preview = entries
-      .slice(0, 2)
-      .map(([k, v]) => {
-        const val = typeof v === "string" ? `"${v}"` : JSON.stringify(v);
-        const truncated = val.length > 30 ? val.slice(0, 27) + "..." : val;
-        return `${k}: ${truncated}`;
-      })
-      .join(", ");
-    const suffix = entries.length > 2 ? ", ..." : "";
-    return `(${preview}${suffix})`;
   }
 }

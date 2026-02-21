@@ -7,6 +7,8 @@ import { PluginSettings } from "@app/types/PluginTypes";
 import { PathSuggest } from "@app/features/common/suggest/PathSuggest";
 import { t } from "@app/i18n";
 import { CONSTANTS } from "@app/types/constants";
+import { allTools } from "@app/services/tools/allTools";
+import { PillListControl } from "@app/components/molecules/PillListControl";
 
 export class AgentEditor {
   private app: App;
@@ -185,63 +187,88 @@ export class AgentEditor {
       });
     });
 
+    // --- TOOLS ---
+    new Setting(formContainer).setHeading().setName(t("editor.toolsHeading"));
+
+    const toolsSetting = new Setting(formContainer)
+      .setName(t("editor.tools"))
+      .setDesc(t("editor.toolsDesc"));
+
+    const toolsContainer = toolsSetting.controlEl;
+    toolsContainer.empty();
+
+    new PillListControl({
+      container: toolsContainer,
+      items: this.config.tools || [],
+      onChange: (items) => {
+        this.config.tools = items;
+      },
+      formatPillText: (toolName) => (toolName === "*" ? t("editor.allToolsWildcard") : toolName),
+      renderInput: (inputContainer, onAdd, currentItems) => {
+        const selectInput = inputContainer.createEl("select", {
+          cls: "ai-agents-chat__editor-permissions-input dropdown",
+        });
+
+        selectInput.createEl("option", { text: t("editor.selectTool"), value: "" });
+
+        if (!currentItems.includes("*")) {
+          selectInput.createEl("option", {
+            text: t("editor.allToolsWildcard"),
+            value: "*",
+            title: t("editor.allToolsWildcardTitle"),
+          });
+        }
+
+        allTools.forEach((tool) => {
+          if (!currentItems.includes(tool.definition.name)) {
+            selectInput.createEl("option", {
+              text: tool.definition.name,
+              value: tool.definition.name,
+              title: tool.definition.description,
+            });
+          }
+        });
+        selectInput.value = "";
+
+        const addToolBtn = inputContainer.createEl("button", { text: t("editor.addToolBtn") });
+        addToolBtn.addEventListener("click", () => {
+          const val = selectInput.value;
+          if (val) onAdd(val);
+        });
+      },
+    });
+
     // --- KNOWLEDGE & PERMISSIONS ---
     new Setting(formContainer).setHeading().setName(t("editor.permissionsHeading"));
 
     const createPathListSetting = (name: string, desc: string, field: keyof AgentConfig) => {
-      const arr = (this.config[field] as string[]) || [];
-
       const setting = new Setting(formContainer).setName(name).setDesc(desc);
 
-      const container = setting.controlEl;
-      container.empty();
-      container.addClass("ai-agents-chat__editor-permissions-control");
-
-      const listContainer = container.createDiv({ cls: "ai-agents-chat__editor-permissions-list" });
-
-      const renderList = () => {
-        listContainer.empty();
-        arr.forEach((item, index) => {
-          const pill = listContainer.createDiv({ cls: "ai-agents-chat__editor-permissions-pill" });
-
-          pill.createSpan({ text: item });
-
-          const removeBtn = pill.createSpan({
-            text: "✕",
-            cls: "ai-agents-chat__editor-permissions-remove",
-          });
-          removeBtn.addEventListener("click", () => {
-            arr.splice(index, 1);
-            // @ts-ignore
-            this.config[field] = [...arr];
-            renderList();
-          });
-        });
-      };
-      renderList();
-
-      const inputContainer = container.createDiv({
-        cls: "ai-agents-chat__editor-permissions-input-container",
-      });
-
-      const input = inputContainer.createEl("input", {
-        type: "text",
-        placeholder: t("editor.pathPlaceholder"),
-        cls: "ai-agents-chat__editor-permissions-input",
-      });
-
-      new PathSuggest(this.app, input);
-
-      const addBtn = inputContainer.createEl("button", { text: t("editor.addBtn") });
-      addBtn.addEventListener("click", () => {
-        const val = input.value.trim();
-        if (val && !arr.includes(val)) {
-          arr.push(val);
+      new PillListControl({
+        container: setting.controlEl,
+        items: (this.config[field] as string[]) || [],
+        onChange: (items: string[]) => {
           // @ts-ignore
-          this.config[field] = [...arr];
-          input.value = "";
-          renderList();
-        }
+          this.config[field] = items;
+        },
+        renderInput: (inputContainer, onAdd) => {
+          const input = inputContainer.createEl("input", {
+            type: "text",
+            placeholder: t("editor.pathPlaceholder"),
+            cls: "ai-agents-chat__editor-permissions-input",
+          });
+
+          new PathSuggest(this.app, input);
+
+          const addBtn = inputContainer.createEl("button", { text: t("editor.addBtn") });
+          addBtn.addEventListener("click", () => {
+            const val = input.value.trim();
+            if (val) {
+              onAdd(val);
+              input.value = "";
+            }
+          });
+        },
       });
     };
 

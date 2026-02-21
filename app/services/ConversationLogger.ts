@@ -93,7 +93,7 @@ export class ConversationLogger {
   async getLogHistory(agent: ParsedAgent): Promise<ChatSessionMeta[]> {
     const logFolderPath = normalizePath(`${agent.folderPath}/logs`);
     const folder = this.app.vault.getAbstractFileByPath(logFolderPath);
-    if (!folder || !folder.hasOwnProperty("children")) return [];
+    if (!folder || !Object.prototype.hasOwnProperty.call(folder, "children")) return [];
 
     const sessions: ChatSessionMeta[] = [];
     const children = (folder as any).children || [];

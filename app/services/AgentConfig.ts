@@ -51,6 +51,7 @@ export const DEFAULT_CONFIG: AgentConfig = {
   sources: [],
   strategy: "inject_all",
   max_context_tokens: 4000,
+  tools: ["*"],
   read: [],
   write: [],
   create: [],
@@ -147,6 +148,7 @@ function normalizeYamlKeys(
     maxContextTokens: "max_context_tokens",
     strategy: "strategy",
     sources: "sources",
+    tools: "tools",
     readPermissions: "read",
     writePermissions: "write",
     createPermissions: "create",
@@ -201,7 +203,7 @@ export function parseAgentFile(raw: string, fallbackModel?: string): AgentParseR
   const rawParsed = parseYaml(yaml) as Record<string, unknown>;
 
   // Require language
-  let language = rawParsed.language as string;
+  const language = rawParsed.language as string;
 
   if (typeof language !== "string" || !language.trim()) {
     throw new AgentConfigError("language is required in the frontmatter");
@@ -241,6 +243,7 @@ export function parseAgentFile(raw: string, fallbackModel?: string): AgentParseR
         ? parsed.max_context_tokens
         : DEFAULT_CONFIG.max_context_tokens,
     stream: parseBool(parsed.stream, false),
+    tools: Array.isArray(parsed.tools) ? parsed.tools : DEFAULT_CONFIG.tools,
     read: Array.isArray(parsed.read) ? parsed.read : DEFAULT_CONFIG.read,
     write: Array.isArray(parsed.write) ? parsed.write : DEFAULT_CONFIG.write,
     create: Array.isArray(parsed.create) ? parsed.create : DEFAULT_CONFIG.create,

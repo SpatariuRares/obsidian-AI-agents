@@ -18,7 +18,15 @@ export class ToolHandler {
    * If an agent lacks a permission (e.g. `write: []`), the corresponding tool is entirely omitted.
    */
   static getAvailableTools(config: AgentConfig): ToolDefinition[] {
-    return allTools.filter((t) => t.isAvailable(config)).map((t) => t.definition);
+    const explicitlyEnabled = config.tools || [];
+    const hasWildcard = explicitlyEnabled.includes("*");
+
+    return allTools
+      .filter(
+        (t) =>
+          (hasWildcard || explicitlyEnabled.includes(t.definition.name)) && t.isAvailable(config),
+      )
+      .map((t) => t.definition);
   }
 
   /**
