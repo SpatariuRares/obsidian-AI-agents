@@ -12,6 +12,9 @@ import { PillListControl } from "@app/components/molecules/PillListControl";
 import { createHeading } from "@app/components/atoms/Heading";
 import { createButton } from "@app/components/atoms/Button";
 import { createText } from "@app/components/atoms/Text";
+import { createSelect } from "@app/components/atoms/Select";
+import { createInput } from "@app/components/atoms/Input";
+import { createActionFooter } from "@app/components/molecules/ActionFooter";
 
 export class AgentEditor {
   private app: App;
@@ -184,9 +187,12 @@ export class AgentEditor {
       });
     });
 
-    new Setting(formContainer).setName(t("editor.strategy")).addText((text) => {
-      text.setValue(this.config.strategy || CONSTANTS.DEFAULT_AGENT_STRATEGY);
-      text.onChange((value) => {
+    new Setting(formContainer).setName(t("editor.strategy")).addDropdown((dropdown) => {
+      dropdown.addOptions({
+        inject_all: "inject_all",
+      });
+      dropdown.setValue(this.config.strategy || CONSTANTS.DEFAULT_AGENT_STRATEGY);
+      dropdown.onChange((value) => {
         this.config.strategy = value;
       });
     });
@@ -209,30 +215,29 @@ export class AgentEditor {
       },
       formatPillText: (toolName) => (toolName === "*" ? t("editor.allToolsWildcard") : toolName),
       renderInput: (inputContainer, onAdd, currentItems) => {
-        const selectInput = inputContainer.createEl("select", {
-          cls: "ai-agents-chat__editor-permissions-input dropdown",
-        });
-
-        selectInput.createEl("option", { text: t("editor.selectTool"), value: "" });
-
+        const toolOptions = [];
         if (!currentItems.includes("*")) {
-          selectInput.createEl("option", {
-            text: t("editor.allToolsWildcard"),
+          toolOptions.push({
             value: "*",
+            text: t("editor.allToolsWildcard"),
             title: t("editor.allToolsWildcardTitle"),
           });
         }
-
         allTools.forEach((tool) => {
           if (!currentItems.includes(tool.definition.name)) {
-            selectInput.createEl("option", {
-              text: tool.definition.name,
+            toolOptions.push({
               value: tool.definition.name,
+              text: tool.definition.name,
               title: tool.definition.description,
             });
           }
         });
-        selectInput.value = "";
+
+        const selectInput = createSelect(inputContainer, {
+          options: toolOptions,
+          placeholder: t("editor.selectTool"),
+          cls: "ai-agents-chat__editor-permissions-input dropdown",
+        });
 
         createButton(inputContainer, {
           text: t("editor.addToolBtn"),
@@ -258,8 +263,7 @@ export class AgentEditor {
           this.config[field] = items;
         },
         renderInput: (inputContainer, onAdd) => {
-          const input = inputContainer.createEl("input", {
-            type: "text",
+          const input = createInput(inputContainer, {
             placeholder: t("editor.pathPlaceholder"),
             cls: "ai-agents-chat__editor-permissions-input",
           });
@@ -348,17 +352,12 @@ export class AgentEditor {
     });
 
     // --- ACTIONS ---
-    const actionsContainer = this.containerEl.createDiv({ cls: "ai-agents-chat__editor-actions" });
-
-    createButton(actionsContainer, {
-      text: t("editor.cancelBtn"),
-      onClick: () => this.onCancel(),
-    });
-
-    createButton(actionsContainer, {
-      text: t("editor.saveBtn"),
-      cls: "mod-cta",
-      onClick: () => this.handleSave(),
+    createActionFooter(this.containerEl, {
+      buttons: [
+        { text: t("editor.cancelBtn"), onClick: () => this.onCancel() },
+        { text: t("editor.saveBtn"), cls: "mod-cta", onClick: () => this.handleSave() },
+      ],
+      cls: "ai-agents-chat__editor-actions",
     });
   }
 

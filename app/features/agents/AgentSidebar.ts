@@ -8,7 +8,7 @@ import { ParsedAgent } from "@app/types/AgentTypes";
 import { t } from "@app/i18n";
 import { AgentListItem } from "@app/components/molecules/AgentListItem";
 import { createHeading } from "@app/components/atoms/Heading";
-import { createText } from "@app/components/atoms/Text";
+import { EmptyState } from "@app/components/molecules/EmptyState";
 
 export const VIEW_TYPE_AGENT_SIDEBAR = "ai-agents-sidebar";
 
@@ -56,7 +56,7 @@ export class AgentSidebar extends ItemView {
     const agents = this.host.agentRegistry.getAllAgents();
 
     if (agents.length === 0) {
-      createText(container, { tag: "p", text: t("sidebar.noAgents"), cls: "ai-agents-sidebar__empty" });
+      new EmptyState(container, { message: t("sidebar.noAgents"), cls: "ai-agents-sidebar__empty" });
       return;
     }
 

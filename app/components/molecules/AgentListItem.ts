@@ -1,6 +1,7 @@
 import { ParsedAgent } from "@app/types/AgentTypes";
 import { t } from "@app/i18n";
 import { createText } from "@app/components/atoms/Text";
+import { createAvatar } from "@app/components/atoms/Avatar";
 
 export interface AgentListItemProps {
   container: HTMLElement;
@@ -19,8 +20,11 @@ export class AgentListItem {
 
     const header = item.createDiv({ cls: "ai-agents-sidebar__item-header" });
 
-    const avatar = header.createDiv({ cls: "ai-agents-sidebar__avatar" });
-    avatar.setText(agent.config.avatar || t("icons.defaultAvatar"));
+    createAvatar(header, {
+      emoji: agent.config.avatar,
+      fallback: t("icons.defaultAvatar"),
+      cls: "ai-agents-sidebar__avatar",
+    });
 
     const info = header.createDiv({ cls: "ai-agents-sidebar__info" });
     createText(info, { tag: "div", text: agent.config.name, cls: "ai-agents-sidebar__name" });

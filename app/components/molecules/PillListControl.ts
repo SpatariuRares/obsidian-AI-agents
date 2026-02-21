@@ -1,4 +1,4 @@
-import { createText } from "@app/components/atoms/Text";
+import { createBadge } from "@app/components/atoms/Badge";
 
 export interface PillListControlProps {
   container: HTMLElement;
@@ -57,21 +57,15 @@ export class PillListControl {
   private render() {
     this.listContainer.empty();
     this.items.forEach((item, index) => {
-      const pill = this.listContainer.createDiv({
+      createBadge(this.listContainer, {
+        text: this.formatPillText(item),
         cls: "ai-agents-chat__editor-permissions-pill",
-      });
-
-      createText(pill, { text: this.formatPillText(item) });
-
-      const removeBtn = pill.createSpan({
-        text: "✕",
-        cls: "ai-agents-chat__editor-permissions-remove",
-      });
-
-      removeBtn.addEventListener("click", () => {
-        this.items.splice(index, 1);
-        this.onChange([...this.items]);
-        this.render();
+        removable: true,
+        onRemove: () => {
+          this.items.splice(index, 1);
+          this.onChange([...this.items]);
+          this.render();
+        },
       });
     });
 

@@ -17,6 +17,11 @@ import { BaseTool } from "@app/services/tools/BaseTool";
 import { createHeading } from "@app/components/atoms/Heading";
 import { createButton } from "@app/components/atoms/Button";
 import { createText } from "@app/components/atoms/Text";
+import { createSelect } from "@app/components/atoms/Select";
+import { createInput } from "@app/components/atoms/Input";
+import { createTextarea } from "@app/components/atoms/Textarea";
+import { createCheckbox } from "@app/components/atoms/Checkbox";
+import { createFormField } from "@app/components/molecules/FormField";
 
 export const VIEW_TYPE_TOOL_TEST = "ai-agents-tool-test";
 
@@ -73,18 +78,15 @@ export class ToolTestView extends ItemView {
     const selectorRow = container.createDiv({ cls: `${CLS}__selector` });
     createText(selectorRow, { tag: "label", text: "Tool", cls: `${CLS}__label` });
 
-    const select = selectorRow.createEl("select", { cls: `${CLS}__select` });
-    select.createEl("option", {
-      text: "Select a tool...",
-      attr: { value: "", disabled: "true", selected: "true" },
-    });
-    for (const tool of allTools) {
-      select.createEl("option", {
+    createSelect(selectorRow, {
+      options: allTools.map((tool) => ({
+        value: tool.definition.name,
         text: tool.definition.name,
-        attr: { value: tool.definition.name },
-      });
-    }
-    select.addEventListener("change", () => this.onToolSelected(select.value));
+      })),
+      placeholder: "Select a tool...",
+      cls: `${CLS}__select`,
+      onChange: (value) => this.onToolSelected(value),
+    });
 
     // Description
     this.descriptionEl = container.createDiv({ cls: `${CLS}__description` });
@@ -144,56 +146,39 @@ export class ToolTestView extends ItemView {
 
   /** Builds a single form field from a JSON-schema property. */
   private buildField(name: string, schema: ParamProperty, isRequired: boolean): void {
-    const fieldEl = this.formEl.createDiv({ cls: `${CLS}__field` });
+    createFormField(this.formEl, {
+      label: name,
+      required: isRequired,
+      description: schema.description,
+      cls: `${CLS}__field`,
+      renderInput: (inputContainer) => {
+        let inputEl: HTMLElement;
 
-    // Label
-    const labelRow = fieldEl.createDiv({ cls: `${CLS}__field-label` });
-    createText(labelRow, { text: name });
-    if (isRequired) {
-      createText(labelRow, { text: "*", cls: `${CLS}__required` });
-    }
+        if (schema.enum) {
+          inputEl = createSelect(inputContainer, {
+            options: schema.enum.map((val) => ({ value: val, text: val })),
+            cls: `${CLS}__input`,
+          });
+        } else if (schema.type === "boolean") {
+          const checkRow = inputContainer.createDiv({ cls: `${CLS}__check-row` });
+          inputEl = createCheckbox(checkRow, { cls: `${CLS}__checkbox` });
+          createText(checkRow, { text: "enabled" });
+        } else if (name === "content") {
+          inputEl = createTextarea(inputContainer, {
+            placeholder: name,
+            rows: 4,
+            cls: `${CLS}__input ${CLS}__textarea`,
+          });
+        } else {
+          inputEl = createInput(inputContainer, {
+            placeholder: name,
+            cls: `${CLS}__input`,
+          });
+        }
 
-    // Description hint
-    if (schema.description) {
-      createText(fieldEl, { tag: "div", text: schema.description, cls: `${CLS}__hint` });
-    }
-
-    // Input element — choose based on schema type/enum
-    let inputEl: HTMLElement;
-
-    if (schema.enum) {
-      // Dropdown for enum fields
-      const sel = fieldEl.createEl("select", { cls: `${CLS}__input` });
-      for (const val of schema.enum) {
-        sel.createEl("option", { text: val, attr: { value: val } });
-      }
-      inputEl = sel;
-    } else if (schema.type === "boolean") {
-      // Checkbox row for booleans
-      const checkRow = fieldEl.createDiv({ cls: `${CLS}__check-row` });
-      const cb = checkRow.createEl("input", {
-        attr: { type: "checkbox" },
-        cls: `${CLS}__checkbox`,
-      });
-      createText(checkRow, { text: "enabled" });
-      inputEl = cb;
-    } else if (name === "content") {
-      // Textarea for content-like string fields
-      const ta = fieldEl.createEl("textarea", {
-        attr: { placeholder: name, rows: "4" },
-        cls: `${CLS}__input ${CLS}__textarea`,
-      });
-      inputEl = ta;
-    } else {
-      // Default text input
-      const inp = fieldEl.createEl("input", {
-        attr: { type: "text", placeholder: name },
-        cls: `${CLS}__input`,
-      });
-      inputEl = inp;
-    }
-
-    this.inputMap.set(name, inputEl);
+        this.inputMap.set(name, inputEl);
+      },
+    });
   }
 
   /** Collects form values and executes the selected tool. */
