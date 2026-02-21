@@ -25,4 +25,25 @@ describe("GlobMatcher", () => {
     expect(GlobMatcher.isMatch("../secret.md", ["**/*.md"])).toBe(false);
     expect(GlobMatcher.isMatch("notes/../../secret.md", ["**/*.md"])).toBe(false);
   });
+
+  // Pattern normalization tests
+  describe("pattern normalization", () => {
+    it('should treat "/" as matching all vault files', () => {
+      expect(GlobMatcher.isMatch("note.md", ["/"])).toBe(true);
+      expect(GlobMatcher.isMatch("Inbox/idea.md", ["/"])).toBe(true);
+      expect(GlobMatcher.isMatch("deep/nested/file.md", ["/"])).toBe(true);
+    });
+
+    it('should treat "Inbox/" as matching all files inside Inbox', () => {
+      expect(GlobMatcher.isMatch("Inbox/idea.md", ["Inbox/"])).toBe(true);
+      expect(GlobMatcher.isMatch("Inbox/sub/deep.md", ["Inbox/"])).toBe(true);
+      expect(GlobMatcher.isMatch("Other/idea.md", ["Inbox/"])).toBe(false);
+    });
+
+    it("should leave valid glob patterns unchanged", () => {
+      expect(GlobMatcher.isMatch("notes/idea.md", ["**"])).toBe(true);
+      expect(GlobMatcher.isMatch("notes/idea.md", ["**/*"])).toBe(true);
+      expect(GlobMatcher.isMatch("notes/idea.md", ["notes/**"])).toBe(true);
+    });
+  });
 });

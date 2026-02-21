@@ -65,4 +65,23 @@ describe("ToolHandler", () => {
     expect(names).toContain("delete_file");
     expect(names).toContain("list_files");
   });
+
+  it("should have all tool descriptions in English", () => {
+    const config: AgentConfig = {
+      ...DEFAULT_CONFIG,
+      name: "Test",
+      read: ["*"],
+      write: ["*"],
+      create: ["*"],
+      move: ["*"],
+      delete: ["*"],
+    };
+    const tools = ToolHandler.getAvailableTools(config);
+    for (const tool of tools) {
+      // Descriptions must not contain Italian words
+      expect(tool.description).not.toMatch(/\b(Leggi|Lista|Scrivi|Crea|Sposta|Elimina|dal|nel)\b/);
+      // Descriptions must be in English
+      expect(tool.description).toMatch(/^[A-Z][a-zA-Z\s]+/);
+    }
+  });
 });

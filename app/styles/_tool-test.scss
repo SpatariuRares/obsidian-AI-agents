@@ -1,0 +1,177 @@
+// =============================================================================
+// TOOL TEST VIEW
+// =============================================================================
+// Styles for the dynamic tool testing panel (ToolTestView).
+// Uses Obsidian CSS variables exclusively — no hardcoded colours.
+// =============================================================================
+
+.ai-agents-tool-test {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  // Title
+  &__title {
+    margin: 0 0 4px;
+  }
+
+  // Tool selector row
+  &__selector {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__label {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__select {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+
+    &:focus {
+      border-color: var(--interactive-accent);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.2);
+    }
+  }
+
+  // Tool description
+  &__description {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    font-style: italic;
+    min-height: 1.4em;
+  }
+
+  // Form area
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  // Single field
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__field-label {
+    font-size: var(--font-ui-small);
+    font-weight: 500;
+    color: var(--text-normal);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  &__required {
+    color: var(--text-error);
+    font-weight: 700;
+  }
+
+  &__hint {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+    margin-bottom: 2px;
+  }
+
+  // Inputs (text, select, textarea)
+  &__input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+    font-family: inherit;
+
+    &:focus {
+      border-color: var(--interactive-accent);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.2);
+    }
+  }
+
+  &__textarea {
+    resize: vertical;
+    min-height: 60px;
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-small);
+  }
+
+  // Boolean checkbox row
+  &__check-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+  }
+
+  // Run button
+  &__run-btn {
+    align-self: flex-start;
+    padding: 6px 16px;
+    border: none;
+    border-radius: 4px;
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 120ms ease;
+
+    &:hover:not(:disabled) {
+      background: var(--interactive-accent-hover);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  // Output area
+  &__output-header {
+    margin-top: 4px;
+  }
+
+  &__output {
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 300px;
+    overflow: auto;
+    padding: 10px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-secondary);
+    color: var(--text-muted);
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    margin: 0;
+
+    &--success {
+      border-color: var(--text-success);
+      color: var(--text-normal);
+    }
+
+    &--error {
+      border-color: var(--text-error);
+      color: var(--text-error);
+    }
+  }
+}

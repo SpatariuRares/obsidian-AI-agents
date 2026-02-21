@@ -114,6 +114,8 @@
 
   & .ai-agents-chat__message-content {
     word-break: break-word;
+    user-select: text;
+    -webkit-user-select: text;
 
     // MarkdownRenderer creates <p> tags, which have default margins.
     // white-space: pre-wrap is removed because it makes the \n between HTML tags visible.

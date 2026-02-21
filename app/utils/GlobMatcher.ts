@@ -21,14 +21,13 @@ export class GlobMatcher {
 
     // Path traversal protection
     if (this.containsPathTraversal(path)) {
-      // console.warn(`Blocked path traversal attempt: ${path}`);
       return false;
     }
 
     const normalizedPath = this.normalizePath(path);
+    const normalizedPatterns = this.normalizePatterns(patterns);
 
-    // micromatch returns true if the normalizedPath matches any of the patterns
-    return micromatch.isMatch(normalizedPath, patterns);
+    return micromatch.isMatch(normalizedPath, normalizedPatterns);
   }
 
   /**
@@ -38,6 +37,19 @@ export class GlobMatcher {
     // Check for ".." either as a standalone component or at the start/end
     const parts = path.split(/[\\/]/);
     return parts.includes("..");
+  }
+
+  /**
+   * Converts directory-style patterns to proper glob syntax.
+   * - "/" → "**" (match everything in vault)
+   * - "Inbox/" → "Inbox/**" (match everything inside Inbox)
+   */
+  private static normalizePatterns(patterns: string[]): string[] {
+    return patterns.map((p) => {
+      if (p === "/") return "**";
+      if (p.endsWith("/") && !p.endsWith("**/")) return p + "**";
+      return p;
+    });
   }
 
   /**

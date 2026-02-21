@@ -14,6 +14,7 @@ import { LocalizationService } from "@app/i18n";
 import { AIAgentsStatusBar } from "@app/features/agents/AIAgentsStatusBar";
 import { AgentSidebar, VIEW_TYPE_AGENT_SIDEBAR } from "@app/features/agents/AgentSidebar";
 import { TFile } from "obsidian";
+import { ToolTestView, VIEW_TYPE_TOOL_TEST } from "@app/features/tools/ToolTestView";
 
 export default class AIAgentsPlugin extends Plugin {
   settings!: PluginSettings;
@@ -58,6 +59,12 @@ export default class AIAgentsPlugin extends Plugin {
             await this.activateChatView();
           },
         }),
+    );
+
+    // Tool test view
+    this.registerView(
+      VIEW_TYPE_TOOL_TEST,
+      (leaf) => new ToolTestView(leaf),
     );
 
     // Hot reload agents on file modification
@@ -123,6 +130,16 @@ export default class AIAgentsPlugin extends Plugin {
     });
 
     this.addCommand({
+      id: "open-tool-test",
+      name: "Open tool test view",
+      callback: () => {
+        this.activateToolTestView().catch(() => {
+          /* no-op */
+        });
+      },
+    });
+
+    this.addCommand({
       id: "reload-agents",
       name: "Reload agents",
       callback: async () => {
@@ -175,6 +192,25 @@ export default class AIAgentsPlugin extends Plugin {
     const leaf = this.app.workspace.getLeftLeaf(false);
     if (leaf) {
       await leaf.setViewState({ type: VIEW_TYPE_AGENT_SIDEBAR, active: true });
+      this.app.workspace.revealLeaf(leaf).catch(() => {
+        /* no-op */
+      });
+    }
+  }
+
+  async activateToolTestView(): Promise<void> {
+    const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_TOOL_TEST);
+
+    if (existing.length > 0) {
+      this.app.workspace.revealLeaf(existing[0]).catch(() => {
+        /* no-op */
+      });
+      return;
+    }
+
+    const leaf = this.app.workspace.getRightLeaf(false);
+    if (leaf) {
+      await leaf.setViewState({ type: VIEW_TYPE_TOOL_TEST, active: true });
       this.app.workspace.revealLeaf(leaf).catch(() => {
         /* no-op */
       });

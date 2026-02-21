@@ -155,9 +155,14 @@ export class FileOperations {
     path: string,
     recursive: boolean = false,
   ): Promise<string[]> {
-    PermissionGuard.assertPermission(config, "read", path);
+    // Global check: agent must have at least some read permissions
+    PermissionGuard.assertPermission(config, "read", null);
 
-    const folder = app.vault.getAbstractFileByPath(path);
+    const isRoot = path === "/" || path === "";
+    const folder = isRoot
+      ? app.vault.getRoot()
+      : app.vault.getAbstractFileByPath(path);
+
     if (!folder || !(folder instanceof TFolder)) {
       throw new Error(`Directory not found or is not a directory: ${path}`);
     }
@@ -165,12 +170,10 @@ export class FileOperations {
     const results: string[] = [];
     if (recursive) {
       for (const file of app.vault.getFiles()) {
-        if (file.path.startsWith(folder.path + "/")) {
-          // Check if agent is actually allowed to read this specific file before listing it.
-          // Optional, but safer.
-          if (PermissionGuard.hasPermission(config, "read", file.path)) {
-            results.push(file.path);
-          }
+        const inFolder =
+          isRoot || file.path.startsWith(folder.path + "/");
+        if (inFolder && PermissionGuard.hasPermission(config, "read", file.path)) {
+          results.push(file.path);
         }
       }
     } else {
