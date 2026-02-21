@@ -47,7 +47,7 @@ export class ChatHistoryModal extends SuggestModal<ChatSessionMeta> {
     });
   }
 
-  onChooseSuggestion(item: ChatSessionMeta, evt: MouseEvent | KeyboardEvent) {
+  onChooseSuggestion(item: ChatSessionMeta, _evt: MouseEvent | KeyboardEvent) {
     this.onSelect(item);
   }
 }

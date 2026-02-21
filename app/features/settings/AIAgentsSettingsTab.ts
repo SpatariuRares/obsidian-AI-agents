@@ -8,12 +8,11 @@
  *  4. Interface     — Chat position, status bar, token count
  */
 
-import { App, Notice, Plugin, PluginSettingTab, Setting, normalizePath } from "obsidian";
+import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
 import { PluginSettings } from "@app/types/PluginTypes";
 import { AgentRegistry } from "@app/services/AgentRegistry";
 import { FolderSuggest } from "@app/features/common/suggest/FolderSuggest";
 import { t } from "@app/i18n";
-import { CONSTANTS } from "@app/types/constants";
 import { ExampleGenerator } from "@app/services/ExampleGenerator";
 
 interface PluginWithSettings extends Plugin {
@@ -185,8 +184,7 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       .addText((text) =>
         text
           .setPlaceholder(
-            t("settings.behaviour.defaultModelPlaceholder", { defaultValue: "llama3" } as any) ||
-              "llama3",
+            t("settings.behaviour.defaultModelPlaceholder", { defaultValue: "llama3" as any }),
           )
           .setValue(this.plugin.settings.defaultModel)
           .onChange(async (value) => {

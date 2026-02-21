@@ -1,4 +1,3 @@
-/* eslint-disable i18next/no-literal-string */
 /**
  * @fileoverview KnowledgeResolver - Expands glob patterns and loads vault files
  *

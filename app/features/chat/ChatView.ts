@@ -10,7 +10,7 @@
  * Styled with Obsidian CSS variables (see _chat.scss).
  */
 
-import { ItemView, WorkspaceLeaf, Notice, TFile } from "obsidian";
+import { ItemView, WorkspaceLeaf, Notice } from "obsidian";
 import { ChatManager } from "@app/services/ChatManager";
 import { ParsedAgent, ChatMessage } from "@app/types/AgentTypes";
 import { AgentRegistry } from "@app/services/AgentRegistry";
@@ -205,10 +205,10 @@ export class ChatView extends ItemView {
           await this.renderMessages();
           this.refreshAgentSelectBtn();
         } else {
-          new Notice("Failed to load session logic: file might be corrupted.");
+          new Notice(t("chatView.failedLoadSessionLogic"));
         }
-      } catch (e) {
-        new Notice("Failed to load session.");
+      } catch (_e) {
+        new Notice(t("chatView.failedLoadSession"));
         // console.error(e);
       }
     }).open();

@@ -18,6 +18,14 @@
       "providerOllama": "Ollama",
       "providerOpenRouter": "OpenRouter"
     },
+    "tools": {
+      "heading": "Tools",
+      "toolTestView": {
+        "heading": "Tool test view",
+        "selectATool": "Select a tool...",
+        "resultsWillAppearHere": "Results will appear here..."
+      }
+    },
     "general": {
       "heading": "General",
       "agentsFolder": "Agents folder",
@@ -31,7 +39,9 @@
       "createDefaultAgentBtn": "Create",
       "generateMockData": "Generate Example Vault Content",
       "generateMockDataDesc": "Scaffolds an Inbox, Projects, and Daily Notes folder with sample files to test advanced agents.",
-      "generateMockDataBtn": "Generate"
+      "generateMockDataBtn": "Generate",
+      "running": "Running...",
+      "error": "Error: {message}"
     },
     "behaviour": {
       "heading": "Behaviour",
@@ -78,14 +88,18 @@
     "statusEnabled": "enabled",
     "statusDisabled": "disabled"
   },
+  "chatView": {
+    "failedLoadSessionLogic": "Failed to load session logic: file might be corrupted.",
+    "failedLoadSession": "Failed to load session."
+  },
   "chat": {
-    "title": "AI agents",
+    "title": "Chat",
     "chooseAgent": "Choose an agent...",
     "editAgent": "Edit agent",
     "newSession": "New session",
     "history": "Chat history",
-    "renameSession": "Rename session",
-    "renamePrompt": "Enter new session title:",
+    "renameSession": "Rename Session",
+    "renamePrompt": "New Name",
     "selectAgentPrompt": "Select an agent to start chatting.",
     "inputPlaceholder": "Type a message...",
     "sendMessage": "Send message",

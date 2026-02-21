@@ -114,12 +114,10 @@ export class OpenAilikeProvider extends BaseProvider {
     let apiKey = "";
 
     if (isOllama) {
-      // eslint-disable-next-line i18next/no-literal-string
       baseUrl = settings.ollama.baseUrl.replace(/\/$/, "") + "/v1/chat/completions";
-      // eslint-disable-next-line i18next/no-literal-string
+
       apiKey = "ollama"; // Any value works for local Ollama
     } else {
-      // eslint-disable-next-line i18next/no-literal-string
       baseUrl = "https://openrouter.ai/api/v1/chat/completions";
       apiKey = settings.openRouter.apiKey;
     }

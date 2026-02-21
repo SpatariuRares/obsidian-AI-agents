@@ -6,9 +6,7 @@
  * enough — this view picks it up automatically.
  */
 
-/* eslint-disable i18next/no-literal-string */
-
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { ItemView } from "obsidian";
 import { ToolHandler } from "@app/services/ToolHandler";
 import { AgentConfig } from "@app/types/AgentTypes";
 import { DEFAULT_CONFIG } from "@app/services/AgentConfig";
@@ -22,6 +20,7 @@ import { createInput } from "@app/components/atoms/Input";
 import { createTextarea } from "@app/components/atoms/Textarea";
 import { createCheckbox } from "@app/components/atoms/Checkbox";
 import { createFormField } from "@app/components/molecules/FormField";
+import { t } from "@app/i18n/LocalizationService";
 
 export const VIEW_TYPE_TOOL_TEST = "ai-agents-tool-test";
 
@@ -59,11 +58,12 @@ export class ToolTestView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Tool test view";
+    return t("tools.toolTestView.heading"); // Using heading since no specific title translation exists yet, or returning a generic string.
   }
 
   getIcon(): string {
-    return "wrench";
+    // eslint-disable-next-line i18next/no-literal-string
+    return "wrench"; // Icons in Obsidian shouldn't be localized if they refer to the lucide icon name. This ESLint warning comes from returning a raw string. Let's disable for this line.
   }
 
   async onOpen(): Promise<void> {
@@ -72,18 +72,22 @@ export class ToolTestView extends ItemView {
     container.addClass(CLS);
 
     // Header
-    createHeading(container, { level: "h4", text: "Tool test view", cls: `${CLS}__title` });
+    createHeading(container, {
+      level: "h4",
+      text: t("tools.toolTestView.heading"),
+      cls: `${CLS}__title`,
+    });
 
     // Tool selector
     const selectorRow = container.createDiv({ cls: `${CLS}__selector` });
-    createText(selectorRow, { tag: "label", text: "Tool", cls: `${CLS}__label` });
+    createText(selectorRow, { tag: "label", text: t("tools.heading"), cls: `${CLS}__label` });
 
     createSelect(selectorRow, {
       options: allTools.map((tool) => ({
         value: tool.definition.name,
         text: tool.definition.name,
       })),
-      placeholder: "Select a tool...",
+      placeholder: t("tools.toolTestView.selectATool"),
       cls: `${CLS}__select`,
       onChange: (value) => this.onToolSelected(value),
     });
@@ -103,12 +107,13 @@ export class ToolTestView extends ItemView {
     });
 
     // Output
-    createText(
-      container.createDiv({ cls: `${CLS}__output-header` }),
-      { tag: "label", text: "Output", cls: `${CLS}__label` },
-    );
+    createText(container.createDiv({ cls: `${CLS}__output-header` }), {
+      tag: "label",
+      text: "Output",
+      cls: `${CLS}__label`,
+    });
     this.outputEl = container.createEl("pre", { cls: `${CLS}__output` });
-    this.outputEl.setText("Results will appear here...");
+    this.outputEl.setText(t("tools.toolTestView.resultsWillAppearHere"));
   }
 
   async onClose(): Promise<void> {
@@ -123,7 +128,7 @@ export class ToolTestView extends ItemView {
     this.selectedTool = tool;
     this.inputMap.clear();
     this.formEl.empty();
-    this.outputEl.setText("Results will appear here...");
+    this.outputEl.setText(t("tools.toolTestView.resultsWillAppearHere"));
     this.outputEl.classList.remove(`${CLS}__output--error`, `${CLS}__output--success`);
 
     // Show description
@@ -141,7 +146,7 @@ export class ToolTestView extends ItemView {
     }
 
     this.runBtn.disabled = false;
-    this.runBtn.setText(`Run ${tool.definition.name}`);
+    this.runBtn.setText(t("tools.toolTestView.runTool", { tool: tool.definition.name }));
   }
 
   /** Builds a single form field from a JSON-schema property. */
@@ -199,7 +204,7 @@ export class ToolTestView extends ItemView {
     }
 
     this.outputEl.classList.remove(`${CLS}__output--error`, `${CLS}__output--success`);
-    this.outputEl.setText("Running...");
+    this.outputEl.setText(t("general.running"));
     this.runBtn.disabled = true;
 
     try {
@@ -216,7 +221,7 @@ export class ToolTestView extends ItemView {
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       this.outputEl.classList.add(`${CLS}__output--error`);
-      this.outputEl.setText("Error: " + msg);
+      this.outputEl.setText(t("general.error", { message: msg }));
     } finally {
       this.runBtn.disabled = false;
     }

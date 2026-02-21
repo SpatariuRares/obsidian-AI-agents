@@ -126,13 +126,9 @@ export class ChatController {
         error instanceof DOMException &&
         (error.name === "AbortError" || error.message.includes("aborted"))
       ) {
-        // Generation was intentionally stopped
-        // Ensure the last assistant message is clean if aborted mid-stream
-        new Notice(t("notices.aiAgentGenerationStopped") || "Generation stopped", 3000); // Wait, better to let user see partial message without error notice. We might need a translation key or just ignore Notice. Let's just break cleanly or log it.
-        // Actually, just re-render to ensure final state
+        new Notice(t("notices.aiAgentGenerationStopped"), 3000); // Wait, better to let user see partial message without error notice. We might need a translation key or just ignore Notice. Let's just break cleanly or log it.
         await this.onRenderMessages();
       } else {
-        // console.error("[ChatView] API Error:", error);
         const errMessage = error instanceof Error ? error.message : String(error);
 
         if (errMessage.includes("does not support tools")) {
@@ -206,20 +202,24 @@ export class ChatController {
       ];
       const ext = file.path.split(".").pop()?.toLowerCase() ?? "";
       if (!textExtensions.includes(ext)) {
+        // eslint-disable-next-line i18next/no-literal-string
         contextBlocks.push(`--- @${file.path} ---\n[Binary file]\n--- END ---`);
         continue;
       }
 
       try {
         const content = await this.app.vault.cachedRead(file);
+        // eslint-disable-next-line i18next/no-literal-string
         contextBlocks.push(`--- @${file.path} ---\n${content}\n--- END ---`);
       } catch {
+        // eslint-disable-next-line i18next/no-literal-string
         contextBlocks.push(`--- @${file.path} ---\n[Could not read file]\n--- END ---`);
       }
     }
 
     if (contextBlocks.length === 0) return text;
 
+    // eslint-disable-next-line i18next/no-literal-string
     return `[Referenced files]\n${contextBlocks.join("\n\n")}\n\n${text}`;
   }
 }

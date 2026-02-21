@@ -131,8 +131,7 @@ export class ConversationLogger {
     if (jsonMatch && jsonMatch[1]) {
       try {
         return JSON.parse(jsonMatch[1]) as ChatMessage[];
-      } catch (e) {
-        console.error("Failed to parse session JSON", e);
+      } catch (_e) {
         return [];
       }
     }

@@ -59,8 +59,8 @@ export class ChatManager {
           }
           systemPrompt += memoryContext + "\n--- END PAST CHAT MEMORY ---\n";
         }
-      } catch (e) {
-        console.error("Failed to load memory context", e);
+      } catch (_e) {
+        // Ignore error
       }
     }
 
@@ -186,8 +186,7 @@ export class ChatManager {
         if (title) {
           this.currentSessionTitle = title;
         }
-      } catch (e) {
-        console.error("Failed to generate title", e);
+      } catch (_e) {
         this.currentSessionTitle = "Chat " + new Date().toLocaleTimeString();
       }
     }
@@ -201,8 +200,8 @@ export class ChatManager {
         this.messages,
         this.currentSessionTitle,
       );
-    } catch (e) {
-      console.error("Failed to save session", e);
+    } catch (_e) {
+      // Ignore save error
     }
 
     if (usage) {

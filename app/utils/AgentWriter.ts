@@ -21,7 +21,7 @@ export class AgentWriter {
     // Generate the file content
     // Note: stringifyYaml adds a trailing newline, so we just append ---
     const yamlString = stringifyYaml(config);
-    // eslint-disable-next-line i18next/no-literal-string
+
     const fileContent = `---\n${yamlString}---\n\n${promptTemplate}\n`;
 
     // Check if file exists to modify or create
