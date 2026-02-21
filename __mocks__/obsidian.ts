@@ -19,7 +19,9 @@ export class App {
     getMarkdownFiles: jest.fn().mockReturnValue([]),
     getFiles: jest.fn().mockReturnValue([]),
     getAbstractFileByPath: jest.fn().mockReturnValue(null),
+    getFileByPath: jest.fn().mockReturnValue(null),
     read: jest.fn().mockResolvedValue(""),
+    cachedRead: jest.fn().mockResolvedValue(""),
     create: jest.fn().mockResolvedValue(new TFile()),
     createFolder: jest.fn().mockResolvedValue(undefined),
   };
@@ -31,6 +33,9 @@ export class App {
     }),
     revealLeaf: jest.fn(),
     onLayoutReady: jest.fn((cb: () => void) => { cb(); }),
+  };
+  metadataCache = {
+    getTags: jest.fn().mockReturnValue({}),
   };
 }
 

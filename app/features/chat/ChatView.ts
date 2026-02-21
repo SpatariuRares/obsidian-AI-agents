@@ -10,18 +10,20 @@
  * Styled with Obsidian CSS variables (see _chat.scss).
  */
 
-import { ItemView, WorkspaceLeaf, setIcon, Notice } from "obsidian";
+import { ItemView, WorkspaceLeaf, setIcon, Notice, TFile } from "obsidian";
 import { ChatManager } from "@app/services/ChatManager";
 import { ParsedAgent, ChatMessage } from "@app/types/AgentTypes";
 import { AgentRegistry } from "@app/services/AgentRegistry";
 import { MessageRenderer } from "@app/utils/MessageRenderer";
-import { ApiRouter } from "@app/services/ApiRouter";
 import { AgentSelectorModal, CREATE_AGENT_ID } from "@app/features/agents/AgentSelectorModal";
 import { AgentEditor } from "@app/features/agents/AgentEditor";
-import { ToolHandler } from "@app/services/ToolHandler";
 import { t } from "@app/i18n";
 import { ChatHistoryModal } from "@app/features/chat/ChatHistoryModal";
 import { Modal, Setting } from "obsidian";
+import { ChatHeader } from "@app/components/molecules/ChatHeader";
+import { ChatInputArea } from "@app/components/molecules/ChatInputArea";
+import { ChatEmptyState } from "@app/components/molecules/ChatEmptyState";
+import { ChatController } from "@app/features/chat/ChatController";
 
 export const VIEW_TYPE_CHAT = "ai-agents-chat";
 
@@ -37,13 +39,12 @@ export interface ChatViewHost {
 export class ChatView extends ItemView {
   private host: ChatViewHost;
   private messageListEl!: HTMLElement;
-  private inputEl!: HTMLTextAreaElement;
-  private agentSelectBtnEl!: HTMLButtonElement;
-  private editAgentBtnEl!: HTMLButtonElement;
-  private historyBtnEl!: HTMLButtonElement;
-  private renameBtnEl!: HTMLButtonElement;
-  private emptyStateEl!: HTMLElement;
   private editorWrapperEl!: HTMLElement;
+
+  private header!: ChatHeader;
+  private inputArea!: ChatInputArea;
+  private emptyState!: ChatEmptyState;
+  private chatController!: ChatController;
 
   private viewMode: "chat" | "edit" = "chat";
 
@@ -77,6 +78,12 @@ export class ChatView extends ItemView {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
     container.addClass("ai-agents-chat");
+    this.chatController = new ChatController({
+      app: this.app,
+      chatManager: this.host.chatManager,
+      onRenderMessages: async () => this.renderMessages(),
+      onUpdateLastMessage: async () => this.updateLastMessage(),
+    });
 
     this.buildHeader(container);
     this.buildMessageArea(container);
@@ -86,7 +93,7 @@ export class ChatView extends ItemView {
   }
 
   async onClose(): Promise<void> {
-    // Nothing to clean up — Obsidian removes the DOM.
+    this.inputArea?.detach();
   }
 
   // -------------------------------------------------------------------------
@@ -94,59 +101,19 @@ export class ChatView extends ItemView {
   // -------------------------------------------------------------------------
 
   private buildHeader(container: HTMLElement): void {
-    const header = container.createDiv({ cls: "ai-agents-chat__header" });
-
-    this.agentSelectBtnEl = header.createEl("button", {
-      cls: "ai-agents-chat__agent-select-btn",
-      text: t("chat.chooseAgent"),
-    });
-
-    this.agentSelectBtnEl.addEventListener("click", () => {
-      this.openAgentModal();
-    });
-
-    this.editAgentBtnEl = header.createEl("button", {
-      cls: "ai-agents-chat__edit-agent clickable-icon",
-      attr: { "aria-label": t("chat.editAgent") },
-    });
-    setIcon(this.editAgentBtnEl, "settings");
-    this.editAgentBtnEl.setCssProps({ display: "none" });
-    this.editAgentBtnEl.addEventListener("click", () => {
-      const activeAgent = this.host.chatManager.getActiveAgent();
-      if (activeAgent) this.showEditor(activeAgent);
-    });
-
-    this.historyBtnEl = header.createEl("button", {
-      cls: "ai-agents-chat__history-btn clickable-icon",
-      attr: { "aria-label": t("chat.history") },
-    });
-    setIcon(this.historyBtnEl, "history");
-    this.historyBtnEl.setCssProps({ display: "none" });
-    this.historyBtnEl.addEventListener("click", () => {
-      this.openHistoryModal().catch((_e: Error) => {
-        /* no-op */
-      });
-    });
-
-    this.renameBtnEl = header.createEl("button", {
-      cls: "ai-agents-chat__rename-btn clickable-icon",
-      attr: { "aria-label": t("chat.renameSession") },
-    });
-    setIcon(this.renameBtnEl, "pencil");
-    this.renameBtnEl.setCssProps({ display: "none" });
-    this.renameBtnEl.addEventListener("click", () => {
-      this.promptRenameSession();
-    });
-
-    const newSessionBtn = header.createEl("button", {
-      cls: "ai-agents-chat__new-session clickable-icon",
-      attr: { "aria-label": t("chat.newSession") },
-    });
-    setIcon(newSessionBtn, "rotate-ccw");
-    newSessionBtn.addEventListener("click", () => {
-      this.onNewSession().catch((_e: Error) => {
-        /* no-op */
-      });
+    this.header = new ChatHeader(container, {
+      onSelectAgent: () => this.openAgentModal(),
+      onEditAgent: () => {
+        const activeAgent = this.host.chatManager.getActiveAgent();
+        if (activeAgent) this.showEditor(activeAgent);
+      },
+      onOpenHistory: () => {
+        this.openHistoryModal().catch(() => {});
+      },
+      onRenameSession: () => this.promptRenameSession(),
+      onNewSession: () => {
+        this.onNewSession().catch(() => {});
+      },
     });
   }
 
@@ -157,11 +124,7 @@ export class ChatView extends ItemView {
   private buildMessageArea(container: HTMLElement): void {
     const wrapper = container.createDiv({ cls: "ai-agents-chat__messages-wrapper" });
 
-    this.emptyStateEl = wrapper.createDiv({ cls: "ai-agents-chat__empty-state" });
-    this.emptyStateEl.createEl("p", {
-      text: t("chat.selectAgentPrompt"),
-      cls: "ai-agents-chat__empty-text",
-    });
+    this.emptyState = new ChatEmptyState(wrapper);
 
     this.messageListEl = wrapper.createDiv({ cls: "ai-agents-chat__messages" });
 
@@ -174,41 +137,10 @@ export class ChatView extends ItemView {
   // -------------------------------------------------------------------------
 
   private buildInputArea(container: HTMLElement): void {
-    const inputArea = container.createDiv({ cls: "ai-agents-chat__input-area" });
-
-    this.inputEl = inputArea.createEl("textarea", {
-      cls: "ai-agents-chat__input",
-      attr: {
-        placeholder: t("chat.inputPlaceholder"),
-        rows: "1",
+    this.inputArea = new ChatInputArea(this.app, container, {
+      onSendMessage: (text) => {
+        this.chatController.handleUserMessage(text).catch(() => {});
       },
-    });
-
-    // Auto-resize textarea as user types
-    this.inputEl.addEventListener("input", () => {
-      this.inputEl.setCssProps({ height: "auto" });
-      this.inputEl.setCssProps({ height: Math.min(this.inputEl.scrollHeight, 120) + "px" });
-    });
-
-    // Send on Enter (Shift+Enter for newline)
-    this.inputEl.addEventListener("keydown", (e: KeyboardEvent) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        this.onSendMessage().catch((_err: Error) => {
-          /* no-op */
-        });
-      }
-    });
-
-    const sendBtn = inputArea.createEl("button", {
-      cls: "ai-agents-chat__send clickable-icon",
-      attr: { "aria-label": t("chat.sendMessage") },
-    });
-    setIcon(sendBtn, "send");
-    sendBtn.addEventListener("click", () => {
-      this.onSendMessage().catch((_err: Error) => {
-        /* no-op */
-      });
     });
   }
 
@@ -218,15 +150,7 @@ export class ChatView extends ItemView {
 
   refreshAgentSelectBtn(): void {
     const activeAgent = this.host.chatManager.getActiveAgent();
-
-    if (activeAgent) {
-      this.agentSelectBtnEl.textContent =
-        `${activeAgent.config.avatar || ""} ${activeAgent.config.name}`.trim();
-      this.editAgentBtnEl.setCssProps({ display: "flex" });
-    } else {
-      this.agentSelectBtnEl.textContent = t("chat.chooseAgent");
-      this.editAgentBtnEl.setCssProps({ display: "none" });
-    }
+    this.header.refreshAgentSelectBtn(activeAgent);
   }
 
   private openAgentModal(): void {
@@ -335,16 +259,15 @@ export class ChatView extends ItemView {
     await this.host.chatManager.startSession(agent);
     this.refreshAgentSelectBtn();
     await this.renderMessages();
-    this.inputEl.focus();
+    this.inputArea.focus();
   }
 
   private showEditor(agent: ParsedAgent | null): void {
     this.viewMode = "edit";
     // Hide chat elements
-    this.emptyStateEl.setCssProps({ display: "none" });
+    this.emptyState.setVisible(false);
     this.messageListEl.setCssProps({ display: "none" });
-    const inputArea = this.containerEl.querySelector(".ai-agents-chat__input-area") as HTMLElement;
-    if (inputArea) inputArea.setCssProps({ display: "none" });
+    this.inputArea.setVisible(false);
 
     // Show editor
     this.editorWrapperEl.setCssProps({ display: "block" });
@@ -381,8 +304,7 @@ export class ChatView extends ItemView {
     this.editorWrapperEl.setCssProps({ display: "none" });
     this.editorWrapperEl.empty();
 
-    const inputArea = this.containerEl.querySelector(".ai-agents-chat__input-area") as HTMLElement;
-    if (inputArea) inputArea.setCssProps({ display: "flex" });
+    this.inputArea.setVisible(true);
 
     this.renderMessages().catch((_e: Error) => {
       /* no-op */
@@ -394,119 +316,7 @@ export class ChatView extends ItemView {
     if (activeAgent) {
       await this.host.chatManager.startSession(activeAgent);
       await this.renderMessages();
-      this.inputEl.focus();
-    }
-  }
-
-  private async onSendMessage(): Promise<void> {
-    const text = this.inputEl.value.trim();
-    if (!text) return;
-    if (!this.host.chatManager.hasActiveSession()) return;
-
-    this.host.chatManager.addMessage("user", text);
-    this.inputEl.value = "";
-    this.inputEl.setCssProps({ height: "auto" });
-    await this.renderMessages();
-
-    const activeAgent = this.host.chatManager.getActiveAgent();
-    if (!activeAgent) return;
-
-    try {
-      let isToolLoop = true;
-      let usageResponse;
-      const initialUserMsg =
-        this.host.chatManager.getMessages()[this.host.chatManager.getMessages().length - 1];
-
-      while (isToolLoop) {
-        const messagesForApi = this.host.chatManager.getMessages();
-
-        let response;
-        if (activeAgent.config.stream) {
-          this.host.chatManager.addMessage("assistant", "");
-          await this.renderMessages();
-
-          response = await ApiRouter.send(
-            messagesForApi,
-            activeAgent.config,
-            this.host.chatManager.getSettings(),
-            async (chunk: string) => {
-              this.host.chatManager.appendChunkToLastMessage(chunk);
-              await this.updateLastMessage();
-            },
-          );
-        } else {
-          response = await ApiRouter.send(
-            messagesForApi,
-            activeAgent.config,
-            this.host.chatManager.getSettings(),
-          );
-          this.host.chatManager.addMessage("assistant", response.text);
-          await this.renderMessages();
-        }
-
-        usageResponse = response?.usage;
-
-        if (response.tool_calls && response.tool_calls.length > 0) {
-          // If we streamed, the assistant message is already there but empty text.
-          // If not streamed, we added it above with text.
-          // Let's ensure the assistant message actually reflects the tool_calls for future requests.
-          const msgs = this.host.chatManager.getMessages();
-          const lastMsg = msgs[msgs.length - 1];
-          lastMsg.tool_calls = response.tool_calls;
-
-          // Process tool calls
-          for (const call of response.tool_calls) {
-            const toolName = call.function.name;
-            let args = {};
-            try {
-              args = JSON.parse(call.function.arguments);
-            } catch {
-              // console.warn("[ChatView] Failed to parse tool arguments:", call.function.arguments);
-            }
-
-            const toolResult = await ToolHandler.executeTool(
-              this.app,
-              activeAgent.config,
-              toolName,
-              args,
-            );
-
-            // Add tool response to history
-            this.host.chatManager.addMessage("tool", JSON.stringify(toolResult), {
-              name: toolName,
-              tool_call_id: call.id,
-            });
-          }
-          await this.renderMessages();
-
-          // Loop continues to send tool results back to LLM...
-        } else {
-          isToolLoop = false;
-        }
-      }
-
-      const visibleMsgs = this.host.chatManager.getVisibleMessages();
-      const asstMsg = visibleMsgs[visibleMsgs.length - 1];
-
-      await this.host.chatManager.logTurn(initialUserMsg, asstMsg, usageResponse);
-    } catch (error: unknown) {
-      // console.error("[ChatView] API Error:", error);
-      const errMessage = error instanceof Error ? error.message : String(error);
-
-      if (errMessage.includes("does not support tools")) {
-        new Notice(t("notices.aiAgentErrorNoTools"), 8000);
-      } else {
-        new Notice(t("notices.aiAgentError", { message: errMessage }), 5000);
-      }
-
-      // Clean up the empty assistant message if we added it for streaming
-      const msgs = this.host.chatManager.getMessages();
-      const lastMsg = msgs[msgs.length - 1];
-      if (lastMsg && lastMsg.role === "assistant" && !lastMsg.content.trim()) {
-        this.host.chatManager.removeLastMessage();
-      }
-
-      await this.renderMessages();
+      this.inputArea.focus();
     }
   }
 
@@ -519,12 +329,11 @@ export class ChatView extends ItemView {
 
     if (this.viewMode === "chat") {
       // Toggle empty state vs message list
-      this.emptyStateEl.setCssProps({ display: hasSession ? "none" : "flex" });
+      this.emptyState.setVisible(!hasSession);
       this.messageListEl.setCssProps({ display: hasSession ? "flex" : "none" });
 
       // Toggle history & rename buttons
-      this.historyBtnEl.setCssProps({ display: hasSession ? "flex" : "none" });
-      this.renameBtnEl.setCssProps({ display: hasSession ? "flex" : "none" });
+      this.header.setSessionActive(hasSession);
     }
 
     if (!hasSession || this.viewMode === "edit") return;
@@ -578,6 +387,17 @@ export class ChatView extends ItemView {
   }
 
   private async renderMessage(msg: ChatMessage): Promise<void> {
+    // Skip assistant messages that only dispatch tool calls (no user-facing text)
+    if (msg.role === "assistant" && msg.tool_calls?.length && !msg.content.trim()) {
+      return;
+    }
+
+    // Tool messages render as collapsible blocks
+    if (msg.role === "tool") {
+      this.renderToolMessage(msg);
+      return;
+    }
+
     const bubble = this.messageListEl.createDiv({
       cls: `ai-agents-chat__message ai-agents-chat__message--${msg.role}`,
     });
@@ -593,5 +413,112 @@ export class ChatView extends ItemView {
 
     const content = bubble.createDiv({ cls: "ai-agents-chat__message-content" });
     await MessageRenderer.render(this.app, msg.content, content, "", this);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tool message rendering
+  // ---------------------------------------------------------------------------
+
+  private renderToolMessage(msg: ChatMessage): void {
+    const wrapper = this.messageListEl.createDiv({
+      cls: "ai-agents-chat__message ai-agents-chat__message--tool",
+    });
+
+    const details = wrapper.createEl("details", {
+      cls: "ai-agents-chat__tool-block",
+    });
+
+    const toolArgs = this.findToolCallArgs(msg.tool_call_id);
+    const toolName = msg.name || t("chat.toolUnknown");
+
+    // Collapsed header
+    const summary = details.createEl("summary", {
+      cls: "ai-agents-chat__tool-summary",
+    });
+
+    const chevronEl = summary.createSpan({ cls: "ai-agents-chat__tool-chevron" });
+    setIcon(chevronEl, "chevron-right");
+
+    const iconEl = summary.createSpan({ cls: "ai-agents-chat__tool-icon" });
+    setIcon(iconEl, "wrench");
+
+    summary.createSpan({ text: toolName, cls: "ai-agents-chat__tool-name" });
+
+    if (toolArgs) {
+      const preview = this.formatArgPreview(toolArgs);
+      if (preview) {
+        summary.createSpan({
+          text: " " + preview,
+          cls: "ai-agents-chat__tool-arg-preview",
+        });
+      }
+    }
+
+    // Expanded body
+    const body = details.createDiv({ cls: "ai-agents-chat__tool-body" });
+
+    // Input section (arguments sent to the tool)
+    if (toolArgs && Object.keys(toolArgs).length > 0) {
+      body.createDiv({
+        text: t("chat.toolInput"),
+        cls: "ai-agents-chat__tool-section-label",
+      });
+      const argsBlock = body.createEl("pre", { cls: "ai-agents-chat__tool-code" });
+      argsBlock.createEl("code", { text: JSON.stringify(toolArgs, null, 2) });
+    }
+
+    // Output section (result returned by the tool)
+    body.createDiv({
+      text: t("chat.toolOutput"),
+      cls: "ai-agents-chat__tool-section-label",
+    });
+    const resultBlock = body.createEl("pre", { cls: "ai-agents-chat__tool-code" });
+    try {
+      const parsed = JSON.parse(msg.content);
+      resultBlock.createEl("code", { text: JSON.stringify(parsed, null, 2) });
+    } catch {
+      resultBlock.createEl("code", { text: msg.content });
+    }
+  }
+
+  /**
+   * Looks up the arguments that were passed to a tool call by matching the tool_call_id
+   * against assistant messages in the conversation history.
+   */
+  private findToolCallArgs(toolCallId?: string): Record<string, any> | null {
+    if (!toolCallId) return null;
+    const messages = this.host.chatManager.getMessages();
+    for (const m of messages) {
+      if (m.role === "assistant" && m.tool_calls) {
+        const call = m.tool_calls.find((c: any) => c.id === toolCallId);
+        if (call) {
+          try {
+            return JSON.parse(call.function.arguments);
+          } catch {
+            return null;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Creates a short inline preview of tool arguments for the collapsed header.
+   * e.g. (path: "notes/todo.md", content: "Hello wo...")
+   */
+  private formatArgPreview(args: Record<string, any>): string {
+    const entries = Object.entries(args);
+    if (entries.length === 0) return "";
+    const preview = entries
+      .slice(0, 2)
+      .map(([k, v]) => {
+        const val = typeof v === "string" ? `"${v}"` : JSON.stringify(v);
+        const truncated = val.length > 30 ? val.slice(0, 27) + "..." : val;
+        return `${k}: ${truncated}`;
+      })
+      .join(", ");
+    const suffix = entries.length > 2 ? ", ..." : "";
+    return `(${preview}${suffix})`;
   }
 }

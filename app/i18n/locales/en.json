@@ -91,7 +91,10 @@
     "sendMessage": "Send message",
     "youLabel": "You",
     "assistantLabel": "Assistant",
-    "errorRender": "Error rendering message. Showing raw text:"
+    "errorRender": "Error rendering message. Showing raw text:",
+    "toolInput": "Input",
+    "toolOutput": "Output",
+    "toolUnknown": "Unknown tool"
   },
   "agentSelector": {
     "searchPlaceholder": "Search for an agent...",
@@ -129,6 +132,7 @@
     "streamResponses": "Stream responses",
     "stream": "Stream",
     "maxContextTokens": "Max context tokens",
+    "maxContextTokensYaml": "max_context_tokens",
     "strategy": "Strategy",
     "permissionsHeading": "Knowledge & file permissions",
     "sources": "Sources",
@@ -146,10 +150,13 @@
     "pathPlaceholder": "Add path or glob...",
     "addBtn": "Add",
     "vaultRootAccess": "Vault root access",
+    "vaultRootAccessYaml": "vault_root_access",
     "vaultRootAccessDesc": "Allow access beyond the specified folders.",
     "confirmDestructive": "Confirm destructive",
+    "confirmDestructiveYaml": "confirm_destructive",
     "confirmDestructiveDesc": "Require user confirmation for write, move, delete operations.",
     "memoryHeading": "Memory",
+    "memory": "Memory",
     "enableMemory": "Enable memory",
     "enableMemoryDesc": "If enabled, the agent will load previous chat sessions to maintain long-term context.",
     "systemPrompt": "System prompt",
@@ -204,6 +211,10 @@
     "projectContent": "---\nstatus: in-progress\ndeadline: 2026-12-31\n---\n\n# Website Redesign\n\nWe need to migrate to the new UI framework.\n\n## Goals\n- Better performance\n- Mobile responsive\n",
     "dailyTitle": "{date}.md",
     "dailyContent": "# {date}\n\n## Log\n- Started working on the new AI agent workflow.\n- Need to ask the Copilot to summarize my project goals.\n"
+  },
+  "mentions": {
+    "noResults": "No results",
+    "tagCount": "{count} notes"
   },
   "commands": {}
 }

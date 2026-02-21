@@ -1,0 +1,79 @@
+// =============================================================================
+// INLINE MENTION SUGGEST STYLES
+// =============================================================================
+// Dropdown for @file and #tag inline mentions in the chat input.
+// Positioned absolutely above the input area (parent needs position: relative).
+// BEM convention: .ai-agents-mention-suggest__element--modifier
+// =============================================================================
+
+.ai-agents-mention-suggest__container {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.12);
+  margin-bottom: 4px;
+  z-index: var(--layer-popover);
+}
+
+.ai-agents-mention-suggest__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: var(--font-ui-small);
+  color: var(--text-normal);
+
+  &:hover {
+    background: var(--background-modifier-hover);
+  }
+
+  &--selected {
+    background: var(--background-modifier-hover);
+  }
+}
+
+.ai-agents-mention-suggest__item-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--text-muted);
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.ai-agents-mention-suggest__item-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ai-agents-mention-suggest__item-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-agents-mention-suggest__item-description {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-agents-mention-suggest__empty {
+  padding: 12px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}

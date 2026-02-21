@@ -28,7 +28,7 @@ ${getKey("sources").toLowerCase()}:
   - "${inboxFolder}/"
   - "${projectsFolder}/"
 ${getKey("strategy").toLowerCase()}: "inject_all"
-${getKey("maxContextTokens").toLowerCase()}: 8000
+${getKey("maxContextTokensYaml").toLowerCase()}: 8000
 ${getKey("readPermissions").toLowerCase()}:
   - "/"
 ${getKey("writePermissions").toLowerCase()}:
@@ -39,9 +39,9 @@ ${getKey("createPermissions").toLowerCase()}:
   - "${dailyNotesFolder}/"
 ${getKey("movePermissions").toLowerCase()}: []
 ${getKey("deletePermissions").toLowerCase()}: []
-${getKey("vaultRootAccess").toLowerCase()}: false
-${getKey("confirmDestructive").toLowerCase()}: true
-${getKey("enableMemory").toLowerCase()}: true
+${getKey("vaultRootAccessYaml").toLowerCase()}: false
+${getKey("confirmDestructiveYaml").toLowerCase()}: true
+${getKey("memory").toLowerCase()}: true
 ---
 
 ${t("exampleAgent.promptBody") || "You are **{{agent_name}}**, an advanced AI assistant embedded directly within the user's Obsidian vault.\nYour goal is to help the user manage their personal knowledge base, summarize notes, brainstorm ideas, and write content.\n\n## Context\n- **User:** {{user_name}}\n- **Current Date:** {{date}}\n\n## Guidelines\n1. **Be Concise & Markdown-Native:** Always format your responses using rich Markdown (headers, lists, bold, italics, code blocks) to make them look beautiful in Obsidian.\n2. **Leverage Memory:** You have the `memory` flag enabled, which means you have access to the context of previous chats. Refer back to past conversations if it helps answer the current query.\n3. **Drafting Notes:** When asked to write a note, provide a clear, well-structured output.\n4. **Tools & Operations:** When proposing changes to files or creating new notes, clearly explain what you are going to do.\n\nHow can I assist you with your vault today?\n"}`;
