@@ -9,6 +9,9 @@ import { t } from "@app/i18n";
 import { CONSTANTS } from "@app/types/constants";
 import { allTools } from "@app/services/tools/allTools";
 import { PillListControl } from "@app/components/molecules/PillListControl";
+import { createHeading } from "@app/components/atoms/Heading";
+import { createButton } from "@app/components/atoms/Button";
+import { createText } from "@app/components/atoms/Text";
 
 export class AgentEditor {
   private app: App;
@@ -63,7 +66,8 @@ export class AgentEditor {
     this.containerEl.empty();
 
     const headerEl = this.containerEl.createDiv({ cls: "ai-agents-chat__editor-header" });
-    headerEl.createEl("h3", {
+    createHeading(headerEl, {
+      level: "h3",
       text: this.isEdit
         ? t("editor.editTitle", { name: this.config.name })
         : t("editor.createTitle"),
@@ -230,10 +234,12 @@ export class AgentEditor {
         });
         selectInput.value = "";
 
-        const addToolBtn = inputContainer.createEl("button", { text: t("editor.addToolBtn") });
-        addToolBtn.addEventListener("click", () => {
-          const val = selectInput.value;
-          if (val) onAdd(val);
+        createButton(inputContainer, {
+          text: t("editor.addToolBtn"),
+          onClick: () => {
+            const val = selectInput.value;
+            if (val) onAdd(val);
+          },
         });
       },
     });
@@ -260,13 +266,15 @@ export class AgentEditor {
 
           new PathSuggest(this.app, input);
 
-          const addBtn = inputContainer.createEl("button", { text: t("editor.addBtn") });
-          addBtn.addEventListener("click", () => {
-            const val = input.value.trim();
-            if (val) {
-              onAdd(val);
-              input.value = "";
-            }
+          createButton(inputContainer, {
+            text: t("editor.addBtn"),
+            onClick: () => {
+              const val = input.value.trim();
+              if (val) {
+                onAdd(val);
+                input.value = "";
+              }
+            },
           });
         },
       });
@@ -323,7 +331,8 @@ export class AgentEditor {
     // --- PROMPT ---
     const promptSetting = new Setting(formContainer).setName(t("editor.systemPrompt")).setHeading();
 
-    promptSetting.descEl.createEl("p", {
+    createText(promptSetting.descEl, {
+      tag: "p",
       text: t("editor.systemPromptDesc"),
       cls: "setting-item-description",
     });
@@ -341,14 +350,16 @@ export class AgentEditor {
     // --- ACTIONS ---
     const actionsContainer = this.containerEl.createDiv({ cls: "ai-agents-chat__editor-actions" });
 
-    const cancelBtn = actionsContainer.createEl("button", { text: t("editor.cancelBtn") });
-    cancelBtn.addEventListener("click", () => this.onCancel());
+    createButton(actionsContainer, {
+      text: t("editor.cancelBtn"),
+      onClick: () => this.onCancel(),
+    });
 
-    const saveBtn = actionsContainer.createEl("button", {
+    createButton(actionsContainer, {
       text: t("editor.saveBtn"),
       cls: "mod-cta",
+      onClick: () => this.handleSave(),
     });
-    saveBtn.addEventListener("click", () => this.handleSave());
   }
 
   private async handleSave() {

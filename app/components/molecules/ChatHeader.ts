@@ -1,5 +1,6 @@
 import { t } from "@app/i18n";
 import { createIconButton } from "@app/components/atoms/IconButton";
+import { createButton } from "@app/components/atoms/Button";
 import { ParsedAgent } from "@app/types/AgentTypes";
 
 export interface ChatHeaderProps {
@@ -21,11 +22,11 @@ export class ChatHeader {
   constructor(parent: HTMLElement, props: ChatHeaderProps) {
     this.containerEl = parent.createDiv({ cls: "ai-agents-chat__header" });
 
-    this.agentSelectBtnEl = this.containerEl.createEl("button", {
-      cls: "ai-agents-chat__agent-select-btn",
+    this.agentSelectBtnEl = createButton(this.containerEl, {
       text: t("chat.chooseAgent"),
+      cls: "ai-agents-chat__agent-select-btn",
+      onClick: props.onSelectAgent,
     });
-    this.agentSelectBtnEl.addEventListener("click", props.onSelectAgent);
 
     this.editAgentBtnEl = createIconButton(this.containerEl, {
       icon: "settings",

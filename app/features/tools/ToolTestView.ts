@@ -14,6 +14,9 @@ import { AgentConfig } from "@app/types/AgentTypes";
 import { DEFAULT_CONFIG } from "@app/services/AgentConfig";
 import { allTools } from "@app/services/tools/allTools";
 import { BaseTool } from "@app/services/tools/BaseTool";
+import { createHeading } from "@app/components/atoms/Heading";
+import { createButton } from "@app/components/atoms/Button";
+import { createText } from "@app/components/atoms/Text";
 
 export const VIEW_TYPE_TOOL_TEST = "ai-agents-tool-test";
 
@@ -64,11 +67,11 @@ export class ToolTestView extends ItemView {
     container.addClass(CLS);
 
     // Header
-    container.createEl("h4", { text: "Tool test view", cls: `${CLS}__title` });
+    createHeading(container, { level: "h4", text: "Tool test view", cls: `${CLS}__title` });
 
     // Tool selector
     const selectorRow = container.createDiv({ cls: `${CLS}__selector` });
-    selectorRow.createEl("label", { text: "Tool", cls: `${CLS}__label` });
+    createText(selectorRow, { tag: "label", text: "Tool", cls: `${CLS}__label` });
 
     const select = selectorRow.createEl("select", { cls: `${CLS}__select` });
     select.createEl("option", {
@@ -90,17 +93,18 @@ export class ToolTestView extends ItemView {
     this.formEl = container.createDiv({ cls: `${CLS}__form` });
 
     // Run button
-    this.runBtn = container.createEl("button", {
+    this.runBtn = createButton(container, {
       text: "Run",
       cls: `${CLS}__run-btn`,
+      disabled: true,
+      onClick: () => this.runSelectedTool(),
     });
-    this.runBtn.disabled = true;
-    this.runBtn.addEventListener("click", () => this.runSelectedTool());
 
     // Output
-    container
-      .createDiv({ cls: `${CLS}__output-header` })
-      .createEl("label", { text: "Output", cls: `${CLS}__label` });
+    createText(
+      container.createDiv({ cls: `${CLS}__output-header` }),
+      { tag: "label", text: "Output", cls: `${CLS}__label` },
+    );
     this.outputEl = container.createEl("pre", { cls: `${CLS}__output` });
     this.outputEl.setText("Results will appear here...");
   }
@@ -144,14 +148,14 @@ export class ToolTestView extends ItemView {
 
     // Label
     const labelRow = fieldEl.createDiv({ cls: `${CLS}__field-label` });
-    labelRow.createSpan({ text: name });
+    createText(labelRow, { text: name });
     if (isRequired) {
-      labelRow.createSpan({ text: "*", cls: `${CLS}__required` });
+      createText(labelRow, { text: "*", cls: `${CLS}__required` });
     }
 
     // Description hint
     if (schema.description) {
-      fieldEl.createDiv({ text: schema.description, cls: `${CLS}__hint` });
+      createText(fieldEl, { tag: "div", text: schema.description, cls: `${CLS}__hint` });
     }
 
     // Input element — choose based on schema type/enum
@@ -171,7 +175,7 @@ export class ToolTestView extends ItemView {
         attr: { type: "checkbox" },
         cls: `${CLS}__checkbox`,
       });
-      checkRow.createSpan({ text: "enabled" });
+      createText(checkRow, { text: "enabled" });
       inputEl = cb;
     } else if (name === "content") {
       // Textarea for content-like string fields

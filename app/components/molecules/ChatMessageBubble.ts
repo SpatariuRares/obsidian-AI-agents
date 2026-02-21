@@ -1,7 +1,9 @@
-import { App, Component, setIcon } from "obsidian";
+import { App, Component } from "obsidian";
 import { ChatMessage } from "@app/types/AgentTypes";
 import { MessageRenderer } from "@app/utils/MessageRenderer";
 import { t } from "@app/i18n";
+import { createIcon } from "@app/components/atoms/Icon";
+import { createText } from "@app/components/atoms/Text";
 
 export interface ChatMessageBubbleProps {
   app: App;
@@ -64,18 +66,15 @@ export class ChatMessageBubble {
       cls: "ai-agents-chat__tool-summary",
     });
 
-    const chevronEl = summary.createSpan({ cls: "ai-agents-chat__tool-chevron" });
-    setIcon(chevronEl, "chevron-right");
+    createIcon(summary, { icon: "chevron-right", cls: "ai-agents-chat__tool-chevron" });
+    createIcon(summary, { icon: "wrench", cls: "ai-agents-chat__tool-icon" });
 
-    const iconEl = summary.createSpan({ cls: "ai-agents-chat__tool-icon" });
-    setIcon(iconEl, "wrench");
-
-    summary.createSpan({ text: toolName, cls: "ai-agents-chat__tool-name" });
+    createText(summary, { text: toolName, cls: "ai-agents-chat__tool-name" });
 
     if (toolArgs) {
       const preview = ChatMessageBubble.formatArgPreview(toolArgs);
       if (preview) {
-        summary.createSpan({
+        createText(summary, {
           text: " " + preview,
           cls: "ai-agents-chat__tool-arg-preview",
         });
@@ -87,7 +86,8 @@ export class ChatMessageBubble {
 
     // Input section (arguments sent to the tool)
     if (toolArgs && Object.keys(toolArgs).length > 0) {
-      body.createDiv({
+      createText(body, {
+        tag: "div",
         text: t("chat.toolInput"),
         cls: "ai-agents-chat__tool-section-label",
       });
@@ -96,7 +96,8 @@ export class ChatMessageBubble {
     }
 
     // Output section (result returned by the tool)
-    body.createDiv({
+    createText(body, {
+      tag: "div",
       text: t("chat.toolOutput"),
       cls: "ai-agents-chat__tool-section-label",
     });

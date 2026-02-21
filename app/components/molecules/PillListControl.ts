@@ -1,3 +1,5 @@
+import { createText } from "@app/components/atoms/Text";
+
 export interface PillListControlProps {
   container: HTMLElement;
   items: string[];
@@ -59,7 +61,7 @@ export class PillListControl {
         cls: "ai-agents-chat__editor-permissions-pill",
       });
 
-      pill.createSpan({ text: this.formatPillText(item) });
+      createText(pill, { text: this.formatPillText(item) });
 
       const removeBtn = pill.createSpan({
         text: "✕",

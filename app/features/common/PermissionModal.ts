@@ -5,6 +5,8 @@
 import { App, Modal, Setting } from "obsidian";
 import { FileOperationType } from "@app/services/PermissionGuard";
 import { t } from "@app/i18n";
+import { createHeading } from "@app/components/atoms/Heading";
+import { createText } from "@app/components/atoms/Text";
 
 export class PermissionModal extends Modal {
   private agentName: string;
@@ -48,10 +50,10 @@ export class PermissionModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
 
-    contentEl.createEl("h2", { text: t("permission.title") });
+    createHeading(contentEl, { level: "h2", text: t("permission.title") });
 
-    contentEl.createEl("p", { text: this.description });
-    contentEl.createEl("p", { text: t("permission.confirmQuestion") });
+    createText(contentEl, { tag: "p", text: this.description });
+    createText(contentEl, { tag: "p", text: t("permission.confirmQuestion") });
 
     new Setting(contentEl)
       .addButton((btn) =>

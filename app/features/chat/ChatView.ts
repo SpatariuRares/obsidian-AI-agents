@@ -10,7 +10,7 @@
  * Styled with Obsidian CSS variables (see _chat.scss).
  */
 
-import { ItemView, WorkspaceLeaf, setIcon, Notice, TFile } from "obsidian";
+import { ItemView, WorkspaceLeaf, Notice, TFile } from "obsidian";
 import { ChatManager } from "@app/services/ChatManager";
 import { ParsedAgent, ChatMessage } from "@app/types/AgentTypes";
 import { AgentRegistry } from "@app/services/AgentRegistry";
@@ -25,6 +25,7 @@ import { ChatInputArea } from "@app/components/molecules/ChatInputArea";
 import { ChatEmptyState } from "@app/components/molecules/ChatEmptyState";
 import { ChatController } from "@app/features/chat/ChatController";
 import { ChatMessageBubble } from "@app/components/molecules/ChatMessageBubble";
+import { createButton } from "@app/components/atoms/Button";
 
 export const VIEW_TYPE_CHAT = "ai-agents-chat";
 
@@ -236,15 +237,18 @@ export class ChatView extends ItemView {
         }
       });
 
-      const saveBtn = modal.contentEl.createEl("button", { text: "Save", cls: "mod-cta" });
-      saveBtn.setCssProps({ marginTop: "10px" });
-      saveBtn.addEventListener("click", async () => {
-        const val = text.getValue().trim();
-        if (val && val !== currentTitle) {
-          await manager.renameCurrentSession(val);
-        }
-        modal.close();
+      const saveBtn = createButton(modal.contentEl, {
+        text: "Save",
+        cls: "mod-cta",
+        onClick: async () => {
+          const val = text.getValue().trim();
+          if (val && val !== currentTitle) {
+            await manager.renameCurrentSession(val);
+          }
+          modal.close();
+        },
       });
+      saveBtn.setCssProps({ marginTop: "10px" });
 
       // Focus input
       setTimeout(() => inputEl.focus(), 50);

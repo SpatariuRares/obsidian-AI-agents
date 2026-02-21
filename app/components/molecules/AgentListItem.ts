@@ -1,5 +1,6 @@
 import { ParsedAgent } from "@app/types/AgentTypes";
 import { t } from "@app/i18n";
+import { createText } from "@app/components/atoms/Text";
 
 export interface AgentListItemProps {
   container: HTMLElement;
@@ -22,7 +23,7 @@ export class AgentListItem {
     avatar.setText(agent.config.avatar || t("icons.defaultAvatar"));
 
     const info = header.createDiv({ cls: "ai-agents-sidebar__info" });
-    info.createDiv({ cls: "ai-agents-sidebar__name", text: agent.config.name });
+    createText(info, { tag: "div", text: agent.config.name, cls: "ai-agents-sidebar__name" });
 
     const status = header.createDiv({ cls: "ai-agents-sidebar__status" });
     if (agent.config.enabled) {
@@ -32,7 +33,7 @@ export class AgentListItem {
     }
 
     if (agent.config.description) {
-      item.createDiv({ cls: "ai-agents-sidebar__desc", text: agent.config.description });
+      createText(item, { tag: "div", text: agent.config.description, cls: "ai-agents-sidebar__desc" });
     }
 
     item.addEventListener("click", () => {
