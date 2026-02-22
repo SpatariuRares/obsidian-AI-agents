@@ -11,7 +11,7 @@
  */
 
 import { parseYaml } from "obsidian";
-import { AgentConfig, AgentType } from "@app/types/AgentTypes";
+import { AgentConfig, AgentStrategy, AgentType } from "@app/types/AgentTypes";
 import { t } from "@app/i18n";
 
 // ---------------------------------------------------------------------------
@@ -45,11 +45,11 @@ export const DEFAULT_CONFIG: AgentConfig = {
   author: "",
   avatar: "",
   enabled: true,
-  type: "conversational",
+  type: AgentType.CONVERSATIONAL,
   provider: "ollama",
   model: "",
   sources: [],
-  strategy: "inject_all",
+  strategy: AgentStrategy.INJECT_ALL,
   max_context_tokens: 4000,
   tools: ["*"],
   read: [],
@@ -237,7 +237,10 @@ export function parseAgentFile(raw: string, fallbackModel?: string): AgentParseR
     provider: typeof parsed.provider === "string" ? parsed.provider : DEFAULT_CONFIG.provider,
     model: model,
     sources: Array.isArray(parsed.sources) ? parsed.sources : DEFAULT_CONFIG.sources,
-    strategy: typeof parsed.strategy === "string" ? parsed.strategy : DEFAULT_CONFIG.strategy,
+    strategy:
+      typeof parsed.strategy === "string"
+        ? (parsed.strategy as AgentStrategy)
+        : DEFAULT_CONFIG.strategy,
     max_context_tokens:
       typeof parsed.max_context_tokens === "number"
         ? parsed.max_context_tokens

@@ -3,6 +3,7 @@ import { t } from "@app/i18n";
 import { LocalizationService } from "@app/i18n/LocalizationService";
 import { AgentRegistry } from "@app/services/AgentRegistry";
 import { CONSTANTS } from "@app/types/constants";
+import { AgentStrategy, AgentType } from "@app/types/AgentTypes";
 
 /** Default agent.md generator used by the "Create default agent" button. */
 
@@ -21,14 +22,14 @@ ${getKey("description").toLowerCase()}: "${t("exampleAgent.description")}"
 ${getKey("author").toLowerCase()}: "${t("exampleAgent.author")}"
 ${getKey("avatar").toLowerCase()}: "🧠"
 ${getKey("enabled").toLowerCase()}: true
-${getKey("type").toLowerCase()}: "conversational"
+${getKey("type").toLowerCase()}: ${AgentType.CONVERSATIONAL}
 ${getKey("provider").toLowerCase()}: "ollama"
 ${getKey("model").toLowerCase()}: "llama3"
 ${getKey("stream").toLowerCase()}: true
 ${getKey("sources").toLowerCase()}:
   - "${inboxFolder}/"
   - "${projectsFolder}/"
-${getKey("strategy").toLowerCase()}: "inject_all"
+${getKey("strategy").toLowerCase()}: ${AgentStrategy.INJECT_ALL}
 ${getKey("maxContextTokensYaml").toLowerCase()}: 8000
 ${getKey("readPermissions").toLowerCase()}:
   - "/"
@@ -158,7 +159,7 @@ export class ExampleGenerator {
       const dailyCreated = await this.createFileIfNotExists(
         app,
         `${dailyNotesFolder}/${t("mockData.dailyTitle", { date: dateStr }) || `${dateStr}.md`}`,
-          t("mockData.dailyContent", { date: dateStr }) ,
+        t("mockData.dailyContent", { date: dateStr }),
       );
       if (dailyCreated) generatedCount++;
 

@@ -1,5 +1,5 @@
 import { App, Notice, Setting, TextAreaComponent } from "obsidian";
-import { ParsedAgent, AgentConfig } from "@app/types/AgentTypes";
+import { ParsedAgent, AgentConfig, AgentStrategy } from "@app/types/AgentTypes";
 import { DEFAULT_CONFIG } from "@app/services/AgentConfig";
 import { AgentWriter } from "@app/utils/AgentWriter";
 import { AgentRegistry } from "@app/services/AgentRegistry";
@@ -15,6 +15,19 @@ import { createText } from "@app/components/atoms/Text";
 import { createSelect } from "@app/components/atoms/Select";
 import { createInput } from "@app/components/atoms/Input";
 import { createActionFooter } from "@app/components/molecules/ActionFooter";
+
+/**
+ * Maps tool names to the AgentConfig permission field they require.
+ * Used to conditionally show permission inputs based on selected tools.
+ */
+const TOOL_PERMISSION_MAP: Record<string, keyof AgentConfig> = {
+  read_file: "read",
+  list_files: "read",
+  write_file: "write",
+  create_file: "create",
+  move_file: "move",
+  delete_file: "delete",
+};
 
 export class AgentEditor {
   private app: App;
@@ -32,6 +45,9 @@ export class AgentEditor {
   private config: AgentConfig;
   private promptTemplate: string;
   private idInput: string;
+
+  /** Container for dynamically rendered tool-specific permission fields */
+  private permissionFieldsEl: HTMLElement | null = null;
 
   constructor(
     app: App,
@@ -154,6 +170,25 @@ export class AgentEditor {
       });
     });
 
+    // --- PROMPT ---
+    const promptSetting = new Setting(formContainer).setName(t("editor.systemPrompt")).setHeading();
+
+    createText(promptSetting.descEl, {
+      tag: "p",
+      text: t("editor.systemPromptDesc"),
+      cls: "ai-agents-setting-item-description",
+    });
+
+    const textareaContainer = formContainer.createDiv({
+      cls: "ai-agents-chat__editor-prompt-container",
+    });
+    const textarea = new TextAreaComponent(textareaContainer);
+    textarea.setValue(this.promptTemplate);
+    textarea.inputEl.addClass("ai-agents-chat__editor-prompt-textarea");
+    textarea.onChange((value) => {
+      this.promptTemplate = value;
+    });
+
     // --- AI SETTINGS ---
     new Setting(formContainer).setHeading().setName(t("editor.aiHeading"));
 
@@ -189,15 +224,25 @@ export class AgentEditor {
 
     new Setting(formContainer).setName(t("editor.strategy")).addDropdown((dropdown) => {
       dropdown.addOptions({
-        inject_all: "inject_all",
+        inject_all: AgentStrategy.INJECT_ALL,
       });
       dropdown.setValue(this.config.strategy || CONSTANTS.DEFAULT_AGENT_STRATEGY);
       dropdown.onChange((value) => {
-        this.config.strategy = value;
+        this.config.strategy = value as AgentStrategy;
       });
     });
 
-    // --- TOOLS ---
+    // --- KNOWLEDGE ---
+    new Setting(formContainer).setHeading().setName(t("editor.permissionsHeading"));
+
+    this.createPathListSetting(
+      formContainer,
+      t("editor.sources"),
+      t("editor.sourcesDesc"),
+      "sources",
+    );
+
+    // --- TOOLS & PERMISSIONS ---
     new Setting(formContainer).setHeading().setName(t("editor.toolsHeading"));
 
     const toolsSetting = new Setting(formContainer)
@@ -212,6 +257,7 @@ export class AgentEditor {
       items: this.config.tools || [],
       onChange: (items) => {
         this.config.tools = items;
+        this.renderPermissionFields();
       },
       formatPillText: (toolName) => (toolName === "*" ? t("editor.allToolsWildcard") : toolName),
       renderInput: (inputContainer, onAdd, currentItems) => {
@@ -249,55 +295,9 @@ export class AgentEditor {
       },
     });
 
-    // --- KNOWLEDGE & PERMISSIONS ---
-    new Setting(formContainer).setHeading().setName(t("editor.permissionsHeading"));
-
-    const createPathListSetting = (name: string, desc: string, field: keyof AgentConfig) => {
-      const setting = new Setting(formContainer).setName(name).setDesc(desc);
-
-      new PillListControl({
-        container: setting.controlEl,
-        items: (this.config[field] as string[]) || [],
-        onChange: (items: string[]) => {
-          // @ts-ignore
-          this.config[field] = items;
-        },
-        renderInput: (inputContainer, onAdd) => {
-          const input = createInput(inputContainer, {
-            placeholder: t("editor.pathPlaceholder"),
-            cls: "ai-agents-chat__editor-permissions-input",
-          });
-
-          new PathSuggest(this.app, input);
-
-          createButton(inputContainer, {
-            text: t("editor.addBtn"),
-            onClick: () => {
-              const val = input.value.trim();
-              if (val) {
-                onAdd(val);
-                input.value = "";
-              }
-            },
-          });
-        },
-      });
-    };
-
-    createPathListSetting(t("editor.sources"), t("editor.sourcesDesc"), "sources");
-    createPathListSetting(t("editor.readPermissions"), t("editor.readPermissionsDesc"), "read");
-    createPathListSetting(t("editor.writePermissions"), t("editor.writePermissionsDesc"), "write");
-    createPathListSetting(
-      t("editor.createPermissions"),
-      t("editor.createPermissionsDesc"),
-      "create",
-    );
-    createPathListSetting(t("editor.movePermissions"), t("editor.movePermissionsDesc"), "move");
-    createPathListSetting(
-      t("editor.deletePermissions"),
-      t("editor.deletePermissionsDesc"),
-      "delete",
-    );
+    // Dynamic container for tool-specific permission fields
+    this.permissionFieldsEl = formContainer.createDiv();
+    this.renderPermissionFields();
 
     new Setting(formContainer)
       .setName(t("editor.vaultRootAccess"))
@@ -332,25 +332,6 @@ export class AgentEditor {
         });
       });
 
-    // --- PROMPT ---
-    const promptSetting = new Setting(formContainer).setName(t("editor.systemPrompt")).setHeading();
-
-    createText(promptSetting.descEl, {
-      tag: "p",
-      text: t("editor.systemPromptDesc"),
-      cls: "setting-item-description",
-    });
-
-    const textareaContainer = formContainer.createDiv({
-      cls: "ai-agents-chat__editor-prompt-container",
-    });
-    const textarea = new TextAreaComponent(textareaContainer);
-    textarea.setValue(this.promptTemplate);
-    textarea.inputEl.addClass("ai-agents-chat__editor-prompt-textarea");
-    textarea.onChange((value) => {
-      this.promptTemplate = value;
-    });
-
     // --- ACTIONS ---
     createActionFooter(this.containerEl, {
       buttons: [
@@ -358,6 +339,99 @@ export class AgentEditor {
         { text: t("editor.saveBtn"), variant: "primary", onClick: () => this.handleSave() },
       ],
       cls: "ai-agents-chat__editor-actions",
+    });
+  }
+
+  /**
+   * Returns the set of permission fields required by the currently selected tools.
+   * Always returns an empty set if no tools are selected.
+   * Returns all permission fields when "*" (all tools) is selected.
+   */
+  private getRequiredPermissionFields(): Set<string> {
+    const tools = this.config.tools || [];
+    if (tools.includes("*")) {
+      return new Set(Object.values(TOOL_PERMISSION_MAP));
+    }
+    const fields = new Set<string>();
+    for (const tool of tools) {
+      const field = TOOL_PERMISSION_MAP[tool];
+      if (field) fields.add(field);
+    }
+    return fields;
+  }
+
+  /**
+   * Re-renders the tool-specific permission fields (read, write, create, move, delete)
+   * based on which tools are currently selected.
+   */
+  private renderPermissionFields(): void {
+    if (!this.permissionFieldsEl) return;
+    this.permissionFieldsEl.empty();
+
+    const requiredFields = this.getRequiredPermissionFields();
+
+    const permissionEntries: { name: string; desc: string; field: keyof AgentConfig }[] = [
+      { name: t("editor.readPermissions"), desc: t("editor.readPermissionsDesc"), field: "read" },
+      {
+        name: t("editor.writePermissions"),
+        desc: t("editor.writePermissionsDesc"),
+        field: "write",
+      },
+      {
+        name: t("editor.createPermissions"),
+        desc: t("editor.createPermissionsDesc"),
+        field: "create",
+      },
+      { name: t("editor.movePermissions"), desc: t("editor.movePermissionsDesc"), field: "move" },
+      {
+        name: t("editor.deletePermissions"),
+        desc: t("editor.deletePermissionsDesc"),
+        field: "delete",
+      },
+    ];
+
+    for (const entry of permissionEntries) {
+      if (requiredFields.has(entry.field)) {
+        this.createPathListSetting(this.permissionFieldsEl, entry.name, entry.desc, entry.field);
+      }
+    }
+  }
+
+  /** Creates a path list setting with PillListControl and PathSuggest. */
+  private createPathListSetting(
+    container: HTMLElement,
+    name: string,
+    desc: string,
+    field: keyof AgentConfig,
+  ): void {
+    const setting = new Setting(container).setName(name).setDesc(desc);
+
+    new PillListControl({
+      container: setting.controlEl,
+      items: (this.config[field] as string[]) || [],
+      onChange: (items: string[]) => {
+        // @ts-ignore
+        this.config[field] = items;
+      },
+      renderInput: (inputContainer, onAdd) => {
+        const input = createInput(inputContainer, {
+          placeholder: t("editor.pathPlaceholder"),
+          cls: "ai-agents-chat__editor-permissions-input",
+        });
+
+        new PathSuggest(this.app, input);
+
+        createButton(inputContainer, {
+          text: t("editor.addBtn"),
+          onClick: () => {
+            const val = input.value.trim();
+            if (val) {
+              onAdd(val);
+              input.value = "";
+            }
+          },
+        });
+      },
     });
   }
 

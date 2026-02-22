@@ -12,8 +12,17 @@
 // Enums / unions
 // ---------------------------------------------------------------------------
 
-export type AgentType = "conversational" | "task" | "scheduled";
-
+export enum AgentType {
+  CONVERSATIONAL = "conversational",
+  TASK = "task",
+  SCHEDULED = "scheduled",
+}
+export enum AgentStrategy {
+  INJECT_ALL = "inject_all",
+  INJECT_RELEVANT = "inject_relevant",
+  RAG = "RAG",
+  SUMMARIZE = "summarize",
+}
 // ---------------------------------------------------------------------------
 // Full agent config (parsed YAML frontmatter — flat)
 // ---------------------------------------------------------------------------
@@ -33,7 +42,7 @@ export interface AgentConfig {
   top_p?: number;
   stream?: boolean;
   sources: string[];
-  strategy: string;
+  strategy: AgentStrategy;
   max_context_tokens: number;
   tools: string[];
   read: string[];
