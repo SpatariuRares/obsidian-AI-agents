@@ -40,6 +40,7 @@ export class AgentSidebar extends ItemView {
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
+    container.addClass("ai-agents");
     container.addClass("ai-agents-sidebar");
 
     createHeading(container, { level: "h3", text: t("sidebar.heading"), cls: "ai-agents-sidebar__title" });

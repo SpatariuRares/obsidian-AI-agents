@@ -57,6 +57,6 @@ describe("createAvatar", () => {
 
   it("should apply css class", () => {
     const avatar = createAvatar(container, { cls: "my-avatar" });
-    expect(avatar.className).toBe("my-avatar");
+    expect(avatar.className).toBe("ai-agents-avatar my-avatar");
   });
 });

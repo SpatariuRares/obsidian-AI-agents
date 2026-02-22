@@ -79,6 +79,7 @@ export class ChatView extends ItemView {
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
+    container.addClass("ai-agents");
     container.addClass("ai-agents-chat");
     this.chatController = new ChatController({
       app: this.app,
@@ -219,6 +220,7 @@ export class ChatView extends ItemView {
     const currentTitle = manager.currentSessionTitle;
 
     const modal = new Modal(this.app);
+    modal.contentEl.addClass("ai-agents");
     modal.titleEl.setText(t("chat.renameSession"));
 
     new Setting(modal.contentEl).setName(t("chat.renamePrompt")).addText((text) => {
@@ -239,7 +241,7 @@ export class ChatView extends ItemView {
 
       const saveBtn = createButton(modal.contentEl, {
         text: "Save",
-        cls: "mod-cta",
+        variant: "primary",
         onClick: async () => {
           const val = text.getValue().trim();
           if (val && val !== currentTitle) {

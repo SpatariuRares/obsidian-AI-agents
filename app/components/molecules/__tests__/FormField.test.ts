@@ -61,7 +61,7 @@ describe("createFormField", () => {
       cls: "custom-field",
       renderInput: () => {},
     });
-    expect(field.className).toBe("custom-field");
+    expect(field.className).toBe("ai-agents-form-field custom-field");
   });
 
   it("should render label text", () => {

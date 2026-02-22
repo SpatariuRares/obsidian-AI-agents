@@ -8,12 +8,15 @@ export interface InputOptions {
   onEnter?: () => void;
 }
 
+const BASE_CLS = "ai-agents-input";
+
 export function createInput(
   container: HTMLElement,
   options: InputOptions,
 ): HTMLInputElement {
+  const cls = options.cls ? `${BASE_CLS} ${options.cls}` : BASE_CLS;
   const input = container.createEl("input", {
-    cls: options.cls,
+    cls,
     attr: {
       type: options.type ?? "text",
       ...(options.placeholder ? { placeholder: options.placeholder } : {}),

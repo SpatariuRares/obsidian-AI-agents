@@ -355,7 +355,7 @@ export class AgentEditor {
     createActionFooter(this.containerEl, {
       buttons: [
         { text: t("editor.cancelBtn"), onClick: () => this.onCancel() },
-        { text: t("editor.saveBtn"), cls: "mod-cta", onClick: () => this.handleSave() },
+        { text: t("editor.saveBtn"), variant: "primary", onClick: () => this.handleSave() },
       ],
       cls: "ai-agents-chat__editor-actions",
     });

@@ -8,11 +8,14 @@ export interface FormFieldOptions {
   renderInput: (container: HTMLElement) => void;
 }
 
+const BASE_CLS = "ai-agents-form-field";
+
 export function createFormField(
   container: HTMLElement,
   options: FormFieldOptions,
 ): HTMLElement {
-  const wrapper = container.createDiv({ cls: options.cls ?? "ai-agents-form-field" });
+  const cls = options.cls ? `${BASE_CLS} ${options.cls}` : BASE_CLS;
+  const wrapper = container.createDiv({ cls });
 
   const labelRow = wrapper.createDiv({ cls: "ai-agents-form-field__label" });
   createText(labelRow, { text: options.label });

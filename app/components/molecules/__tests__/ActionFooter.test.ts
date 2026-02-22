@@ -52,21 +52,21 @@ describe("createActionFooter", () => {
       buttons: [],
       cls: "custom-footer",
     });
-    expect(footer.className).toBe("custom-footer");
+    expect(footer.className).toBe("ai-agents-action-footer custom-footer");
   });
 
   it("should create buttons for each entry", () => {
     const footer = createActionFooter(container, {
       buttons: [
         { text: "Cancel", onClick: jest.fn() },
-        { text: "Save", cls: "mod-cta", onClick: jest.fn() },
+        { text: "Save", variant: "primary", onClick: jest.fn() },
       ],
     });
     const buttons = footer.querySelectorAll("button");
     expect(buttons).toHaveLength(2);
     expect(buttons[0].textContent).toBe("Cancel");
     expect(buttons[1].textContent).toBe("Save");
-    expect(buttons[1].className).toBe("mod-cta");
+    expect(buttons[1].className).toBe("ai-agents-btn ai-agents-btn--primary");
   });
 
   it("should call onClick when a button is clicked", () => {

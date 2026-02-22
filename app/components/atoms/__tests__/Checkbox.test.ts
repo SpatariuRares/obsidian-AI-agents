@@ -45,7 +45,7 @@ describe("createCheckbox", () => {
 
   it("should apply css class", () => {
     const cb = createCheckbox(container, { cls: "my-cb" });
-    expect(cb.className).toBe("my-cb");
+    expect(cb.className).toBe("ai-agents-checkbox my-cb");
   });
 
   it("should set checked when specified", () => {

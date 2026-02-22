@@ -48,7 +48,7 @@ describe("createButton", () => {
       onClick: jest.fn(),
     });
 
-    expect(btn.className).toBe("mod-cta");
+    expect(btn.className).toBe("ai-agents-btn mod-cta");
   });
 
   it("should attach click handler", () => {
@@ -105,5 +105,56 @@ describe("createButton", () => {
     const btn = createButton(container, { text: "Info", onClick: jest.fn() });
 
     expect(btn.hasAttribute("title")).toBe(false);
+  });
+
+  it("should apply primary variant class", () => {
+    const btn = createButton(container, {
+      text: "Save",
+      variant: "primary",
+      onClick: jest.fn(),
+    });
+
+    expect(btn.className).toBe("ai-agents-btn ai-agents-btn--primary");
+  });
+
+  it("should apply ghost variant class", () => {
+    const btn = createButton(container, {
+      text: "Cancel",
+      variant: "ghost",
+      onClick: jest.fn(),
+    });
+
+    expect(btn.className).toBe("ai-agents-btn ai-agents-btn--ghost");
+  });
+
+  it("should apply danger variant class", () => {
+    const btn = createButton(container, {
+      text: "Delete",
+      variant: "danger",
+      onClick: jest.fn(),
+    });
+
+    expect(btn.className).toBe("ai-agents-btn ai-agents-btn--danger");
+  });
+
+  it("should not add variant class for default variant", () => {
+    const btn = createButton(container, {
+      text: "OK",
+      variant: "default",
+      onClick: jest.fn(),
+    });
+
+    expect(btn.className).toBe("ai-agents-btn");
+  });
+
+  it("should combine variant and custom cls", () => {
+    const btn = createButton(container, {
+      text: "Save",
+      variant: "primary",
+      cls: "ai-agents-chat__save",
+      onClick: jest.fn(),
+    });
+
+    expect(btn.className).toBe("ai-agents-btn ai-agents-btn--primary ai-agents-chat__save");
   });
 });

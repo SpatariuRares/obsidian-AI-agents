@@ -69,6 +69,7 @@ export class ToolTestView extends ItemView {
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
+    container.addClass("ai-agents");
     container.addClass(CLS);
 
     // Header

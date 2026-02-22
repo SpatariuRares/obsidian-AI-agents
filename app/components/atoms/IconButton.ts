@@ -8,13 +8,14 @@ export interface IconButtonOptions {
   tooltip?: string;
 }
 
+const BASE_CLS = "ai-agents-icon-btn";
+
 export function createIconButton(
   container: HTMLElement,
   options: IconButtonOptions,
 ): HTMLButtonElement {
-  const btn = container.createEl("button", {
-    cls: options.cls ? `clickable-icon ${options.cls}` : "clickable-icon",
-  });
+  const cls = options.cls ? `${BASE_CLS} ${options.cls}` : BASE_CLS;
+  const btn = container.createEl("button", { cls });
 
   if (options.ariaLabel) {
     btn.setAttribute("aria-label", options.ariaLabel);

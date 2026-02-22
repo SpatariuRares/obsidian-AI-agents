@@ -13,11 +13,14 @@ export interface SelectOptions {
   onChange?: (value: string) => void;
 }
 
+const BASE_CLS = "ai-agents-select";
+
 export function createSelect(
   container: HTMLElement,
   options: SelectOptions,
 ): HTMLSelectElement {
-  const select = container.createEl("select", { cls: options.cls });
+  const cls = options.cls ? `${BASE_CLS} ${options.cls}` : BASE_CLS;
+  const select = container.createEl("select", { cls });
 
   if (options.placeholder) {
     select.createEl("option", {

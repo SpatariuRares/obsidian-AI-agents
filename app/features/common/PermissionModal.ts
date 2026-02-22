@@ -49,6 +49,7 @@ export class PermissionModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
+    contentEl.addClass("ai-agents");
 
     createHeading(contentEl, { level: "h2", text: t("permission.title") });
 

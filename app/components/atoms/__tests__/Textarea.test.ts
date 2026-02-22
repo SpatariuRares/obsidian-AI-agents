@@ -59,7 +59,7 @@ describe("createTextarea", () => {
 
   it("should apply css class", () => {
     const ta = createTextarea(container, { cls: "my-textarea" });
-    expect(ta.className).toBe("my-textarea");
+    expect(ta.className).toBe("ai-agents-textarea my-textarea");
   });
 
   it("should set disabled when specified", () => {

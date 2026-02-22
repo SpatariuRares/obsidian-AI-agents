@@ -157,7 +157,7 @@
     "allToolsWildcardTitle": "Give access to all available tools",
     "permissionsHeading": "Knowledge & file permissions",
     "sources": "Sources",
-    "sourcesDesc": "Paths to include in the knowledge context.",
+    "sourcesDesc": "Paths to include in the knowledge context. use the {{knowledge_sources}} inside the system prompt to refer to these sources.",
     "readPermissions": "Read",
     "readPermissionsDesc": "Paths this agent can read.",
     "writePermissions": "Write",

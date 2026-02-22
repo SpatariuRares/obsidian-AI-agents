@@ -54,7 +54,7 @@ describe("createBadge", () => {
 
   it("should apply css class", () => {
     const badge = createBadge(container, { text: "Tag", cls: "my-badge" });
-    expect(badge.className).toBe("my-badge");
+    expect(badge.className).toBe("ai-agents-badge my-badge");
   });
 
   it("should add remove button when removable", () => {

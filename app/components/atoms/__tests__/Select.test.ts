@@ -44,7 +44,7 @@ describe("createSelect", () => {
 
   it("should apply css class", () => {
     const select = createSelect(container, { options: [], cls: "my-select" });
-    expect(select.className).toBe("my-select");
+    expect(select.className).toBe("ai-agents-select my-select");
   });
 
   it("should add placeholder option when specified", () => {

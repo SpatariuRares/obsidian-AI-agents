@@ -1,0 +1,374 @@
+// =============================================================================
+// ATOM COMPONENT STYLES
+// =============================================================================
+// Base styles for all atomic UI components. Every selector is nested under the
+// .ai-agents root scope so that specificity stays high enough to avoid
+// collisions inside Obsidian's shared app.css.
+//
+// BEM convention: .ai-agents-[atom]__element--modifier
+// =============================================================================
+
+.ai-agents {
+
+  // ---------------------------------------------------------------------------
+  // Button
+  // ---------------------------------------------------------------------------
+  .ai-agents-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: var(--font-ui-small);
+    font-weight: 500;
+    font-family: inherit;
+    line-height: 1.4;
+    cursor: pointer;
+    white-space: nowrap;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--interactive-normal);
+    color: var(--text-normal);
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease,
+      box-shadow 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: var(--interactive-hover);
+      border-color: var(--background-modifier-border-hover, var(--background-modifier-border));
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0.5px);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--interactive-accent);
+      outline-offset: 1px;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    // Primary variant (accent CTA)
+    &--primary {
+      background: var(--interactive-accent);
+      color: var(--text-on-accent);
+      border-color: var(--interactive-accent);
+
+      &:hover:not(:disabled) {
+        background: var(--interactive-accent-hover);
+        border-color: var(--interactive-accent-hover);
+      }
+    }
+
+    // Ghost variant (transparent background)
+    &--ghost {
+      background: transparent;
+      border-color: transparent;
+
+      &:hover:not(:disabled) {
+        background: var(--background-modifier-hover);
+      }
+    }
+
+    // Danger variant
+    &--danger {
+      color: var(--text-error);
+      background: transparent;
+      border-color: transparent;
+
+      &:hover:not(:disabled) {
+        background: var(--background-modifier-error-hover, rgba(255, 0, 0, 0.08));
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Icon Button
+  // ---------------------------------------------------------------------------
+  .ai-agents-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease;
+
+    &:hover {
+      color: var(--text-normal);
+      background: var(--background-modifier-hover);
+    }
+
+    &:active {
+      background: var(--background-modifier-active-hover, var(--background-modifier-hover));
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--interactive-accent);
+      outline-offset: 1px;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Heading
+  // ---------------------------------------------------------------------------
+  .ai-agents-heading {
+    margin: 0;
+    padding: 0;
+    color: var(--text-normal);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Text
+  // ---------------------------------------------------------------------------
+  .ai-agents-text {
+    color: var(--text-normal);
+    line-height: 1.5;
+
+    &--muted {
+      color: var(--text-muted);
+    }
+
+    &--faint {
+      color: var(--text-faint);
+    }
+
+    &--small {
+      font-size: var(--font-ui-small);
+    }
+
+    &--error {
+      color: var(--text-error);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Icon
+  // ---------------------------------------------------------------------------
+  .ai-agents-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    flex-shrink: 0;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Input
+  // ---------------------------------------------------------------------------
+  .ai-agents-input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+    font-family: inherit;
+    line-height: 1.4;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+
+    &::placeholder {
+      color: var(--text-faint);
+    }
+
+    &:focus {
+      border-color: var(--interactive-accent);
+      outline: none;
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--interactive-accent) 15%, transparent);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: var(--background-secondary);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Textarea
+  // ---------------------------------------------------------------------------
+  .ai-agents-textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+    font-family: inherit;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 64px;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+
+    &::placeholder {
+      color: var(--text-faint);
+    }
+
+    &:focus {
+      border-color: var(--interactive-accent);
+      outline: none;
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--interactive-accent) 15%, transparent);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: var(--background-secondary);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Select
+  // ---------------------------------------------------------------------------
+  .ai-agents-select {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+
+    &:focus {
+      border-color: var(--interactive-accent);
+      outline: none;
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--interactive-accent) 15%, transparent);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Checkbox
+  // ---------------------------------------------------------------------------
+  .ai-agents-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    accent-color: var(--interactive-accent);
+    cursor: pointer;
+    transition: box-shadow 0.15s ease;
+
+    &:focus-visible {
+      outline: 2px solid var(--interactive-accent);
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Badge
+  // ---------------------------------------------------------------------------
+  .ai-agents-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 12px;
+    background: var(--background-modifier-hover);
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+    line-height: 1.4;
+    white-space: nowrap;
+
+    &--removable .ai-agents-badge__remove {
+      cursor: pointer;
+      opacity: 0.5;
+      font-size: 10px;
+      padding: 0 2px;
+      border-radius: 50%;
+      transition:
+        opacity 0.15s ease,
+        background-color 0.15s ease;
+
+      &:hover {
+        opacity: 1;
+        background: var(--background-modifier-active-hover, var(--background-modifier-hover));
+      }
+    }
+
+    &--success {
+      background: color-mix(in srgb, var(--interactive-accent) 15%, transparent);
+      color: var(--text-accent);
+    }
+
+    &--warning {
+      background: color-mix(in srgb, var(--text-warning, orange) 15%, transparent);
+      color: var(--text-warning, orange);
+    }
+
+    &--error {
+      background: color-mix(in srgb, var(--text-error) 15%, transparent);
+      color: var(--text-error);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Avatar
+  // ---------------------------------------------------------------------------
+  .ai-agents-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--background-modifier-hover);
+    font-size: 18px;
+    flex-shrink: 0;
+    user-select: none;
+
+    &--sm {
+      width: 24px;
+      height: 24px;
+      font-size: 14px;
+    }
+
+    &--lg {
+      width: 40px;
+      height: 40px;
+      font-size: 22px;
+    }
+  }
+}

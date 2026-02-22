@@ -7,12 +7,15 @@ export interface TextareaOptions {
   onChange?: (value: string) => void;
 }
 
+const BASE_CLS = "ai-agents-textarea";
+
 export function createTextarea(
   container: HTMLElement,
   options: TextareaOptions,
 ): HTMLTextAreaElement {
+  const cls = options.cls ? `${BASE_CLS} ${options.cls}` : BASE_CLS;
   const textarea = container.createEl("textarea", {
-    cls: options.cls,
+    cls,
     attr: {
       ...(options.placeholder ? { placeholder: options.placeholder } : {}),
       ...(options.rows !== undefined ? { rows: String(options.rows) } : {}),

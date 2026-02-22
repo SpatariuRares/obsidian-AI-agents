@@ -64,7 +64,7 @@ describe("createInput", () => {
 
   it("should apply css class", () => {
     const input = createInput(container, { cls: "my-input" });
-    expect(input.className).toBe("my-input");
+    expect(input.className).toBe("ai-agents-input my-input");
   });
 
   it("should set disabled when specified", () => {

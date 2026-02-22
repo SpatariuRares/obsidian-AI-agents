@@ -6,11 +6,14 @@ export interface IconOptions {
   ariaLabel?: string;
 }
 
+const BASE_CLS = "ai-agents-icon";
+
 export function createIcon(
   container: HTMLElement,
   options: IconOptions,
 ): HTMLSpanElement {
-  const span = container.createSpan({ cls: options.cls });
+  const cls = options.cls ? `${BASE_CLS} ${options.cls}` : BASE_CLS;
+  const span = container.createSpan({ cls });
 
   setIcon(span, options.icon);
 

@@ -23,5 +23,8 @@
 // Inline mention suggest dropdown
 @use "app/styles/mention-suggest";
 
-// Reusable component styles (atoms & molecules)
+// Atom component styles (scoped under .ai-agents)
+@use "app/styles/atoms";
+
+// Reusable component styles (molecules)
 @use "app/styles/components";

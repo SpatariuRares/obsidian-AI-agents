@@ -69,11 +69,11 @@ describe("createText", () => {
 
   it("should apply css class", () => {
     const el = createText(container, { text: "styled", cls: "my-text" });
-    expect(el.className).toBe("my-text");
+    expect(el.className).toBe("ai-agents-text my-text");
   });
 
   it("should work without cls", () => {
     const el = createText(container, { tag: "p", text: "plain" });
-    expect(el.className).toBe("");
+    expect(el.className).toBe("ai-agents-text");
   });
 });

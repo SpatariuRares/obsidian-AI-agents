@@ -43,7 +43,7 @@ describe("createIcon", () => {
   it("should apply css class", () => {
     const span = createIcon(container, { icon: "wrench", cls: "tool-icon" });
 
-    expect(span.className).toBe("tool-icon");
+    expect(span.className).toBe("ai-agents-icon tool-icon");
   });
 
   it("should set aria-label when specified", () => {
@@ -64,7 +64,7 @@ describe("createIcon", () => {
   it("should work without optional cls", () => {
     const span = createIcon(container, { icon: "star" });
 
-    expect(span.className).toBe("");
+    expect(span.className).toBe("ai-agents-icon");
     expect(setIconSpy).toHaveBeenCalledWith(span, "star");
   });
 });

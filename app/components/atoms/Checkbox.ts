@@ -5,12 +5,15 @@ export interface CheckboxOptions {
   onChange?: (checked: boolean) => void;
 }
 
+const BASE_CLS = "ai-agents-checkbox";
+
 export function createCheckbox(
   container: HTMLElement,
   options: CheckboxOptions,
 ): HTMLInputElement {
+  const cls = options.cls ? `${BASE_CLS} ${options.cls}` : BASE_CLS;
   const checkbox = container.createEl("input", {
-    cls: options.cls,
+    cls,
     attr: { type: "checkbox" },
   });
 

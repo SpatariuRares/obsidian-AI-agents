@@ -1,75 +1,85 @@
 // =============================================================================
-// REUSABLE COMPONENT STYLES
+// MOLECULE COMPONENT STYLES
 // =============================================================================
-// Styles for atoms and molecules used across features.
+// Styles for molecule components used across features. All selectors are nested
+// under .ai-agents root scope for CSS isolation inside Obsidian's shared app.css.
+//
+// BEM convention: .ai-agents-[molecule]__element--modifier
 // =============================================================================
 
-// --- FormField molecule ---
-.ai-agents-form-field {
-  margin-bottom: 8px;
+.ai-agents {
 
-  &__label {
+  // ---------------------------------------------------------------------------
+  // FormField
+  // ---------------------------------------------------------------------------
+  .ai-agents-form-field {
+    margin-bottom: 12px;
+
+    .ai-agents-form-field__label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 4px;
+      font-weight: 500;
+      font-size: var(--font-ui-small);
+      color: var(--text-normal);
+    }
+
+    .ai-agents-form-field__required {
+      color: var(--text-error);
+      font-weight: 600;
+    }
+
+    .ai-agents-form-field__hint {
+      color: var(--text-muted);
+      font-size: var(--font-ui-small);
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+
+    .ai-agents-form-field__input {
+      width: 100%;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // ActionFooter
+  // ---------------------------------------------------------------------------
+  .ai-agents-action-footer {
     display: flex;
     align-items: center;
-    gap: 4px;
-    margin-bottom: 4px;
-    font-weight: 500;
-    color: var(--text-normal);
+    gap: 8px;
+    justify-content: flex-end;
+    padding: 12px 0 4px;
+    border-top: 1px solid var(--background-modifier-border);
+    margin-top: 8px;
   }
 
-  &__required {
-    color: var(--text-error);
-  }
-
-  &__hint {
+  // ---------------------------------------------------------------------------
+  // EmptyState
+  // ---------------------------------------------------------------------------
+  .ai-agents-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
     color: var(--text-muted);
-    font-size: var(--font-ui-small);
-    margin-bottom: 4px;
-  }
+    text-align: center;
+    gap: 12px;
 
-  &__input {
-    width: 100%;
-  }
-}
+    .ai-agents-icon {
+      opacity: 0.5;
 
-// --- ActionFooter molecule ---
-.ai-agents-action-footer {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: flex-end;
-  padding: 8px 0;
-}
+      svg {
+        width: 32px;
+        height: 32px;
+      }
+    }
 
-// --- EmptyState molecule ---
-.ai-agents-empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px;
-  color: var(--text-muted);
-  text-align: center;
-  gap: 8px;
-}
-
-// --- Badge atom ---
-.ai-agents-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  background: var(--background-modifier-hover);
-  font-size: var(--font-ui-small);
-  color: var(--text-normal);
-
-  &--removable > span:last-child {
-    cursor: pointer;
-    opacity: 0.6;
-
-    &:hover {
-      opacity: 1;
+    .ai-agents-text {
+      font-size: var(--font-ui-small);
+      line-height: 1.5;
     }
   }
 }

@@ -10,10 +10,13 @@ export interface EmptyStateOptions {
 export class EmptyState {
   private containerEl: HTMLElement;
 
+  static readonly BASE_CLS = "ai-agents-empty-state";
+
   constructor(parent: HTMLElement, options: EmptyStateOptions) {
-    this.containerEl = parent.createDiv({
-      cls: options.cls ?? "ai-agents-empty-state",
-    });
+    const cls = options.cls
+      ? `${EmptyState.BASE_CLS} ${options.cls}`
+      : EmptyState.BASE_CLS;
+    this.containerEl = parent.createDiv({ cls });
 
     if (options.icon) {
       createIcon(this.containerEl, { icon: options.icon });

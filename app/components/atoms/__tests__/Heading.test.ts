@@ -64,11 +64,11 @@ describe("createHeading", () => {
       text: "Styled",
       cls: "my-heading",
     });
-    expect(heading.className).toBe("my-heading");
+    expect(heading.className).toBe("ai-agents-heading my-heading");
   });
 
   it("should work without cls", () => {
     const heading = createHeading(container, { level: "h1", text: "Plain" });
-    expect(heading.className).toBe("");
+    expect(heading.className).toBe("ai-agents-heading");
   });
 });
