@@ -49,6 +49,9 @@ export class AgentEditor {
   /** Container for dynamically rendered tool-specific permission fields */
   private permissionFieldsEl: HTMLElement | null = null;
 
+  /** Container for RAG-specific configuration fields */
+  private ragFieldsEl: HTMLElement | null = null;
+
   constructor(
     app: App,
     containerEl: HTMLElement,
@@ -225,12 +228,18 @@ export class AgentEditor {
     new Setting(formContainer).setName(t("editor.strategy")).addDropdown((dropdown) => {
       dropdown.addOptions({
         inject_all: AgentStrategy.INJECT_ALL,
+        RAG: AgentStrategy.RAG,
       });
       dropdown.setValue(this.config.strategy || CONSTANTS.DEFAULT_AGENT_STRATEGY);
       dropdown.onChange((value) => {
         this.config.strategy = value as AgentStrategy;
+        this.renderRAGFields();
       });
     });
+
+    // --- RAG CONFIG (conditional) ---
+    this.ragFieldsEl = formContainer.createDiv();
+    this.renderRAGFields();
 
     // --- KNOWLEDGE ---
     new Setting(formContainer).setHeading().setName(t("editor.permissionsHeading"));
@@ -340,6 +349,56 @@ export class AgentEditor {
       ],
       cls: "ai-agents-chat__editor-actions",
     });
+  }
+
+  /**
+   * Renders RAG-specific configuration fields (embedding model, top-k, threshold).
+   * Only visible when strategy is RAG.
+   */
+  private renderRAGFields(): void {
+    if (!this.ragFieldsEl) return;
+    this.ragFieldsEl.empty();
+
+    if (this.config.strategy !== AgentStrategy.RAG) return;
+
+    new Setting(this.ragFieldsEl).setHeading().setName(t("editor.ragHeading"));
+
+    new Setting(this.ragFieldsEl)
+      .setName(t("editor.ragEmbeddingModel"))
+      .setDesc(t("editor.ragEmbeddingModelDesc"))
+      .addText((text) => {
+        // eslint-disable-next-line i18next/no-literal-string, obsidianmd/ui/sentence-case -- model identifier
+        text.setPlaceholder("nomic-embed-text");
+        text.setValue(this.config.rag_embedding_model || "");
+        text.onChange((value) => {
+          this.config.rag_embedding_model = value || undefined;
+        });
+      });
+
+    new Setting(this.ragFieldsEl)
+      .setName(t("editor.ragTopK"))
+      .setDesc(t("editor.ragTopKDesc"))
+      .addText((text) => {
+        text.setPlaceholder("5");
+        text.setValue(this.config.rag_top_k?.toString() || "");
+        text.onChange((value) => {
+          const parsed = parseInt(value, 10);
+          this.config.rag_top_k = !isNaN(parsed) && parsed > 0 ? parsed : undefined;
+        });
+      });
+
+    new Setting(this.ragFieldsEl)
+      .setName(t("editor.ragSimilarityThreshold"))
+      .setDesc(t("editor.ragSimilarityThresholdDesc"))
+      .addText((text) => {
+        text.setPlaceholder("0.7");
+        text.setValue(this.config.rag_similarity_threshold?.toString() || "");
+        text.onChange((value) => {
+          const parsed = parseFloat(value);
+          this.config.rag_similarity_threshold =
+            !isNaN(parsed) && parsed >= 0 && parsed <= 1 ? parsed : undefined;
+        });
+      });
   }
 
   /**

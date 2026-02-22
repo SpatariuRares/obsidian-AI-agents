@@ -1,0 +1,148 @@
+// =============================================================================
+// RAG View Styles
+// =============================================================================
+// BEM block: .ai-agents-rag
+
+.ai-agents-rag {
+  padding: var(--size-4-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-4);
+
+  // --- Title ---
+  &__title {
+    margin: 0 0 var(--size-4-2);
+  }
+
+  // --- Agent selector ---
+  &__selector {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+  }
+
+  &__label {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    white-space: nowrap;
+  }
+
+  &__select {
+    flex: 1;
+  }
+
+  // --- Stats ---
+  &__stats {
+    padding: var(--size-4-2);
+    border-radius: var(--radius-m);
+    background: var(--background-secondary);
+  }
+
+  &__stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--size-4-2);
+  }
+
+  &__stats-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-1);
+  }
+
+  &__stats-label {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+  }
+
+  &__stats-value {
+    color: var(--text-normal);
+    font-weight: var(--font-semibold);
+  }
+
+  &__empty-message {
+    color: var(--text-faint);
+    font-style: italic;
+  }
+
+  // --- Progress ---
+  &__progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-1);
+  }
+
+  &__progress-bar {
+    height: 6px;
+    background: var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    overflow: hidden;
+  }
+
+  &__progress-bar-fill {
+    height: 100%;
+    background: var(--interactive-accent);
+    border-radius: var(--radius-s);
+    transition: width 0.3s ease;
+  }
+
+  &__progress-text {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+  }
+
+  // --- Actions ---
+  &__actions {
+    display: flex;
+    gap: var(--size-4-2);
+    flex-wrap: wrap;
+  }
+
+  &__action-btn {
+    cursor: pointer;
+  }
+
+  // --- Chunk browser ---
+  &__browser-header {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+  }
+
+  &__filter {
+    flex: 1;
+  }
+
+  &__chunk-list {
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+  }
+
+  &__chunk-item {
+    padding: var(--size-4-2);
+    border-radius: var(--radius-s);
+    background: var(--background-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-1);
+  }
+
+  &__chunk-heading {
+    color: var(--text-normal);
+  }
+
+  &__chunk-source {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+  }
+
+  &__chunk-preview {
+    color: var(--text-faint);
+    font-size: var(--font-ui-small);
+    margin: 0;
+    line-height: 1.4;
+  }
+}

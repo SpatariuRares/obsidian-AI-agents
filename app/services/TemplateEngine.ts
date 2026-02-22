@@ -15,7 +15,7 @@
 
 import { App, TFile, normalizePath } from "obsidian";
 import * as micromatch from "micromatch";
-import { AgentConfig } from "@app/types/AgentTypes";
+import { AgentConfig, AgentStrategy } from "@app/types/AgentTypes";
 import { PluginSettings } from "@app/types/PluginTypes";
 import { loadKnowledgeContent, wrapBlock } from "@app/services/KnowledgeResolver";
 import { t } from "@app/i18n";
@@ -47,14 +47,23 @@ export async function resolveTemplate(template: string, ctx: TemplateContext): P
   // 1. Simple scalar variables (synchronous)
   result = replaceScalarVariables(result, ctx);
 
-  // 2. {{knowledge_context}} — async, loads files from vault
+  // 2. {{knowledge_context}} — async, strategy-dependent
   if (result.includes("{{knowledge_context}}")) {
-    const knowledgeContent = await loadKnowledgeContent(
-      ctx.agentConfig.sources,
-      ctx.app,
-      ctx.agentConfig.max_context_tokens,
-    );
-    result = result.replace(/\{\{knowledge_context\}\}/g, knowledgeContent);
+    if (ctx.agentConfig.strategy === AgentStrategy.RAG) {
+      // RAG: context is injected per-query by ChatController, not at template time
+      result = result.replace(
+        /\{\{knowledge_context\}\}/g,
+        "[Knowledge context will be provided with each message via RAG retrieval.]",
+      );
+    } else {
+      // inject_all: load all sources into the template
+      const knowledgeContent = await loadKnowledgeContent(
+        ctx.agentConfig.sources,
+        ctx.app,
+        ctx.agentConfig.max_context_tokens,
+      );
+      result = result.replace(/\{\{knowledge_context\}\}/g, knowledgeContent);
+    }
   }
 
   // 3. {{READ: path}} — async, each occurrence loads a file

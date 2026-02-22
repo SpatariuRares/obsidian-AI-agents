@@ -26,5 +26,8 @@
 // Atom component styles (scoped under .ai-agents)
 @use "app/styles/atoms";
 
+// RAG management view
+@use "app/styles/rag";
+
 // Reusable component styles (molecules)
 @use "app/styles/components";
