@@ -12,7 +12,8 @@ import { resolveGlobs, loadKnowledgeContent, wrapBlock } from "@app/services/Kno
 // ---------------------------------------------------------------------------
 
 function makeFile(path: string, mtime = 0): TFile {
-  const f = new TFile(path);
+  const f = new TFile();
+  f.path = path;
   f.stat.mtime = mtime;
   return f;
 }
