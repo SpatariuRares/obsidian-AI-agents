@@ -210,6 +210,10 @@ export class OpenAilikeProvider extends BaseProvider {
       };
 
       while (true) {
+        if (abortSignal?.aborted) {
+          reader.cancel();
+          throw new DOMException("The operation was aborted.", "AbortError");
+        }
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -271,7 +275,25 @@ export class OpenAilikeProvider extends BaseProvider {
       body: JSON.stringify(payload),
     };
 
-    const response = await requestUrl(requestParams);
+    const requestPromise = requestUrl(requestParams);
+    let response: Awaited<ReturnType<typeof requestUrl>>;
+
+    if (abortSignal) {
+      const abortPromise = new Promise<never>((_, reject) => {
+        if (abortSignal.aborted) {
+          reject(new DOMException("The operation was aborted.", "AbortError"));
+          return;
+        }
+        abortSignal.addEventListener(
+          "abort",
+          () => reject(new DOMException("The operation was aborted.", "AbortError")),
+          { once: true },
+        );
+      });
+      response = await Promise.race([requestPromise, abortPromise]);
+    } else {
+      response = await requestPromise;
+    }
 
     if (response.status !== 200) {
       // console.error("[OpenAilikeProvider] API Error Body:", response.text);

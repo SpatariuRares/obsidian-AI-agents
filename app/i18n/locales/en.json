@@ -234,7 +234,8 @@
     "aiAgentError": "AI Agent error: {message}",
     "modelNoTools": "The selected AI model does not support tools. Please change the model in the agent settings (e.g., to llama3.1 or qwen2.5-coder).",
     "aiAgentErrorNoTools": "The selected AI model does not support tools. Please change the model in the agent settings (e.g., to llama3.1 or qwen2.5-coder).",
-    "mockDataFailed": "Failed to generate mock data: {message}"
+    "mockDataFailed": "Failed to generate mock data: {message}",
+    "aiGenerationStopped": "AI Generation stopped."
   },
   "rag": {
     "viewTitle": "RAG index manager",
