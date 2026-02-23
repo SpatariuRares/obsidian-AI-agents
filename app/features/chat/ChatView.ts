@@ -25,6 +25,7 @@ import { ChatInputArea } from "@app/components/molecules/ChatInputArea";
 import { ChatEmptyState } from "@app/components/molecules/ChatEmptyState";
 import { ChatController } from "@app/features/chat/ChatController";
 import { ChatMessageBubble } from "@app/components/molecules/ChatMessageBubble";
+import { TypingIndicator } from "@app/components/molecules/TypingIndicator";
 import { createButton } from "@app/components/atoms/Button";
 
 export const VIEW_TYPE_CHAT = "ai-agents-chat";
@@ -47,6 +48,7 @@ export class ChatView extends ItemView {
   private inputArea!: ChatInputArea;
   private emptyState!: ChatEmptyState;
   private chatController!: ChatController;
+  private typingIndicator!: TypingIndicator;
 
   private viewMode: "chat" | "edit" = "chat";
 
@@ -86,6 +88,14 @@ export class ChatView extends ItemView {
       chatManager: this.host.chatManager,
       onRenderMessages: async () => this.renderMessages(),
       onUpdateLastMessage: async () => this.updateLastMessage(),
+      onShowTypingIndicator: (agentName?: string) => {
+        this.typingIndicator.show(agentName);
+        // Scroll so the indicator is visible
+        this.messageListEl.scrollTop = this.messageListEl.scrollHeight;
+      },
+      onHideTypingIndicator: () => {
+        this.typingIndicator.hide();
+      },
     });
 
     this.buildHeader(container);
@@ -111,11 +121,11 @@ export class ChatView extends ItemView {
         if (activeAgent) this.showEditor(activeAgent);
       },
       onOpenHistory: () => {
-        this.openHistoryModal().catch(() => {});
+        this.openHistoryModal().catch(() => { });
       },
       onRenameSession: () => this.promptRenameSession(),
       onNewSession: () => {
-        this.onNewSession().catch(() => {});
+        this.onNewSession().catch(() => { });
       },
     });
   }
@@ -130,6 +140,8 @@ export class ChatView extends ItemView {
     this.emptyState = new ChatEmptyState(wrapper);
 
     this.messageListEl = wrapper.createDiv({ cls: "ai-agents-chat__messages" });
+    // Attach typing indicator to the message list so it appears inline with messages
+    this.typingIndicator = new TypingIndicator(this.messageListEl);
 
     this.editorWrapperEl = container.createDiv({ cls: "ai-agents-chat__editor-wrapper" });
     this.editorWrapperEl.setCssProps({ display: "none" });
@@ -355,6 +367,8 @@ export class ChatView extends ItemView {
 
     if (!hasSession || this.viewMode === "edit") return;
 
+    // When rebuilding the entire list, hide any stale typing indicator
+    this.typingIndicator.hide();
     this.messageListEl.empty();
 
     const messages = this.host.chatManager.getVisibleMessages();

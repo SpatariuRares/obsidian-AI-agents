@@ -40,7 +40,7 @@ export interface AgentConfig {
   temperature?: number;
   max_tokens?: number;
   top_p?: number;
-  stream?: boolean;
+  stream: boolean;
   sources: string[];
   strategy: AgentStrategy;
   max_context_tokens: number;
