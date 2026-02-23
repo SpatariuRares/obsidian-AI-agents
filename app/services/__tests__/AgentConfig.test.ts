@@ -6,7 +6,7 @@
  *   - parseAgentFile: full parsing with validation and defaults
  */
 
-import { splitFrontmatter, parseAgentFile, AgentConfigError } from "@app/services/AgentConfig";
+import { splitFrontmatter, parseAgentFile, AgentConfigError, AgentParseDefaults } from "@app/services/AgentConfig";
 
 // ---------------------------------------------------------------------------
 // Helpers — sample agent.md contents
@@ -175,7 +175,7 @@ prompt`;
     expect(result.config.sources).toEqual([]);
     expect(result.config.strategy).toBe("inject_all");
     expect(result.config.max_context_tokens).toBe(4000);
-    expect(result.config.tools).toEqual(["*"]); // default is now wildcard
+    expect(result.config.tools).toEqual([]);
   });
 
   it("should parse an empty tools array correctly without defaulting to wildcard", () => {
@@ -341,14 +341,15 @@ prompt`;
     expect(() => parseAgentFile(raw)).toThrow("name is required");
   });
 
-  it("should throw when model is missing and no fallback provided", () => {
+  it("should default model to empty string when missing and no fallback provided", () => {
     const raw = `---
 language: "en"
 name: "Test"
 ---
 prompt`;
 
-    expect(() => parseAgentFile(raw)).toThrow("notices.modelRequired");
+    const result = parseAgentFile(raw);
+    expect(result.config.model).toBe("");
   });
 
   it("should use fallback model when model is missing", () => {
@@ -358,11 +359,47 @@ name: "Test"
 ---
 prompt`;
 
-    const result = parseAgentFile(raw, "fallback-model");
+    const result = parseAgentFile(raw, { model: "fallback-model" });
     expect(result.config.model).toBe("fallback-model");
   });
 
-  it("should throw when model is empty and no fallback provided", () => {
+  it("should use fallback provider from defaults when provider is missing", () => {
+    const raw = `---
+language: "en"
+name: "Test"
+model: "llama3"
+---
+prompt`;
+
+    const result = parseAgentFile(raw, { provider: "openrouter" });
+    expect(result.config.provider).toBe("openrouter");
+  });
+
+  it("should use fallback userName as author when author is missing", () => {
+    const raw = `---
+language: "en"
+name: "Test"
+model: "llama3"
+---
+prompt`;
+
+    const result = parseAgentFile(raw, { userName: "Rares" });
+    expect(result.config.author).toBe("Rares");
+  });
+
+  it("should default stream to true when not provided", () => {
+    const raw = `---
+language: "en"
+name: "Test"
+model: "llama3"
+---
+prompt`;
+
+    const result = parseAgentFile(raw);
+    expect(result.config.stream).toBe(true);
+  });
+
+  it("should default model to empty string when model is empty and no fallback provided", () => {
     const raw = `---
 language: "en"
 name: "Test"
@@ -370,7 +407,8 @@ model: ""
 ---
 prompt`;
 
-    expect(() => parseAgentFile(raw)).toThrow("notices.modelRequired");
+    const result = parseAgentFile(raw);
+    expect(result.config.model).toBe("");
   });
 
   it("should throw when language is missing", () => {
