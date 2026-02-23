@@ -18,6 +18,7 @@ import { MessageRenderer } from "@app/utils/MessageRenderer";
 import { AgentSelectorModal, CREATE_AGENT_ID } from "@app/features/agents/AgentSelectorModal";
 import { AgentEditor } from "@app/features/agents/AgentEditor";
 import { t } from "@app/i18n";
+import { VIEW_TYPE_RAG } from "@app/features/rag/RAGView";
 import { ChatHistoryModal } from "@app/features/chat/ChatHistoryModal";
 import { Modal, Setting } from "obsidian";
 import { ChatHeader } from "@app/components/molecules/ChatHeader";
@@ -310,6 +311,20 @@ export class ChatView extends ItemView {
           this.renderMessages().catch((_e: Error) => {
             /* no-op */
           });
+        }
+      },
+      () => {
+        // Open RAG manager view
+        const { workspace } = this.app;
+        const existing = workspace.getLeavesOfType(VIEW_TYPE_RAG);
+        if (existing.length > 0) {
+          workspace.revealLeaf(existing[0]).catch(() => {});
+          return;
+        }
+        const leaf = workspace.getRightLeaf(false);
+        if (leaf) {
+          void leaf.setViewState({ type: VIEW_TYPE_RAG, active: true });
+          workspace.revealLeaf(leaf).catch(() => {});
         }
       },
     );

@@ -55,7 +55,7 @@ function resolveEmbeddingModel(agent: ParsedAgent, settings: PluginSettings): st
 }
 
 function resolveProvider(agent: ParsedAgent, settings: PluginSettings): string {
-  return agent.config.provider || settings.defaultEmbeddingProvider || "ollama";
+  return agent.config.rag_embedding_provider || settings.defaultEmbeddingProvider || "ollama";
 }
 
 function resolveTopK(agent: ParsedAgent): number {

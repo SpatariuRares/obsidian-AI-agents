@@ -29,6 +29,7 @@ export interface RAGViewHost {
 export class RAGView extends ItemView {
   private host: RAGViewHost;
   private selectedAgent: ParsedAgent | null = null;
+  private selectorRow!: HTMLElement;
   private statsEl!: HTMLElement;
   private progressEl!: HTMLElement;
   private progressBarFill!: HTMLElement;
@@ -69,21 +70,19 @@ export class RAGView extends ItemView {
     });
 
     // Agent selector
-    const selectorRow = container.createDiv({ cls: `${CLS}__selector` });
-    createText(selectorRow, { tag: "label", text: t("rag.selectAgent"), cls: `${CLS}__label` });
-
-    const ragAgents = this.getRAGAgents();
-    const options = ragAgents.map((a) => ({
-      value: a.id,
-      text: `${a.config.avatar || ""} ${a.config.name}`.trim(),
-    }));
-
-    createSelect(selectorRow, {
-      options,
-      placeholder: t("rag.selectAgentPlaceholder"),
-      cls: `${CLS}__select`,
-      onChange: (value) => this.onAgentSelected(value),
+    this.selectorRow = container.createDiv({ cls: `${CLS}__selector` });
+    createText(this.selectorRow, {
+      tag: "label",
+      text: t("rag.selectAgent"),
+      cls: `${CLS}__label`,
     });
+    this.refreshAgentList();
+
+    // Refresh agent list when agents change or layout is ready (scan finishes)
+    this.registerEvent(
+      this.app.workspace.on("ai-agents:update" as any, () => this.refreshAgentList()),
+    );
+    this.registerEvent(this.app.workspace.on("layout-ready" as any, () => this.refreshAgentList()));
 
     // Stats panel
     this.statsEl = container.createDiv({ cls: `${CLS}__stats` });
@@ -125,6 +124,26 @@ export class RAGView extends ItemView {
   // ---------------------------------------------------------------------------
   // Agent selection
   // ---------------------------------------------------------------------------
+
+  private refreshAgentList(): void {
+    // Remove old select element, keep the label
+    const oldSelect = this.selectorRow.querySelector("select");
+    if (oldSelect) oldSelect.remove();
+
+    const ragAgents = this.getRAGAgents();
+    const options = ragAgents.map((a) => ({
+      value: a.id,
+      text: `${a.config.avatar || ""} ${a.config.name}`.trim(),
+    }));
+
+    createSelect(this.selectorRow, {
+      options,
+      placeholder: t("rag.selectAgentPlaceholder"),
+      cls: `${CLS}__select`,
+      value: this.selectedAgent?.id,
+      onChange: (value) => this.onAgentSelected(value),
+    });
+  }
 
   private getRAGAgents(): ParsedAgent[] {
     return this.host.agentRegistry
@@ -301,7 +320,11 @@ export class RAGView extends ItemView {
     }
 
     for (const entry of index.entries) {
-      this.renderChunkItem(entry.metadata.headingPath, entry.metadata.filePath, entry.metadata.content);
+      this.renderChunkItem(
+        entry.metadata.headingPath,
+        entry.metadata.filePath,
+        entry.metadata.content,
+      );
     }
   }
 

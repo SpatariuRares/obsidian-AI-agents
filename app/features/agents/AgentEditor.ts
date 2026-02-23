@@ -29,6 +29,13 @@ const TOOL_PERMISSION_MAP: Record<string, keyof AgentConfig> = {
   delete_file: "delete",
 };
 
+/** Typed subset of Obsidian's ButtonComponent used by addButton. */
+interface ButtonApi {
+  setButtonText(text: string): ButtonApi;
+  setCta(): ButtonApi;
+  onClick(cb: () => void): ButtonApi;
+}
+
 export class AgentEditor {
   private app: App;
   private containerEl: HTMLElement;
@@ -37,6 +44,7 @@ export class AgentEditor {
 
   private onSave: (agentId: string) => void;
   private onCancel: () => void;
+  private onOpenRAGView?: () => void;
 
   private isEdit: boolean;
   private originalAgentId: string | null;
@@ -60,6 +68,7 @@ export class AgentEditor {
     agentToEdit: ParsedAgent | null,
     onSave: (agentId: string) => void,
     onCancel: () => void,
+    onOpenRAGView?: () => void,
   ) {
     this.app = app;
     this.containerEl = containerEl;
@@ -67,6 +76,7 @@ export class AgentEditor {
     this.settings = settings;
     this.onSave = onSave;
     this.onCancel = onCancel;
+    this.onOpenRAGView = onOpenRAGView;
 
     this.isEdit = agentToEdit !== null;
     this.originalAgentId = agentToEdit ? agentToEdit.id : null;
@@ -364,6 +374,23 @@ export class AgentEditor {
     new Setting(this.ragFieldsEl).setHeading().setName(t("editor.ragHeading"));
 
     new Setting(this.ragFieldsEl)
+      .setName(t("editor.ragEmbeddingProvider"))
+      .setDesc(t("editor.ragEmbeddingProviderDesc"))
+      .addDropdown((dropdown) => {
+        dropdown.addOptions({
+          "": t("editor.ragEmbeddingProviderDefault"),
+          // eslint-disable-next-line i18next/no-literal-string -- provider identifiers
+          ollama: "Ollama",
+          // eslint-disable-next-line i18next/no-literal-string -- provider identifiers
+          openrouter: "OpenRouter",
+        });
+        dropdown.setValue(this.config.rag_embedding_provider || "");
+        dropdown.onChange((value) => {
+          this.config.rag_embedding_provider = value || undefined;
+        });
+      });
+
+    new Setting(this.ragFieldsEl)
       .setName(t("editor.ragEmbeddingModel"))
       .setDesc(t("editor.ragEmbeddingModelDesc"))
       .addText((text) => {
@@ -399,6 +426,18 @@ export class AgentEditor {
             !isNaN(parsed) && parsed >= 0 && parsed <= 1 ? parsed : undefined;
         });
       });
+
+    if (this.onOpenRAGView) {
+      new Setting(this.ragFieldsEl)
+        .setName(t("editor.ragOpenManager"))
+        .setDesc(t("editor.ragOpenManagerDesc"))
+        .addButton((btn) =>
+          (btn as unknown as ButtonApi)
+            .setButtonText(t("editor.ragOpenManagerBtn"))
+            .setCta()
+            .onClick(() => this.onOpenRAGView?.()),
+        );
+    }
   }
 
   /**

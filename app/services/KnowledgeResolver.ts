@@ -33,9 +33,22 @@ export interface ResolvedFile {
 export function resolveGlobs(sources: string[], app: App): TFile[] {
   if (sources.length === 0) return [];
 
+  // Normalize sources: if a source matches an existing folder, treat it as folder/**
+  const normalizedSources = sources.map((s) => {
+    const trimmed = s.trim();
+    // If the source is a plain folder path (no glob chars), append /** to match all files inside
+    if (!trimmed.includes("*") && !trimmed.includes("?") && !trimmed.includes("{")) {
+      const folder = app.vault.getFolderByPath(trimmed);
+      if (folder) {
+        return `${trimmed}/**`;
+      }
+    }
+    return trimmed;
+  });
+
   const allFiles = app.vault.getFiles();
   const paths = allFiles.map((f) => f.path);
-  const matchedPaths = new Set(micromatch.match(paths, sources));
+  const matchedPaths = new Set(micromatch.match(paths, normalizedSources));
 
   return allFiles
     .filter((f) => matchedPaths.has(f.path))
