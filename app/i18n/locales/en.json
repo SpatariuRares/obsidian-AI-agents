@@ -57,6 +57,13 @@
       "maxFileOps": "Max file operations per message",
       "maxFileOpsDesc": "Rate limit: maximum file operations an agent can perform per message."
     },
+    "rag": {
+      "heading": "RAG (Retrieval-Augmented Generation)",
+      "defaultEmbeddingProvider": "Default embedding provider",
+      "defaultEmbeddingProviderDesc": "Provider used for generating embeddings when not specified in the agent configuration.",
+      "defaultEmbeddingModel": "Default embedding model",
+      "defaultEmbeddingModelDesc": "Model used for generating embeddings (e.g., nomic-embed-text for Ollama, openai/text-embedding-3-small for OpenRouter). Used as fallback when the agent does not specify one."
+    },
     "interface": {
       "heading": "Interface",
       "chatPosition": "Chat position",
@@ -155,6 +162,19 @@
     "maxContextTokens": "Max context tokens",
     "maxContextTokensYaml": "max_context_tokens",
     "strategy": "Injection strategy",
+    "ragHeading": "RAG configuration",
+    "ragEmbeddingProvider": "Embedding provider",
+    "ragEmbeddingProviderDesc": "Provider used for generating embeddings. Leave empty to use the default from plugin settings.",
+    "ragEmbeddingProviderDefault": "Use default",
+    "ragEmbeddingModel": "Embedding model",
+    "ragEmbeddingModelDesc": "Model used for generating embeddings (e.g., nomic-embed-text). Leave empty to use the default from plugin settings.",
+    "ragTopK": "Top K results",
+    "ragTopKDesc": "Number of most relevant chunks to retrieve per query (default: 5).",
+    "ragSimilarityThreshold": "Similarity threshold",
+    "ragSimilarityThresholdDesc": "Minimum cosine similarity score (0-1) for a chunk to be included (default: 0.7).",
+    "ragOpenManager": "RAG index manager",
+    "ragOpenManagerDesc": "Build, rebuild, or inspect the vector index for this agent.",
+    "ragOpenManagerBtn": "Open RAG manager",
     "toolsHeading": "Tools",
     "tools": "Enabled Tools",
     "toolsDesc": "Select which tools this agent is allowed to use.",
@@ -216,6 +236,27 @@
     "aiAgentErrorNoTools": "The selected AI model does not support tools. Please change the model in the agent settings (e.g., to llama3.1 or qwen2.5-coder).",
     "mockDataFailed": "Failed to generate mock data: {message}"
   },
+  "rag": {
+    "viewTitle": "RAG index manager",
+    "selectAgent": "Agent",
+    "selectAgentPlaceholder": "Select a RAG agent...",
+    "selectAgentFirst": "Select an agent to view its RAG index.",
+    "noStats": "No index loaded.",
+    "noChunks": "No chunks indexed yet. Build the index first.",
+    "statsChunks": "Chunks",
+    "statsFiles": "Files",
+    "statsModel": "Embedding model",
+    "statsLastIndexed": "Last indexed",
+    "statsSize": "Index size",
+    "buildIndex": "Build index",
+    "rebuildIndex": "Rebuild",
+    "clearIndex": "Clear",
+    "chunkBrowser": "Indexed chunks",
+    "filterPlaceholder": "Filter chunks...",
+    "indexComplete": "Index built: {chunks} chunks from {files} files.",
+    "indexFailed": "Index build failed: {message}",
+    "indexCleared": "RAG index cleared."
+  },
   "templateEngine": {
     "readDenied": "[READ denied: {path} is not in read or sources]",
     "readFailed": "[READ failed: {path} not found]"
@@ -245,5 +286,11 @@
     "noResults": "No results",
     "tagCount": "{count} notes"
   },
-  "commands": {}
+  "commands": {
+    "rag_manager": "Open RAG index manager",
+    "open_chat": "Open agent chat",
+    "open_agent_sidebar": "Open agent list sidebar",
+    "open_tool_test": "Open tool test view",
+    "reload_agents": "Reload agents"
+  }
 }

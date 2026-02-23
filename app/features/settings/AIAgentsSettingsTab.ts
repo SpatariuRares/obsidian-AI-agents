@@ -252,6 +252,41 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       );
 
     // =======================================================================
+    // SECTION: RAG
+    // =======================================================================
+    new Setting(containerEl).setHeading().setName(t("settings.rag.heading"));
+
+    new Setting(containerEl)
+      .setName(t("settings.rag.defaultEmbeddingProvider"))
+      .setDesc(t("settings.rag.defaultEmbeddingProviderDesc"))
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOptions({
+            ollama: t("settings.providers.providerOllama"),
+            openrouter: t("settings.providers.providerOpenRouter"),
+          })
+          .setValue(this.plugin.settings.defaultEmbeddingProvider)
+          .onChange(async (value) => {
+            this.plugin.settings.defaultEmbeddingProvider = value as "ollama" | "openrouter";
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName(t("settings.rag.defaultEmbeddingModel"))
+      .setDesc(t("settings.rag.defaultEmbeddingModelDesc"))
+      .addText((text) =>
+        text
+          // eslint-disable-next-line i18next/no-literal-string, obsidianmd/ui/sentence-case -- model identifier
+          .setPlaceholder("nomic-embed-text")
+          .setValue(this.plugin.settings.defaultEmbeddingModel)
+          .onChange(async (value) => {
+            this.plugin.settings.defaultEmbeddingModel = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    // =======================================================================
     // SECTION: Interface
     // =======================================================================
     new Setting(containerEl).setHeading().setName(t("settings.interface.heading"));

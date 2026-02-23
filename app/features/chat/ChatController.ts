@@ -2,7 +2,8 @@ import { App, Notice, TFile } from "obsidian";
 import { ChatManager } from "@app/services/ChatManager";
 import { ApiRouter } from "@app/services/ApiRouter";
 import { ToolHandler } from "@app/services/ToolHandler";
-import { ParsedAgent, ChatMessage, TokenUsage } from "@app/types/AgentTypes";
+import { ParsedAgent, ChatMessage, TokenUsage, AgentStrategy } from "@app/types/AgentTypes";
+import * as RAGPipeline from "@app/services/RAGPipeline";
 import { t } from "@app/i18n";
 
 export interface ChatControllerOptions {
@@ -40,12 +41,33 @@ export class ChatController {
     if (!text) return;
     if (!this.chatManager.hasActiveSession()) return;
 
-    const messageWithContext = await this.injectFileReferences(text);
-    this.chatManager.addMessage("user", messageWithContext);
-    await this.onRenderMessages();
-
     const activeAgent = this.chatManager.getActiveAgent();
     if (!activeAgent) return;
+
+    // Inject referenced file contents for @path/to/file.md mentions
+    let messageWithContext = await this.injectFileReferences(text);
+
+    // RAG context injection: use the original text for semantic search,
+    // then prepend retrieved context to the full message
+    if (activeAgent.config.strategy === AgentStrategy.RAG) {
+      try {
+        const ragContext = await RAGPipeline.query(
+          text,
+          activeAgent,
+          this.chatManager.getSettings(),
+          this.app,
+        );
+        if (ragContext) {
+          // eslint-disable-next-line i18next/no-literal-string
+          messageWithContext = `[Relevant knowledge from vault]\n${ragContext}\n\n${messageWithContext}`;
+        }
+      } catch {
+        // RAG query failed — continue without context
+      }
+    }
+
+    this.chatManager.addMessage("user", messageWithContext);
+    await this.onRenderMessages();
 
     const msgs = this.chatManager.getMessages();
     const initialUserMsg = msgs[msgs.length - 1];
@@ -84,8 +106,8 @@ export class ChatController {
 
     await this.onRenderMessages();
 
-    const msgs = this.chatManager.getMessages();
-    const initialUserMsg = msgs[msgs.length - 1];
+    const msgs2 = this.chatManager.getMessages();
+    const initialUserMsg = msgs2[msgs2.length - 1];
     await this._executeGeneration(activeAgent, initialUserMsg);
   }
 

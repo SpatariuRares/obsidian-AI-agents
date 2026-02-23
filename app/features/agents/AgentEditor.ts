@@ -29,6 +29,13 @@ const TOOL_PERMISSION_MAP: Record<string, keyof AgentConfig> = {
   delete_file: "delete",
 };
 
+/** Typed subset of Obsidian's ButtonComponent used by addButton. */
+interface ButtonApi {
+  setButtonText(text: string): ButtonApi;
+  setCta(): ButtonApi;
+  onClick(cb: () => void): ButtonApi;
+}
+
 export class AgentEditor {
   private app: App;
   private containerEl: HTMLElement;
@@ -37,6 +44,7 @@ export class AgentEditor {
 
   private onSave: (agentId: string) => void;
   private onCancel: () => void;
+  private onOpenRAGView?: () => void;
 
   private isEdit: boolean;
   private originalAgentId: string | null;
@@ -49,6 +57,9 @@ export class AgentEditor {
   /** Container for dynamically rendered tool-specific permission fields */
   private permissionFieldsEl: HTMLElement | null = null;
 
+  /** Container for RAG-specific configuration fields */
+  private ragFieldsEl: HTMLElement | null = null;
+
   constructor(
     app: App,
     containerEl: HTMLElement,
@@ -57,6 +68,7 @@ export class AgentEditor {
     agentToEdit: ParsedAgent | null,
     onSave: (agentId: string) => void,
     onCancel: () => void,
+    onOpenRAGView?: () => void,
   ) {
     this.app = app;
     this.containerEl = containerEl;
@@ -64,6 +76,7 @@ export class AgentEditor {
     this.settings = settings;
     this.onSave = onSave;
     this.onCancel = onCancel;
+    this.onOpenRAGView = onOpenRAGView;
 
     this.isEdit = agentToEdit !== null;
     this.originalAgentId = agentToEdit ? agentToEdit.id : null;
@@ -225,12 +238,18 @@ export class AgentEditor {
     new Setting(formContainer).setName(t("editor.strategy")).addDropdown((dropdown) => {
       dropdown.addOptions({
         inject_all: AgentStrategy.INJECT_ALL,
+        RAG: AgentStrategy.RAG,
       });
       dropdown.setValue(this.config.strategy || CONSTANTS.DEFAULT_AGENT_STRATEGY);
       dropdown.onChange((value) => {
         this.config.strategy = value as AgentStrategy;
+        this.renderRAGFields();
       });
     });
+
+    // --- RAG CONFIG (conditional) ---
+    this.ragFieldsEl = formContainer.createDiv();
+    this.renderRAGFields();
 
     // --- KNOWLEDGE ---
     new Setting(formContainer).setHeading().setName(t("editor.permissionsHeading"));
@@ -340,6 +359,85 @@ export class AgentEditor {
       ],
       cls: "ai-agents-chat__editor-actions",
     });
+  }
+
+  /**
+   * Renders RAG-specific configuration fields (embedding model, top-k, threshold).
+   * Only visible when strategy is RAG.
+   */
+  private renderRAGFields(): void {
+    if (!this.ragFieldsEl) return;
+    this.ragFieldsEl.empty();
+
+    if (this.config.strategy !== AgentStrategy.RAG) return;
+
+    new Setting(this.ragFieldsEl).setHeading().setName(t("editor.ragHeading"));
+
+    new Setting(this.ragFieldsEl)
+      .setName(t("editor.ragEmbeddingProvider"))
+      .setDesc(t("editor.ragEmbeddingProviderDesc"))
+      .addDropdown((dropdown) => {
+        dropdown.addOptions({
+          "": t("editor.ragEmbeddingProviderDefault"),
+          // eslint-disable-next-line i18next/no-literal-string -- provider identifiers
+          ollama: "Ollama",
+          // eslint-disable-next-line i18next/no-literal-string -- provider identifiers
+          openrouter: "OpenRouter",
+        });
+        dropdown.setValue(this.config.rag_embedding_provider || "");
+        dropdown.onChange((value) => {
+          this.config.rag_embedding_provider = value || undefined;
+        });
+      });
+
+    new Setting(this.ragFieldsEl)
+      .setName(t("editor.ragEmbeddingModel"))
+      .setDesc(t("editor.ragEmbeddingModelDesc"))
+      .addText((text) => {
+        // eslint-disable-next-line i18next/no-literal-string, obsidianmd/ui/sentence-case -- model identifier
+        text.setPlaceholder("nomic-embed-text");
+        text.setValue(this.config.rag_embedding_model || "");
+        text.onChange((value) => {
+          this.config.rag_embedding_model = value || undefined;
+        });
+      });
+
+    new Setting(this.ragFieldsEl)
+      .setName(t("editor.ragTopK"))
+      .setDesc(t("editor.ragTopKDesc"))
+      .addText((text) => {
+        text.setPlaceholder("5");
+        text.setValue(this.config.rag_top_k?.toString() || "");
+        text.onChange((value) => {
+          const parsed = parseInt(value, 10);
+          this.config.rag_top_k = !isNaN(parsed) && parsed > 0 ? parsed : undefined;
+        });
+      });
+
+    new Setting(this.ragFieldsEl)
+      .setName(t("editor.ragSimilarityThreshold"))
+      .setDesc(t("editor.ragSimilarityThresholdDesc"))
+      .addText((text) => {
+        text.setPlaceholder("0.7");
+        text.setValue(this.config.rag_similarity_threshold?.toString() || "");
+        text.onChange((value) => {
+          const parsed = parseFloat(value);
+          this.config.rag_similarity_threshold =
+            !isNaN(parsed) && parsed >= 0 && parsed <= 1 ? parsed : undefined;
+        });
+      });
+
+    if (this.onOpenRAGView) {
+      new Setting(this.ragFieldsEl)
+        .setName(t("editor.ragOpenManager"))
+        .setDesc(t("editor.ragOpenManagerDesc"))
+        .addButton((btn) =>
+          (btn as unknown as ButtonApi)
+            .setButtonText(t("editor.ragOpenManagerBtn"))
+            .setCta()
+            .onClick(() => this.onOpenRAGView?.()),
+        );
+    }
   }
 
   /**

@@ -10,11 +10,12 @@ import { AIAgentsSettingsTab } from "@app/features/settings/AIAgentsSettingsTab"
 import { AgentRegistry } from "@app/services/AgentRegistry";
 import { ChatManager } from "@app/services/ChatManager";
 import { ChatView, VIEW_TYPE_CHAT } from "@app/features/chat/ChatView";
-import { LocalizationService } from "@app/i18n";
+import { LocalizationService, t } from "@app/i18n";
 import { AIAgentsStatusBar } from "@app/features/agents/AIAgentsStatusBar";
 import { AgentSidebar, VIEW_TYPE_AGENT_SIDEBAR } from "@app/features/agents/AgentSidebar";
 import { TFile } from "obsidian";
 import { ToolTestView, VIEW_TYPE_TOOL_TEST } from "@app/features/tools/ToolTestView";
+import { RAGView, VIEW_TYPE_RAG } from "@app/features/rag/RAGView";
 
 export default class AIAgentsPlugin extends Plugin {
   settings!: PluginSettings;
@@ -62,9 +63,16 @@ export default class AIAgentsPlugin extends Plugin {
     );
 
     // Tool test view
+    this.registerView(VIEW_TYPE_TOOL_TEST, (leaf) => new ToolTestView(leaf));
+
+    // RAG management view
     this.registerView(
-      VIEW_TYPE_TOOL_TEST,
-      (leaf) => new ToolTestView(leaf),
+      VIEW_TYPE_RAG,
+      (leaf) =>
+        new RAGView(leaf, {
+          agentRegistry: this.agentRegistry,
+          settings: () => this.settings,
+        }),
     );
 
     // Hot reload agents on file modification
@@ -111,7 +119,7 @@ export default class AIAgentsPlugin extends Plugin {
     // Commands
     this.addCommand({
       id: "open-chat",
-      name: "Open agent chat",
+      name: t("commands.open_chat"),
       callback: () => {
         this.activateChatView().catch(() => {
           /* no-op */
@@ -121,7 +129,7 @@ export default class AIAgentsPlugin extends Plugin {
 
     this.addCommand({
       id: "open-agent-sidebar",
-      name: "Open agent list sidebar",
+      name: t("commands.open_agent_sidebar"),
       callback: () => {
         this.activateSidebarView().catch(() => {
           /* no-op */
@@ -131,7 +139,7 @@ export default class AIAgentsPlugin extends Plugin {
 
     this.addCommand({
       id: "open-tool-test",
-      name: "Open tool test view",
+      name: t("commands.open_tool_test"),
       callback: () => {
         this.activateToolTestView().catch(() => {
           /* no-op */
@@ -140,8 +148,18 @@ export default class AIAgentsPlugin extends Plugin {
     });
 
     this.addCommand({
+      id: "open-rag-manager",
+      name: t("commands.rag_manager"),
+      callback: () => {
+        this.activateRAGView().catch(() => {
+          /* no-op */
+        });
+      },
+    });
+
+    this.addCommand({
       id: "reload-agents",
-      name: "Reload agents",
+      name: t("commands.reload_agents"),
       callback: async () => {
         await this.agentRegistry.scan(this.settings.agentsFolder);
       },
@@ -211,6 +229,25 @@ export default class AIAgentsPlugin extends Plugin {
     const leaf = this.app.workspace.getRightLeaf(false);
     if (leaf) {
       await leaf.setViewState({ type: VIEW_TYPE_TOOL_TEST, active: true });
+      this.app.workspace.revealLeaf(leaf).catch(() => {
+        /* no-op */
+      });
+    }
+  }
+
+  async activateRAGView(): Promise<void> {
+    const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_RAG);
+
+    if (existing.length > 0) {
+      this.app.workspace.revealLeaf(existing[0]).catch(() => {
+        /* no-op */
+      });
+      return;
+    }
+
+    const leaf = this.app.workspace.getRightLeaf(false);
+    if (leaf) {
+      await leaf.setViewState({ type: VIEW_TYPE_RAG, active: true });
       this.app.workspace.revealLeaf(leaf).catch(() => {
         /* no-op */
       });

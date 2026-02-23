@@ -12,7 +12,8 @@ import { resolveGlobs, loadKnowledgeContent, wrapBlock } from "@app/services/Kno
 // ---------------------------------------------------------------------------
 
 function makeFile(path: string, mtime = 0): TFile {
-  const f = new TFile(path);
+  const f = new TFile();
+  f.path = path;
   f.stat.mtime = mtime;
   return f;
 }
@@ -21,6 +22,7 @@ function makeApp(files: TFile[], contents: Map<string, string>): App {
   const app = new App();
   app.vault.getFiles = jest.fn().mockReturnValue(files);
   app.vault.read = jest.fn(async (file: TFile) => contents.get(file.path) ?? "");
+  app.vault.getFolderByPath = jest.fn().mockReturnValue(null);
   return app;
 }
 

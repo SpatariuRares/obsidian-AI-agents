@@ -53,6 +53,12 @@ export interface AgentConfig {
   vault_root_access: boolean;
   confirm_destructive: boolean;
   memory: boolean;
+
+  // --- RAG (optional, used when strategy === RAG) ---
+  rag_embedding_provider?: string;
+  rag_embedding_model?: string;
+  rag_top_k?: number;
+  rag_similarity_threshold?: number;
 }
 
 // ---------------------------------------------------------------------------

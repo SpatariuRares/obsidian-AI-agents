@@ -35,6 +35,11 @@ export interface PluginSettings {
 
   // --- Behaviour ---
   defaultModel: string;
+
+  // --- RAG defaults ---
+  defaultEmbeddingProvider: "ollama" | "openrouter";
+  defaultEmbeddingModel: string;
+
   maxHistoryMessages: number;
   autoSaveInterval: number;
   confirmDestructiveOps: boolean;
@@ -64,6 +69,8 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   userName: "",
 
   defaultModel: "",
+  defaultEmbeddingProvider: "ollama",
+  defaultEmbeddingModel: "nomic-embed-text",
   maxHistoryMessages: 50,
   autoSaveInterval: 30,
   confirmDestructiveOps: true,

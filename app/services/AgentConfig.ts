@@ -68,6 +68,10 @@ export const DEFAULT_CONFIG: AgentConfig = {
   confirm_destructive: true,
   memory: false,
   stream: true,
+  rag_embedding_provider: undefined,
+  rag_embedding_model: undefined,
+  rag_top_k: undefined,
+  rag_similarity_threshold: undefined,
 };
 
 // ---------------------------------------------------------------------------
@@ -164,6 +168,10 @@ function normalizeYamlKeys(
     vaultRootAccess: "vault_root_access",
     confirmDestructive: "confirm_destructive",
     enableMemory: "memory",
+    ragEmbeddingProvider: "rag_embedding_provider",
+    ragEmbeddingModel: "rag_embedding_model",
+    ragTopK: "rag_top_k",
+    ragSimilarityThreshold: "rag_similarity_threshold",
   };
 
   // Create a reverse mapping: lowercase(translatedString) -> standard Internal Key
@@ -271,6 +279,16 @@ export function parseAgentFile(raw: string, defaults?: AgentParseDefaults): Agen
     vault_root_access: parseBool(parsed.vault_root_access, DEFAULT_CONFIG.vault_root_access),
     confirm_destructive: parseBool(parsed.confirm_destructive, DEFAULT_CONFIG.confirm_destructive),
     memory: parseBool(parsed.memory, DEFAULT_CONFIG.memory),
+    rag_embedding_provider:
+      typeof parsed.rag_embedding_provider === "string" ? parsed.rag_embedding_provider : undefined,
+    rag_embedding_model:
+      typeof parsed.rag_embedding_model === "string" ? parsed.rag_embedding_model : undefined,
+    rag_top_k:
+      typeof parsed.rag_top_k === "number" ? parsed.rag_top_k : undefined,
+    rag_similarity_threshold:
+      typeof parsed.rag_similarity_threshold === "number"
+        ? parsed.rag_similarity_threshold
+        : undefined,
   };
 
   return { config, promptTemplate: body };
