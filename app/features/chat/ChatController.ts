@@ -9,6 +9,8 @@ export interface ChatControllerOptions {
   chatManager: ChatManager;
   onRenderMessages: () => Promise<void>;
   onUpdateLastMessage: () => Promise<void>;
+  onShowTypingIndicator?: (agentName?: string) => void;
+  onHideTypingIndicator?: () => void;
 }
 
 export class ChatController {
@@ -16,6 +18,8 @@ export class ChatController {
   private chatManager: ChatManager;
   private onRenderMessages: () => Promise<void>;
   private onUpdateLastMessage: () => Promise<void>;
+  private onShowTypingIndicator: ((agentName?: string) => void) | undefined;
+  private onHideTypingIndicator: (() => void) | undefined;
   private currentAbortController: AbortController | null = null;
 
   constructor(options: ChatControllerOptions) {
@@ -23,6 +27,8 @@ export class ChatController {
     this.chatManager = options.chatManager;
     this.onRenderMessages = options.onRenderMessages;
     this.onUpdateLastMessage = options.onUpdateLastMessage;
+    this.onShowTypingIndicator = options.onShowTypingIndicator;
+    this.onHideTypingIndicator = options.onHideTypingIndicator;
   }
 
   public async handleUserMessage(text: string): Promise<void> {
@@ -51,14 +57,25 @@ export class ChatController {
 
         let response;
         if (activeAgent.config.stream) {
+          this.onShowTypingIndicator?.(activeAgent.config.name);
           this.chatManager.addMessage("assistant", "");
-          await this.onRenderMessages();
 
+          let firstChunk = true;
           response = await ApiRouter.send(
             messagesForApi,
             activeAgent.config,
             this.chatManager.getSettings(),
             async (chunk: string) => {
+              if (firstChunk) {
+                firstChunk = false;
+                // Hide the dots, append the first chunk, then do a full
+                // render to create the real assistant bubble in the DOM.
+                this.onHideTypingIndicator?.();
+                this.chatManager.appendChunkToLastMessage(chunk);
+                await this.onRenderMessages();
+                return;
+              }
+              // Subsequent chunks: faster incremental patch
               this.chatManager.appendChunkToLastMessage(chunk);
               await this.onUpdateLastMessage();
             },
@@ -122,11 +139,14 @@ export class ChatController {
 
       await this.chatManager.logTurn(initialUserMsg, asstMsg, usageResponse);
     } catch (error: unknown) {
+      // Always hide the typing indicator on any error or abort path.
+      this.onHideTypingIndicator?.();
+
       if (
         error instanceof DOMException &&
         (error.name === "AbortError" || error.message.includes("aborted"))
       ) {
-        new Notice(t("notices.aiAgentGenerationStopped"), 3000); // Wait, better to let user see partial message without error notice. We might need a translation key or just ignore Notice. Let's just break cleanly or log it.
+        new Notice(t("notices.aiAgentGenerationStopped"), 3000);
         await this.onRenderMessages();
       } else {
         const errMessage = error instanceof Error ? error.message : String(error);
