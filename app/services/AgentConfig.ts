@@ -15,12 +15,19 @@ import { AgentConfig, AgentStrategy, AgentType } from "@app/types/AgentTypes";
 import { t } from "@app/i18n";
 
 // ---------------------------------------------------------------------------
-// Parse result
+// Parse result & defaults
 // ---------------------------------------------------------------------------
 
 export interface AgentParseResult {
   config: AgentConfig;
   promptTemplate: string;
+}
+
+/** Fallback values from plugin settings, used when frontmatter omits a field. */
+export interface AgentParseDefaults {
+  model?: string;
+  provider?: string;
+  userName?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -51,7 +58,7 @@ export const DEFAULT_CONFIG: AgentConfig = {
   sources: [],
   strategy: AgentStrategy.INJECT_ALL,
   max_context_tokens: 4000,
-  tools: ["*"],
+  tools: [],
   read: [],
   write: [],
   create: [],
@@ -60,7 +67,7 @@ export const DEFAULT_CONFIG: AgentConfig = {
   vault_root_access: false,
   confirm_destructive: true,
   memory: false,
-  stream: false,
+  stream: true,
 };
 
 // ---------------------------------------------------------------------------
@@ -192,13 +199,11 @@ function normalizeYamlKeys(
 /**
  * Parse an agent.md file content into a typed AgentConfig + prompt template.
  *
- * Validates required fields:
- *  - name (string)
- *  - model (string)
- *
- * All other fields are filled with defaults from DEFAULT_CONFIG.
+ * Required fields: name.
+ * All other fields fall back first to plugin settings (via `defaults`),
+ * then to DEFAULT_CONFIG.
  */
-export function parseAgentFile(raw: string, fallbackModel?: string): AgentParseResult {
+export function parseAgentFile(raw: string, defaults?: AgentParseDefaults): AgentParseResult {
   const { yaml, body } = splitFrontmatter(raw);
   const rawParsed = parseYaml(yaml) as Record<string, unknown>;
 
@@ -218,24 +223,35 @@ export function parseAgentFile(raw: string, fallbackModel?: string): AgentParseR
     throw new AgentConfigError("name is required and must be a non-empty string");
   }
 
-  // --- model (required or fallback) ---
+  // --- model (frontmatter → settings default → empty) ---
   const model =
-    typeof parsed.model === "string" && parsed.model.trim() ? parsed.model.trim() : fallbackModel;
-  if (!model) {
-    throw new AgentConfigError(t("notices.modelRequired"));
-  }
+    typeof parsed.model === "string" && parsed.model.trim()
+      ? parsed.model.trim()
+      : (defaults?.model ?? "");
+
+  // --- provider (frontmatter → settings default → DEFAULT_CONFIG) ---
+  const provider =
+    typeof parsed.provider === "string" && parsed.provider.trim()
+      ? parsed.provider
+      : (defaults?.provider ?? DEFAULT_CONFIG.provider);
+
+  // --- author (frontmatter → settings userName → empty) ---
+  const author =
+    typeof parsed.author === "string" && parsed.author.trim()
+      ? parsed.author
+      : (defaults?.userName ?? DEFAULT_CONFIG.author);
 
   const config: AgentConfig = {
     language: language.trim(),
     name: name,
     description:
       typeof parsed.description === "string" ? parsed.description : DEFAULT_CONFIG.description,
-    author: typeof parsed.author === "string" ? parsed.author : DEFAULT_CONFIG.author,
+    author,
     avatar: typeof parsed.avatar === "string" ? parsed.avatar : DEFAULT_CONFIG.avatar,
     enabled: parseBool(parsed.enabled, DEFAULT_CONFIG.enabled),
     type: typeof parsed.type === "string" ? (parsed.type as AgentType) : DEFAULT_CONFIG.type,
-    provider: typeof parsed.provider === "string" ? parsed.provider : DEFAULT_CONFIG.provider,
-    model: model,
+    provider,
+    model,
     sources: Array.isArray(parsed.sources) ? parsed.sources : DEFAULT_CONFIG.sources,
     strategy:
       typeof parsed.strategy === "string"
@@ -245,7 +261,7 @@ export function parseAgentFile(raw: string, fallbackModel?: string): AgentParseR
       typeof parsed.max_context_tokens === "number"
         ? parsed.max_context_tokens
         : DEFAULT_CONFIG.max_context_tokens,
-    stream: parseBool(parsed.stream, false),
+    stream: parseBool(parsed.stream, DEFAULT_CONFIG.stream),
     tools: Array.isArray(parsed.tools) ? parsed.tools : DEFAULT_CONFIG.tools,
     read: Array.isArray(parsed.read) ? parsed.read : DEFAULT_CONFIG.read,
     write: Array.isArray(parsed.write) ? parsed.write : DEFAULT_CONFIG.write,
