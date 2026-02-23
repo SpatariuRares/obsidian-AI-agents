@@ -373,8 +373,9 @@ export class ChatView extends ItemView {
 
     const messages = this.host.chatManager.getVisibleMessages();
 
-    for (const msg of messages) {
-      await this.renderMessage(msg);
+    for (let i = 0; i < messages.length; i++) {
+      const isLast = i === messages.length - 1;
+      await this.renderMessage(messages[i], i, isLast);
     }
 
     // Scroll to bottom
@@ -393,14 +394,15 @@ export class ChatView extends ItemView {
       if (messages.length === 0) return;
 
       const lastMsg = messages[messages.length - 1];
-      const lastBubble = this.messageListEl.lastElementChild;
+      // The last DOM child is now a __message-row wrapper, not the bubble itself.
+      const lastRow = this.messageListEl.lastElementChild;
 
-      if (!lastBubble || !lastBubble.classList.contains("ai-agents-chat__message--assistant")) {
+      if (!lastRow || !lastRow.classList.contains("ai-agents-chat__message-row--assistant")) {
         await this.renderMessages();
         return;
       }
 
-      const contentEl = lastBubble.querySelector(".ai-agents-chat__message-content") as HTMLElement;
+      const contentEl = lastRow.querySelector(".ai-agents-chat__message-content") as HTMLElement;
       if (contentEl) {
         contentEl.empty();
         await MessageRenderer.render(this.app, lastMsg.content, contentEl, "", this);
@@ -417,19 +419,14 @@ export class ChatView extends ItemView {
     }
   }
 
-  private async renderMessage(msg: ChatMessage): Promise<void> {
+  private async renderMessage(
+    msg: ChatMessage,
+    msgIndex: number,
+    isLast: boolean,
+  ): Promise<void> {
     const agent = this.host.chatManager.getActiveAgent();
-
-    // Create a temporary container to await the render if needed, or we can just
-    // let ChatMessageBubble render synchronously/asynchronously.
-    // However, the original code awaited MessageRenderer.render.
-    // To keep it simple, we just instantiate the bubble. It handles its own async render.
-    // BUT we might need to await it so that scrolling happens AFTER render.
-    // Instead of refactoring the whole async flow of the bubble right now,
-    // let's adjust ChatMessageBubble to expose an async create method, or just await a promise.
-    // Wait, since ChatMessageBubble's constructor calls an async method without awaiting,
-    // it will append to DOM immediately but MessageRenderer (which is async) will finish later.
-    // Let's create an async static method `render` on ChatMessageBubble instead.
+    const canRegenerate = isLast && msg.role === "assistant";
+    const canEdit = msg.role === "user";
 
     await ChatMessageBubble.render({
       app: this.app,
@@ -438,6 +435,24 @@ export class ChatView extends ItemView {
       agentName: agent?.config.name,
       component: this,
       findToolCallArgs: (id: string | undefined) => this.findToolCallArgs(id),
+      msgIndex,
+      isLast,
+      onRegenerate: canRegenerate
+        ? () => {
+          this.inputArea.setGenerating(true);
+          this.chatController
+            .regenerateLastResponse()
+            .finally(() => this.inputArea.setGenerating(false));
+        }
+        : undefined,
+      onEdit: canEdit
+        ? (visibleIndex: number, newContent: string) => {
+          this.inputArea.setGenerating(true);
+          this.chatController
+            .editAndResend(visibleIndex, newContent)
+            .finally(() => this.inputArea.setGenerating(false));
+        }
+        : undefined,
     });
   }
 

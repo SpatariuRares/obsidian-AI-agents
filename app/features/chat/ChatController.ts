@@ -2,6 +2,7 @@ import { App, Notice, TFile } from "obsidian";
 import { ChatManager } from "@app/services/ChatManager";
 import { ApiRouter } from "@app/services/ApiRouter";
 import { ToolHandler } from "@app/services/ToolHandler";
+import { ParsedAgent, ChatMessage, TokenUsage } from "@app/types/AgentTypes";
 import { t } from "@app/i18n";
 
 export interface ChatControllerOptions {
@@ -31,24 +32,97 @@ export class ChatController {
     this.onHideTypingIndicator = options.onHideTypingIndicator;
   }
 
+  // ---------------------------------------------------------------------------
+  // Public API
+  // ---------------------------------------------------------------------------
+
   public async handleUserMessage(text: string): Promise<void> {
     if (!text) return;
     if (!this.chatManager.hasActiveSession()) return;
 
-    // Inject referenced file contents for @path/to/file.md mentions
     const messageWithContext = await this.injectFileReferences(text);
-
     this.chatManager.addMessage("user", messageWithContext);
     await this.onRenderMessages();
 
     const activeAgent = this.chatManager.getActiveAgent();
     if (!activeAgent) return;
 
+    const msgs = this.chatManager.getMessages();
+    const initialUserMsg = msgs[msgs.length - 1];
+    await this._executeGeneration(activeAgent, initialUserMsg);
+  }
+
+  public abortGeneration(): void {
+    if (this.currentAbortController) {
+      this.currentAbortController.abort();
+      this.currentAbortController = null;
+    }
+  }
+
+  /**
+   * Removes the last assistant reply (and any trailing tool messages) from
+   * history, then re-runs generation from the last user message.
+   */
+  public async regenerateLastResponse(): Promise<void> {
+    const messages = this.chatManager.getMessages();
+
+    let lastUserIdx = -1;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "user") {
+        lastUserIdx = i;
+        break;
+      }
+    }
+
+    // Nothing to regenerate if no user message or nothing after it.
+    if (lastUserIdx === -1 || lastUserIdx === messages.length - 1) return;
+
+    this.chatManager.truncateHistory(lastUserIdx + 1);
+
+    const activeAgent = this.chatManager.getActiveAgent();
+    if (!activeAgent) return;
+
+    await this.onRenderMessages();
+
+    const msgs = this.chatManager.getMessages();
+    const initialUserMsg = msgs[msgs.length - 1];
+    await this._executeGeneration(activeAgent, initialUserMsg);
+  }
+
+  /**
+   * Updates the content of a visible user message at `visibleIndex`,
+   * truncates everything that came after it, then re-runs generation.
+   */
+  public async editAndResend(visibleIndex: number, newContent: string): Promise<void> {
+    this.chatManager.updateVisibleMessageContent(visibleIndex, newContent);
+    this.chatManager.truncateHistoryAfterVisible(visibleIndex);
+
+    const activeAgent = this.chatManager.getActiveAgent();
+    if (!activeAgent) return;
+
+    await this.onRenderMessages();
+
+    const msgs = this.chatManager.getMessages();
+    const initialUserMsg = msgs[msgs.length - 1];
+    await this._executeGeneration(activeAgent, initialUserMsg);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private: core generation loop (shared by all public methods above)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Runs the streaming/non-streaming generation loop (including tool calls)
+   * for the given agent, starting from the current chatManager state.
+   * `initialUserMsg` is stored for logging purposes at the end.
+   */
+  private async _executeGeneration(
+    activeAgent: ParsedAgent,
+    initialUserMsg: ChatMessage,
+  ): Promise<void> {
     try {
       let isToolLoop = true;
-      let usageResponse;
-      const initialUserMsg =
-        this.chatManager.getMessages()[this.chatManager.getMessages().length - 1];
+      let usageResponse: TokenUsage | undefined;
 
       this.currentAbortController = new AbortController();
 
@@ -68,8 +142,7 @@ export class ChatController {
             async (chunk: string) => {
               if (firstChunk) {
                 firstChunk = false;
-                // Hide the dots, append the first chunk, then do a full
-                // render to create the real assistant bubble in the DOM.
+                // Hide dots, append first chunk, do a full render to create the bubble.
                 this.onHideTypingIndicator?.();
                 this.chatManager.appendChunkToLastMessage(chunk);
                 await this.onRenderMessages();
@@ -96,21 +169,18 @@ export class ChatController {
         usageResponse = response?.usage;
 
         if (response.tool_calls && response.tool_calls.length > 0) {
-          // If we streamed, the assistant message is already there but empty text.
-          // If not streamed, we added it above with text.
-          // Let's ensure the assistant message actually reflects the tool_calls for future requests.
+          // Attach tool_calls to the last assistant message for future requests.
           const msgs = this.chatManager.getMessages();
           const lastMsg = msgs[msgs.length - 1];
           lastMsg.tool_calls = response.tool_calls;
 
-          // Process tool calls
           for (const call of response.tool_calls) {
             const toolName = call.function.name;
             let args = {};
             try {
               args = JSON.parse(call.function.arguments);
             } catch {
-              // console.warn("[ChatView] Failed to parse tool arguments:", call.function.arguments);
+              // ignore parse errors
             }
 
             const toolResult = await ToolHandler.executeTool(
@@ -120,15 +190,13 @@ export class ChatController {
               args,
             );
 
-            // Add tool response to history
             this.chatManager.addMessage("tool", JSON.stringify(toolResult), {
               name: toolName,
               tool_call_id: call.id,
             });
           }
           await this.onRenderMessages();
-
-          // Loop continues to send tool results back to LLM...
+          // Loop continues so tool results go back to the LLM.
         } else {
           isToolLoop = false;
         }
@@ -136,10 +204,8 @@ export class ChatController {
 
       const visibleMsgs = this.chatManager.getVisibleMessages();
       const asstMsg = visibleMsgs[visibleMsgs.length - 1];
-
       await this.chatManager.logTurn(initialUserMsg, asstMsg, usageResponse);
     } catch (error: unknown) {
-      // Always hide the typing indicator on any error or abort path.
       this.onHideTypingIndicator?.();
 
       if (
@@ -150,7 +216,6 @@ export class ChatController {
         await this.onRenderMessages();
       } else {
         const errMessage = error instanceof Error ? error.message : String(error);
-
         if (errMessage.includes("does not support tools")) {
           new Notice(t("notices.aiAgentErrorNoTools"), 8000);
         } else {
@@ -158,7 +223,7 @@ export class ChatController {
         }
       }
 
-      // Clean up the empty assistant message if we added it for streaming
+      // Clean up the empty assistant message if we added it for streaming.
       const msgs = this.chatManager.getMessages();
       const lastMsg = msgs[msgs.length - 1];
       if (lastMsg && lastMsg.role === "assistant" && !lastMsg.content.trim()) {
@@ -171,12 +236,9 @@ export class ChatController {
     }
   }
 
-  public abortGeneration(): void {
-    if (this.currentAbortController) {
-      this.currentAbortController.abort();
-      this.currentAbortController = null;
-    }
-  }
+  // ---------------------------------------------------------------------------
+  // Private: file reference injection
+  // ---------------------------------------------------------------------------
 
   /**
    * Parses @path/to/file.md mentions from the message text, loads each file's

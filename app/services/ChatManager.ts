@@ -87,6 +87,50 @@ export class ChatManager {
     }
   }
 
+  /**
+   * Truncates the internal messages array so that only the first `keepCount`
+   * messages are retained. `keepCount` counts ALL messages (including system).
+   * Used by ChatController to roll back the conversation before regenerating.
+   */
+  truncateHistory(keepCount: number): void {
+    if (keepCount >= 0 && keepCount < this.messages.length) {
+      this.messages = this.messages.slice(0, keepCount);
+    }
+  }
+
+  /**
+   * Returns the total count of internal messages (including system prompt)
+   * so the caller can snapshot the position before truncating.
+   */
+  getMessageCount(): number {
+    return this.messages.length;
+  }
+
+  /**
+   * Replaces the content of the visible message at `visibleIndex`
+   * (i.e. filtering out system messages). Used before re-sending an edited message.
+   */
+  updateVisibleMessageContent(visibleIndex: number, newContent: string): void {
+    const visible = this.messages.filter((m) => m.role !== "system");
+    if (visibleIndex < 0 || visibleIndex >= visible.length) return;
+    visible[visibleIndex].content = newContent;
+  }
+
+  /**
+   * Keeps messages up to and including the visible message at `visibleIndex`,
+   * then removes everything that came after it.
+   * Used to roll back to a specific user message before regenerating.
+   */
+  truncateHistoryAfterVisible(visibleIndex: number): void {
+    const visible = this.messages.filter((m) => m.role !== "system");
+    if (visibleIndex < 0 || visibleIndex >= visible.length) return;
+    const targetMsg = visible[visibleIndex];
+    const internalIdx = this.messages.indexOf(targetMsg);
+    if (internalIdx !== -1) {
+      this.messages = this.messages.slice(0, internalIdx + 1);
+    }
+  }
+
   appendChunkToLastMessage(chunk: string): void {
     if (this.messages.length === 0) return;
     const lastMsg = this.messages[this.messages.length - 1];

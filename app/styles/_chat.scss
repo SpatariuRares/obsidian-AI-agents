@@ -94,14 +94,12 @@
     &.ai-agents-chat__message--user {
       background: var(--interactive-accent);
       color: var(--text-on-accent);
-      align-self: flex-end;
       border-bottom-right-radius: 2px;
     }
 
     &.ai-agents-chat__message--assistant {
       background: var(--background-secondary);
       color: var(--text-normal);
-      align-self: flex-start;
       border-bottom-left-radius: 2px;
     }
 
@@ -251,10 +249,105 @@
     }
   }
 
-  & .ai-agents-chat__message-label {
-    font-size: var(--font-ui-smaller);
-    font-weight: 600;
-    opacity: 0.7;
+  // ─── Message row (wrapper holding bubble + action strip) ─────────────
+  & .ai-agents-chat__message-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    // User rows: right-aligned, actions to the LEFT of the bubble
+    &.ai-agents-chat__message-row--user {
+      align-self: flex-end;
+
+      .ai-agents-chat__message-actions {
+        // Visually reorder: strip appears before bubble
+        order: -1;
+      }
+    }
+
+    // Assistant rows: left-aligned, actions to the RIGHT of the bubble
+    &.ai-agents-chat__message-row--assistant {
+      align-self: flex-start;
+    }
+  }
+
+  // ─── Action strip ─────────────────────────────────────────────────────
+  & .ai-agents-chat__message-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    // Hidden until hover
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+  }
+
+  & .ai-agents-chat__message-row:hover .ai-agents-chat__message-actions,
+  & .ai-agents-chat__message-row.is-editing .ai-agents-chat__message-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  & .ai-agents-chat__msg-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition:
+      background-color 0.12s ease,
+      color 0.12s ease;
+
+    svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    &:hover {
+      background: var(--background-modifier-hover);
+      color: var(--text-normal);
+    }
+
+    &:active {
+      background: var(--background-modifier-active-hover);
+    }
+
+    // Variant used for the Save button in edit mode
+    &.ai-agents-chat__msg-action-btn--success {
+      color: var(--color-green, #5a9e6b);
+
+      &:hover {
+        background: color-mix(in srgb, var(--color-green, #5a9e6b) 15%, transparent);
+      }
+    }
+  }
+
+  // ─── Inline message edit textarea ─────────────────────────────────────
+  & .ai-agents-chat__msg-edit-textarea {
+    width: 100%;
+    min-height: 60px;
+    max-height: 300px;
+    padding: 4px 6px;
+    border: 1px solid var(--interactive-accent);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-text-size);
+    font-family: inherit;
+    line-height: 1.4;
+    resize: vertical;
+
+    &:focus {
+      outline: none;
+    }
   }
 
   & .ai-agents-chat__message-content {

@@ -108,7 +108,14 @@
     "errorRender": "Error rendering message. Showing raw text:",
     "toolInput": "Input",
     "toolOutput": "Output",
-    "toolUnknown": "Unknown tool"
+    "toolUnknown": "Unknown tool",
+    "copyMessage": "Copy message",
+    "copiedNotice": "Copied to clipboard!",
+    "copyFailed": "Copy failed. Please copy manually.",
+    "regenerate": "Regenerate response",
+    "editMessage": "Edit message",
+    "saveEdit": "Save (Ctrl+Enter)",
+    "cancelEdit": "Cancel"
   },
   "agentSelector": {
     "searchPlaceholder": "Search for an agent...",
