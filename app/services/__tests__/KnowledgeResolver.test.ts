@@ -21,6 +21,7 @@ function makeApp(files: TFile[], contents: Map<string, string>): App {
   const app = new App();
   app.vault.getFiles = jest.fn().mockReturnValue(files);
   app.vault.read = jest.fn(async (file: TFile) => contents.get(file.path) ?? "");
+  app.vault.getFolderByPath = jest.fn().mockReturnValue(null);
   return app;
 }
 
