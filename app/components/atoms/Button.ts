@@ -12,13 +12,9 @@ export interface ButtonOptions {
 
 const BASE_CLS = "ai-agents-btn";
 
-export function createButton(
-  container: HTMLElement,
-  options: ButtonOptions,
-): HTMLButtonElement {
+export function createButton(container: HTMLElement, options: ButtonOptions): HTMLButtonElement {
   const clsParts = [BASE_CLS];
   if (options.variant && options.variant !== "default") {
-    // eslint-disable-next-line i18next/no-literal-string
     clsParts.push(`${BASE_CLS}--${options.variant}`);
   }
   if (options.cls) clsParts.push(options.cls);

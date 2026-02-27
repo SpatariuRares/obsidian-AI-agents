@@ -379,9 +379,7 @@ export class AgentEditor {
       .addDropdown((dropdown) => {
         dropdown.addOptions({
           "": t("editor.ragEmbeddingProviderDefault"),
-          // eslint-disable-next-line i18next/no-literal-string -- provider identifiers
           ollama: "Ollama",
-          // eslint-disable-next-line i18next/no-literal-string -- provider identifiers
           openrouter: "OpenRouter",
         });
         dropdown.setValue(this.config.rag_embedding_provider || "");

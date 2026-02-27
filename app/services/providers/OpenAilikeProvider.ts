@@ -211,7 +211,7 @@ export class OpenAilikeProvider extends BaseProvider {
 
       while (true) {
         if (abortSignal?.aborted) {
-          reader.cancel();
+          void reader.cancel();
           throw new DOMException("The operation was aborted.", "AbortError");
         }
         const { done, value } = await reader.read();

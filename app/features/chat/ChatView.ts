@@ -122,11 +122,11 @@ export class ChatView extends ItemView {
         if (activeAgent) this.showEditor(activeAgent);
       },
       onOpenHistory: () => {
-        this.openHistoryModal().catch(() => { });
+        this.openHistoryModal().catch(() => {});
       },
       onRenameSession: () => this.promptRenameSession(),
       onNewSession: () => {
-        this.onNewSession().catch(() => { });
+        this.onNewSession().catch(() => {});
       },
     });
   }
@@ -434,11 +434,7 @@ export class ChatView extends ItemView {
     }
   }
 
-  private async renderMessage(
-    msg: ChatMessage,
-    msgIndex: number,
-    isLast: boolean,
-  ): Promise<void> {
+  private async renderMessage(msg: ChatMessage, msgIndex: number, isLast: boolean): Promise<void> {
     const agent = this.host.chatManager.getActiveAgent();
     const canRegenerate = isLast && msg.role === "assistant";
     const canEdit = msg.role === "user";
@@ -454,19 +450,19 @@ export class ChatView extends ItemView {
       isLast,
       onRegenerate: canRegenerate
         ? () => {
-          this.inputArea.setGenerating(true);
-          this.chatController
-            .regenerateLastResponse()
-            .finally(() => this.inputArea.setGenerating(false));
-        }
+            this.inputArea.setGenerating(true);
+            void this.chatController
+              .regenerateLastResponse()
+              .finally(() => this.inputArea.setGenerating(false));
+          }
         : undefined,
       onEdit: canEdit
         ? (visibleIndex: number, newContent: string) => {
-          this.inputArea.setGenerating(true);
-          this.chatController
-            .editAndResend(visibleIndex, newContent)
-            .finally(() => this.inputArea.setGenerating(false));
-        }
+            this.inputArea.setGenerating(true);
+            void this.chatController
+              .editAndResend(visibleIndex, newContent)
+              .finally(() => this.inputArea.setGenerating(false));
+          }
         : undefined,
     });
   }

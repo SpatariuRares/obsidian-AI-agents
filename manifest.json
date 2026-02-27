@@ -1,7 +1,7 @@
 {
   "id": "ai-agents",
   "name": "AI Agents",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "minAppVersion": "0.15.0",
   "description": "Transform your vault into an ecosystem of configurable AI agents defined by markdown files.",
   "author": "SpatariuRares",

@@ -12,7 +12,6 @@
 
 import { parseYaml } from "obsidian";
 import { AgentConfig, AgentStrategy, AgentType } from "@app/types/AgentTypes";
-import { t } from "@app/i18n";
 
 // ---------------------------------------------------------------------------
 // Parse result & defaults
@@ -283,8 +282,7 @@ export function parseAgentFile(raw: string, defaults?: AgentParseDefaults): Agen
       typeof parsed.rag_embedding_provider === "string" ? parsed.rag_embedding_provider : undefined,
     rag_embedding_model:
       typeof parsed.rag_embedding_model === "string" ? parsed.rag_embedding_model : undefined,
-    rag_top_k:
-      typeof parsed.rag_top_k === "number" ? parsed.rag_top_k : undefined,
+    rag_top_k: typeof parsed.rag_top_k === "number" ? parsed.rag_top_k : undefined,
     rag_similarity_threshold:
       typeof parsed.rag_similarity_threshold === "number"
         ? parsed.rag_similarity_threshold
