@@ -9,12 +9,9 @@ export interface BadgeOptions {
 
 const BASE_CLS = "ai-agents-badge";
 
-export function createBadge(
-  container: HTMLElement,
-  options: BadgeOptions,
-): HTMLElement {
+export function createBadge(container: HTMLElement, options: BadgeOptions): HTMLElement {
   const clsParts = [BASE_CLS];
-  // eslint-disable-next-line i18next/no-literal-string
+  // eslint-disable-next-line i18next/no-literal-string -- BEM CSS class modifier, not user-facing text
   if (options.removable) clsParts.push(`${BASE_CLS}--removable`);
   if (options.cls) clsParts.push(options.cls);
   const badge = container.createDiv({ cls: clsParts.join(" ") });

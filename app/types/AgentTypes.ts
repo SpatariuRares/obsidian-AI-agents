@@ -65,11 +65,20 @@ export interface AgentConfig {
 // Chat message
 // ---------------------------------------------------------------------------
 
+export interface ToolCall {
+  id: string;
+  type: string;
+  function: {
+    name: string;
+    arguments: string;
+  };
+}
+
 export interface ChatMessage {
   role: "system" | "user" | "assistant" | "tool";
   content: string;
   timestamp: number;
-  tool_calls?: any[]; // For assistant messages containing tool calls
+  tool_calls?: ToolCall[]; // For assistant messages containing tool calls
   tool_call_id?: string; // For tool responses
   name?: string; // For tool responses
 }

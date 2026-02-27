@@ -52,11 +52,11 @@ export class RAGView extends ItemView {
   }
 
   getIcon(): string {
-    // eslint-disable-next-line i18next/no-literal-string
+    // eslint-disable-next-line i18next/no-literal-string -- Lucide icon name, not user-facing text
     return "database";
   }
 
-  async onOpen(): Promise<void> {
+  onOpen(): Promise<void> {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
     container.addClass("ai-agents");
@@ -80,9 +80,11 @@ export class RAGView extends ItemView {
 
     // Refresh agent list when agents change or layout is ready (scan finishes)
     this.registerEvent(
-      this.app.workspace.on("ai-agents:update" as any, () => this.refreshAgentList()),
+      this.app.workspace.on("ai-agents:update" as never, () => this.refreshAgentList()),
     );
-    this.registerEvent(this.app.workspace.on("layout-ready" as any, () => this.refreshAgentList()));
+    this.registerEvent(
+      this.app.workspace.on("layout-ready" as never, () => this.refreshAgentList()),
+    );
 
     // Stats panel
     this.statsEl = container.createDiv({ cls: `${CLS}__stats` });
@@ -115,10 +117,12 @@ export class RAGView extends ItemView {
       text: t("rag.selectAgentFirst"),
       cls: `${CLS}__empty-message`,
     });
+    return Promise.resolve();
   }
 
-  async onClose(): Promise<void> {
+  onClose(): Promise<void> {
     // No cleanup needed
+    return Promise.resolve();
   }
 
   // ---------------------------------------------------------------------------
@@ -218,21 +222,27 @@ export class RAGView extends ItemView {
       text: t("rag.buildIndex"),
       cls: `${CLS}__action-btn mod-cta`,
       disabled: this.isIndexing,
-      onClick: () => this.handleBuildIndex(false),
+      onClick: () => {
+        void this.handleBuildIndex(false);
+      },
     });
 
     createButton(this.actionsEl, {
       text: t("rag.rebuildIndex"),
       cls: `${CLS}__action-btn`,
       disabled: this.isIndexing,
-      onClick: () => this.handleBuildIndex(true),
+      onClick: () => {
+        void this.handleBuildIndex(true);
+      },
     });
 
     createButton(this.actionsEl, {
       text: t("rag.clearIndex"),
       cls: `${CLS}__action-btn mod-warning`,
       disabled: this.isIndexing,
-      onClick: () => this.handleClearIndex(),
+      onClick: () => {
+        void this.handleClearIndex();
+      },
     });
   }
 

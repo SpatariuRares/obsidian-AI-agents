@@ -1,5 +1,5 @@
 import { App, SuggestModal } from "obsidian";
-import { ParsedAgent } from "@app/types/AgentTypes";
+import { ParsedAgent, AgentConfig } from "@app/types/AgentTypes";
 import { t } from "@app/i18n";
 import { createText } from "@app/components/atoms/Text";
 
@@ -33,7 +33,7 @@ export class AgentSelectorModal extends SuggestModal<ParsedAgent> {
         name: t("agentSelector.createNewAgent"),
         avatar: "➕",
         description: t("agentSelector.createNewAgentDesc"),
-      } as any,
+      } as AgentConfig,
       promptTemplate: "",
     };
 
@@ -52,7 +52,11 @@ export class AgentSelectorModal extends SuggestModal<ParsedAgent> {
     createText(titleContainer, { text: agent.config.name, cls: "ai-agents-chat__suggestion-name" });
 
     if (agent.config.description) {
-      createText(el, { tag: "div", text: agent.config.description, cls: "ai-agents-chat__suggestion-desc" });
+      createText(el, {
+        tag: "div",
+        text: agent.config.description,
+        cls: "ai-agents-chat__suggestion-desc",
+      });
     }
   }
 

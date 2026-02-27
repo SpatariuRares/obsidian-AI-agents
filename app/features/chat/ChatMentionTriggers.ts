@@ -25,6 +25,7 @@ export function createTagMentionTrigger(): MentionTrigger {
     char: "#",
     icon: "hash",
     getSuggestions: (app: App) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- getTags is missing in obsidian typings
       const tagsRecord: Record<string, number> = (app.metadataCache as any)?.getTags?.() ?? {};
       return Object.entries(tagsRecord)
         .sort(([, a], [, b]) => b - a)

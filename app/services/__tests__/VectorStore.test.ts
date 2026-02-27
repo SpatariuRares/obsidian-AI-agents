@@ -20,7 +20,7 @@ function makeApp(): App {
   app.vault.createFolder = jest.fn().mockResolvedValue(undefined);
   app.vault.create = jest.fn().mockResolvedValue(new TFile());
   app.vault.modify = jest.fn().mockResolvedValue(undefined);
-  app.vault.delete = jest.fn().mockResolvedValue(undefined);
+  app.fileManager.trashFile = jest.fn().mockResolvedValue(undefined);
   return app;
 }
 
@@ -307,7 +307,7 @@ describe("VectorStore", () => {
 
       await store.clear();
 
-      expect(app.vault.delete).toHaveBeenCalledWith(mockFile);
+      expect(app.fileManager.trashFile).toHaveBeenCalledWith(mockFile);
     });
 
     it("should reset internal state", async () => {

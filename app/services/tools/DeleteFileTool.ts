@@ -25,7 +25,8 @@ export const DeleteFileTool: BaseTool = {
   },
 
   async execute(app: App, config: AgentConfig, args: Record<string, unknown>): Promise<unknown> {
-    await FileOperations.deleteFile(app, config, args.path as string);
-    return { success: true, message: `File deleted successfully: ${args.path}` };
+    const path = args.path as string;
+    await FileOperations.deleteFile(app, config, path);
+    return { success: true, message: `File deleted successfully: ${path}` };
   },
 };

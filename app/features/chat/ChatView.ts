@@ -71,7 +71,7 @@ export class ChatView extends ItemView {
   }
 
   getIcon(): string {
-    // eslint-disable-next-line i18next/no-literal-string
+    // eslint-disable-next-line i18next/no-literal-string -- Lucide icon name, not user-facing text
     return "bot";
   }
 
@@ -106,8 +106,9 @@ export class ChatView extends ItemView {
     await this.renderMessages();
   }
 
-  async onClose(): Promise<void> {
+  onClose(): Promise<void> {
     this.inputArea?.detach();
+    return Promise.resolve();
   }
 
   // -------------------------------------------------------------------------
@@ -116,17 +117,21 @@ export class ChatView extends ItemView {
 
   private buildHeader(container: HTMLElement): void {
     this.header = new ChatHeader(container, {
-      onSelectAgent: () => this.openAgentModal(),
+      onSelectAgent: () => {
+        void this.openAgentModal();
+      },
       onEditAgent: () => {
         const activeAgent = this.host.chatManager.getActiveAgent();
         if (activeAgent) this.showEditor(activeAgent);
       },
       onOpenHistory: () => {
-        this.openHistoryModal().catch(() => {});
+        void this.openHistoryModal().catch(() => {});
       },
-      onRenameSession: () => this.promptRenameSession(),
+      onRenameSession: () => {
+        void this.promptRenameSession();
+      },
       onNewSession: () => {
-        this.onNewSession().catch(() => {});
+        void this.onNewSession().catch(() => {});
       },
     });
   }
@@ -163,9 +168,7 @@ export class ChatView extends ItemView {
         }
       },
       onStopGeneration: () => {
-        if (this.chatController) {
-          this.chatController.abortGeneration();
-        }
+        if (this.chatController) void this.chatController.abortGeneration();
       },
     });
   }
@@ -189,7 +192,7 @@ export class ChatView extends ItemView {
     }
 
     const modal = new AgentSelectorModal(this.app, agents, (agent) => {
-      this.onAgentSelected(agent).catch((_e: Error) => {
+      void this.onAgentSelected(agent).catch((_e: Error) => {
         /* no-op */
       });
     });
@@ -320,7 +323,7 @@ export class ChatView extends ItemView {
         this.showChat();
         if (!this.host.chatManager.getActiveAgent()) {
           this.refreshAgentSelectBtn();
-          this.renderMessages().catch((_e: Error) => {
+          void this.renderMessages().catch((_e: Error) => {
             /* no-op */
           });
         }
@@ -330,13 +333,13 @@ export class ChatView extends ItemView {
         const { workspace } = this.app;
         const existing = workspace.getLeavesOfType(VIEW_TYPE_RAG);
         if (existing.length > 0) {
-          workspace.revealLeaf(existing[0]).catch(() => {});
+          void workspace.revealLeaf(existing[0]).catch(() => {});
           return;
         }
         const leaf = workspace.getRightLeaf(false);
         if (leaf) {
           void leaf.setViewState({ type: VIEW_TYPE_RAG, active: true });
-          workspace.revealLeaf(leaf).catch(() => {});
+          void workspace.revealLeaf(leaf).catch(() => {});
         }
       },
     );
@@ -350,7 +353,7 @@ export class ChatView extends ItemView {
 
     this.inputArea.setVisible(true);
 
-    this.renderMessages().catch((_e: Error) => {
+    void this.renderMessages().catch((_e: Error) => {
       /* no-op */
     });
   }
@@ -476,7 +479,7 @@ export class ChatView extends ItemView {
     const messages = this.host.chatManager.getMessages();
     for (const m of messages) {
       if (m.role === "assistant" && m.tool_calls) {
-        const call = m.tool_calls.find((c: any) => c.id === toolCallId);
+        const call = m.tool_calls.find((c) => c.id === toolCallId);
         if (call) {
           try {
             return JSON.parse(call.function.arguments);

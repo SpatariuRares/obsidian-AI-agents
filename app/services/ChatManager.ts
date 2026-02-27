@@ -64,7 +64,7 @@ export class ChatManager {
       }
     }
 
-    this.app.workspace.trigger("ai-agents:update" as any);
+    this.app.workspace.trigger("ai-agents:update" as never);
 
     this.messages.push({
       role: "system",
@@ -174,10 +174,10 @@ export class ChatManager {
     this.isNewSessionLog = false;
     this.currentSessionFile = null;
     this.currentSessionTitle = "New Chat";
-    this.app.workspace.trigger("ai-agents:update" as any);
+    this.app.workspace.trigger("ai-agents:update" as never);
   }
 
-  async loadHistoricalSession(
+  loadHistoricalSession(
     agent: ParsedAgent,
     file: string,
     title: string,
@@ -188,7 +188,8 @@ export class ChatManager {
     this.currentSessionTitle = title;
     this.messages = msgs;
     this.isNewSessionLog = false;
-    this.app.workspace.trigger("ai-agents:update" as any);
+    this.app.workspace.trigger("ai-agents:update" as never);
+    return Promise.resolve();
   }
 
   async renameCurrentSession(newTitle: string): Promise<void> {
@@ -200,7 +201,7 @@ export class ChatManager {
         this.messages,
         this.currentSessionTitle,
       );
-      this.app.workspace.trigger("ai-agents:update" as any);
+      this.app.workspace.trigger("ai-agents:update" as never);
     }
   }
 
@@ -250,7 +251,7 @@ export class ChatManager {
 
     if (usage) {
       await this.tokenTracker.update(this.activeAgent.id, usage);
-      this.app.workspace.trigger("ai-agents:update" as any);
+      this.app.workspace.trigger("ai-agents:update" as never);
     }
   }
 

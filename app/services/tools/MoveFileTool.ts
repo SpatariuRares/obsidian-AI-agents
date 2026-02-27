@@ -26,7 +26,9 @@ export const MoveFileTool: BaseTool = {
   },
 
   async execute(app: App, config: AgentConfig, args: Record<string, unknown>): Promise<unknown> {
-    await FileOperations.moveFile(app, config, args.from as string, args.to as string);
-    return { success: true, message: `File moved from ${args.from} to ${args.to}` };
+    const fromPath = args.from as string;
+    const toPath = args.to as string;
+    await FileOperations.moveFile(app, config, fromPath, toPath);
+    return { success: true, message: `File moved from ${fromPath} to ${toPath}` };
   },
 };

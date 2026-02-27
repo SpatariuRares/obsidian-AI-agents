@@ -26,7 +26,9 @@ export const CreateFileTool: BaseTool = {
   },
 
   async execute(app: App, config: AgentConfig, args: Record<string, unknown>): Promise<unknown> {
-    await FileOperations.createFile(app, config, args.path as string, args.content as string);
-    return { success: true, message: `File created successfully at ${args.path}` };
+    const path = args.path as string;
+    const content = args.content as string;
+    await FileOperations.createFile(app, config, path, content);
+    return { success: true, message: `File created successfully at ${path}` };
   },
 };

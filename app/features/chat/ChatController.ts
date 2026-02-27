@@ -58,7 +58,7 @@ export class ChatController {
           this.app,
         );
         if (ragContext) {
-          // eslint-disable-next-line i18next/no-literal-string
+          // eslint-disable-next-line i18next/no-literal-string -- LLM context injection marker, not user-facing text
           messageWithContext = `[Relevant knowledge from vault]\n${ragContext}\n\n${messageWithContext}`;
         }
       } catch {
@@ -161,18 +161,18 @@ export class ChatController {
             messagesForApi,
             activeAgent.config,
             this.chatManager.getSettings(),
-            async (chunk: string) => {
+            (chunk: string) => {
               if (firstChunk) {
                 firstChunk = false;
                 // Hide dots, append first chunk, do a full render to create the bubble.
                 this.onHideTypingIndicator?.();
                 this.chatManager.appendChunkToLastMessage(chunk);
-                await this.onRenderMessages();
+                void this.onRenderMessages();
                 return;
               }
               // Subsequent chunks: faster incremental patch
               this.chatManager.appendChunkToLastMessage(chunk);
-              await this.onUpdateLastMessage();
+              void this.onUpdateLastMessage();
             },
             this.currentAbortController.signal,
           );
@@ -306,24 +306,24 @@ export class ChatController {
       ];
       const ext = file.path.split(".").pop()?.toLowerCase() ?? "";
       if (!textExtensions.includes(ext)) {
-        // eslint-disable-next-line i18next/no-literal-string
+        // eslint-disable-next-line i18next/no-literal-string -- LLM context injection marker, not user-facing text
         contextBlocks.push(`--- @${file.path} ---\n[Binary file]\n--- END ---`);
         continue;
       }
 
       try {
         const content = await this.app.vault.cachedRead(file);
-        // eslint-disable-next-line i18next/no-literal-string
+        // eslint-disable-next-line i18next/no-literal-string -- LLM context injection marker, not user-facing text
         contextBlocks.push(`--- @${file.path} ---\n${content}\n--- END ---`);
       } catch {
-        // eslint-disable-next-line i18next/no-literal-string
+        // eslint-disable-next-line i18next/no-literal-string -- LLM context injection marker, not user-facing text
         contextBlocks.push(`--- @${file.path} ---\n[Could not read file]\n--- END ---`);
       }
     }
 
     if (contextBlocks.length === 0) return text;
 
-    // eslint-disable-next-line i18next/no-literal-string
+    // eslint-disable-next-line i18next/no-literal-string -- LLM context injection marker, not user-facing text
     return `[Referenced files]\n${contextBlocks.join("\n\n")}\n\n${text}`;
   }
 }

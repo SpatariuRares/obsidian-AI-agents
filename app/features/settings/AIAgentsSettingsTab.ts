@@ -277,8 +277,9 @@ export class AIAgentsSettingsTab extends PluginSettingTab {
       .setDesc(t("settings.rag.defaultEmbeddingModelDesc"))
       .addText((text) =>
         text
-          // eslint-disable-next-line i18next/no-literal-string, obsidianmd/ui/sentence-case -- model identifier
-          .setPlaceholder("nomic-embed-text")
+
+          // eslint-disable-next-line i18next/no-literal-string -- technical AI model name, not a translated UI string
+          .setPlaceholder("Nomic-embed-text")
           .setValue(this.plugin.settings.defaultEmbeddingModel)
           .onChange(async (value) => {
             this.plugin.settings.defaultEmbeddingModel = value;

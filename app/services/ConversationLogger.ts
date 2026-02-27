@@ -1,4 +1,4 @@
-import { App, TFile, normalizePath } from "obsidian";
+import { App, TFile, normalizePath, TFolder } from "obsidian";
 import { ParsedAgent, ChatMessage } from "@app/types/AgentTypes";
 
 export interface ChatSessionMeta {
@@ -90,13 +90,14 @@ export class ConversationLogger {
   /**
    * Reads the logs folder for an agent and returns a list of sessions.
    */
-  async getLogHistory(agent: ParsedAgent): Promise<ChatSessionMeta[]> {
+  getLogHistory(agent: ParsedAgent): Promise<ChatSessionMeta[]> {
     const logFolderPath = normalizePath(`${agent.folderPath}/logs`);
     const folder = this.app.vault.getAbstractFileByPath(logFolderPath);
-    if (!folder || !Object.prototype.hasOwnProperty.call(folder, "children")) return [];
+    if (!folder || !Object.prototype.hasOwnProperty.call(folder, "children"))
+      return Promise.resolve([]);
 
     const sessions: ChatSessionMeta[] = [];
-    const children = (folder as any).children || [];
+    const children = folder instanceof TFolder ? folder.children : [];
 
     for (const child of children) {
       if (child instanceof TFile && child.extension === "md") {
@@ -113,7 +114,7 @@ export class ConversationLogger {
       }
     }
 
-    return sessions.sort((a, b) => b.timestamp - a.timestamp);
+    return Promise.resolve(sessions.sort((a, b) => b.timestamp - a.timestamp));
   }
 
   /**

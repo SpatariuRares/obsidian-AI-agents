@@ -97,7 +97,7 @@ export default class AIAgentsPlugin extends Plugin {
                 }
               }
 
-              this.app.workspace.trigger("ai-agents:update" as any);
+              this.app.workspace.trigger("ai-agents:update" as never);
             } catch {
               // ignore
             }

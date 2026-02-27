@@ -100,7 +100,7 @@ export class ExampleGenerator {
       await agentRegistry.scan(folder);
 
       // Trigger workspace update so the UI and StatusBar catch the new agent
-      app.workspace.trigger("ai-agents:update" as any);
+      app.workspace.trigger("ai-agents:update" as never);
 
       new Notice(t("notices.defaultAgentCreated") || "Default agent created.");
       return true;

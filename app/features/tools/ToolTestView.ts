@@ -62,11 +62,11 @@ export class ToolTestView extends ItemView {
   }
 
   getIcon(): string {
-    // eslint-disable-next-line i18next/no-literal-string
-    return "wrench"; // Icons in Obsidian shouldn't be localized if they refer to the lucide icon name. This ESLint warning comes from returning a raw string. Let's disable for this line.
+    // eslint-disable-next-line i18next/no-literal-string -- Lucide icon name, not user-facing text
+    return "wrench";
   }
 
-  async onOpen(): Promise<void> {
+  onOpen(): Promise<void> {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
     container.addClass("ai-agents");
@@ -104,7 +104,9 @@ export class ToolTestView extends ItemView {
       text: "Run",
       cls: `${CLS}__run-btn`,
       disabled: true,
-      onClick: () => this.runSelectedTool(),
+      onClick: () => {
+        void this.runSelectedTool();
+      },
     });
 
     // Output
@@ -115,10 +117,12 @@ export class ToolTestView extends ItemView {
     });
     this.outputEl = container.createEl("pre", { cls: `${CLS}__output` });
     this.outputEl.setText(t("tools.toolTestView.resultsWillAppearHere"));
+    return Promise.resolve();
   }
 
-  async onClose(): Promise<void> {
+  onClose(): Promise<void> {
     this.inputMap.clear();
+    return Promise.resolve();
   }
 
   /** Called when the user picks a different tool from the select. */
@@ -138,8 +142,9 @@ export class ToolTestView extends ItemView {
 
     // Build form fields from parameter schema
     const params = tool.definition.parameters;
-    const properties: Record<string, ParamProperty> = params?.properties ?? {};
-    const required: string[] = params?.required ?? [];
+    const properties: Record<string, ParamProperty> =
+      (params?.properties as Record<string, ParamProperty>) ?? {};
+    const required: string[] = (params?.required as string[]) ?? [];
 
     for (const [paramName, schema] of Object.entries(properties)) {
       const isRequired = required.includes(paramName);

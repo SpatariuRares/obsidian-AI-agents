@@ -129,13 +129,16 @@ function normalizeYamlKeys(
 
     // Attempt exact locale first, then base code
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- required for synchronous locale loading
       translations = require(`../i18n/locales/${localeStr}.json`);
     } catch {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- required for synchronous locale loading
       translations = require(`../i18n/locales/${baseCode}.json`);
     }
   } catch {
     // Fallback to English if Locale missing completely
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- required for synchronous locale loading
       translations = require(`../i18n/locales/en.json`);
     } catch {
       translations = {};

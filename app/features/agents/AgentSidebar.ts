@@ -34,30 +34,40 @@ export class AgentSidebar extends ItemView {
   }
 
   getIcon(): string {
+    // eslint-disable-next-line i18next/no-literal-string -- Lucide icon name, not user-facing text
     return "users";
   }
 
-  async onOpen(): Promise<void> {
+  onOpen(): Promise<void> {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
     container.addClass("ai-agents");
     container.addClass("ai-agents-sidebar");
 
-    createHeading(container, { level: "h3", text: t("sidebar.heading"), cls: "ai-agents-sidebar__title" });
+    createHeading(container, {
+      level: "h3",
+      text: t("sidebar.heading"),
+      cls: "ai-agents-sidebar__title",
+    });
 
     const agentsList = container.createDiv({ cls: "ai-agents-sidebar__list" });
     this.renderAgents(agentsList);
+    return Promise.resolve();
   }
 
-  async onClose(): Promise<void> {
+  onClose(): Promise<void> {
     // Cleanup if needed
+    return Promise.resolve();
   }
 
   private renderAgents(container: HTMLElement) {
     const agents = this.host.agentRegistry.getAllAgents();
 
     if (agents.length === 0) {
-      new EmptyState(container, { message: t("sidebar.noAgents"), cls: "ai-agents-sidebar__empty" });
+      new EmptyState(container, {
+        message: t("sidebar.noAgents"),
+        cls: "ai-agents-sidebar__empty",
+      });
       return;
     }
 

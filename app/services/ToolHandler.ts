@@ -9,7 +9,7 @@ import { allTools } from "@app/services/tools/allTools";
 export interface ToolDefinition {
   name: string;
   description: string;
-  parameters: any;
+  parameters: Record<string, unknown>;
 }
 
 export class ToolHandler {
@@ -37,7 +37,7 @@ export class ToolHandler {
     app: App,
     config: AgentConfig,
     toolName: string,
-    args: any,
+    args: Record<string, unknown>,
   ): Promise<any> {
     const tool = allTools.find((t) => t.definition.name === toolName);
     if (!tool) {
@@ -45,8 +45,8 @@ export class ToolHandler {
     }
     try {
       return await tool.execute(app, config, args);
-    } catch (e: any) {
-      return { success: false, error: e.message };
+    } catch (e: unknown) {
+      return { success: false, error: e instanceof Error ? e.message : String(e) };
     }
   }
 }

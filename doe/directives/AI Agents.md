@@ -338,7 +338,7 @@ Utente invia messaggio
 | `vault.modify(path, content)`       | `permissions.write`  | Modifica file esistente  |
 | `vault.create(path, content)`       | `permissions.create` | Crea nuovo file          |
 | `fileManager.rename(file, newPath)` | `permissions.move`   | Sposta/rinomina file     |
-| `vault.delete(file)`                | `permissions.delete` | Elimina file             |
+| `fileManager.trashFile(file)`       | `permissions.delete` | Elimina file             |
 | `vault.adapter.list(path)`          | `permissions.read`   | Lista contenuto cartella |
 
 ### 7.2 Glob Matching

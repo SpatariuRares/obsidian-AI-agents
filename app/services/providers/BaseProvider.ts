@@ -1,10 +1,10 @@
-import { ChatMessage, AgentConfig } from "@app/types/AgentTypes";
+import { ChatMessage, AgentConfig, ToolCall } from "@app/types/AgentTypes";
 import { PluginSettings } from "@app/types/PluginTypes";
 
 export interface ProviderResponse {
   text: string;
   usage?: import("@app/types/AgentTypes").TokenUsage;
-  tool_calls?: any[];
+  tool_calls?: ToolCall[];
 }
 
 /**

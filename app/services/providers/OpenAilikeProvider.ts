@@ -1,11 +1,11 @@
 import { requestUrl, RequestUrlParam } from "obsidian";
-import { ChatMessage, AgentConfig } from "@app/types/AgentTypes";
+import { ChatMessage, AgentConfig, ToolCall } from "@app/types/AgentTypes";
 import { PluginSettings } from "@app/types/PluginTypes";
 import { BaseProvider, ProviderResponse } from "@app/services/providers/BaseProvider";
 import { ToolHandler } from "@app/services/ToolHandler";
 
 interface ExtractedToolCalls {
-  tool_calls: any[];
+  tool_calls: ToolCall[];
   cleanedText: string;
 }
 
@@ -34,6 +34,7 @@ export class OpenAilikeProvider extends BaseProvider {
         if (!Array.isArray(parsed)) parsed = [parsed];
 
         const validCalls = parsed.filter(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- We must handle unstructured JSON from LLM outputs here
           (item: any) =>
             item &&
             typeof item.name === "string" &&
@@ -43,6 +44,7 @@ export class OpenAilikeProvider extends BaseProvider {
 
         if (validCalls.length === 0) continue;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- We must handle unstructured JSON from LLM outputs here
         const tool_calls = validCalls.map((call: any, index: number) => ({
           id: `fallback_${Date.now()}_${index}`,
           type: "function" as const,
@@ -125,6 +127,7 @@ export class OpenAilikeProvider extends BaseProvider {
     const payload: Record<string, unknown> = {
       model: config.model || "llama3",
       messages: messages.map((m) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API schemas differ between providers
         const msg: any = {
           role: m.role,
           content: m.content,
@@ -152,6 +155,7 @@ export class OpenAilikeProvider extends BaseProvider {
     }
 
     if (config.stream && onStream) {
+      // eslint-disable-next-line no-restricted-globals -- we must use fetch for streaming SSE support, as requestUrl does not support streaming bodies
       const response = await fetch(baseUrl, {
         method: "POST",
         headers: {
@@ -176,6 +180,7 @@ export class OpenAilikeProvider extends BaseProvider {
       let usage: import("@app/types/AgentTypes").TokenUsage | undefined;
       const toolCallsMap: Record<number, any> = {};
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SSE chunks are irregular and do not match strict types
       const processData = (data: any) => {
         const delta = data.choices?.[0]?.delta;
         const chunkContent = delta?.content || "";
@@ -247,7 +252,7 @@ export class OpenAilikeProvider extends BaseProvider {
         }
       }
 
-      let tool_calls: any[] | undefined =
+      let tool_calls: ToolCall[] | undefined =
         Object.keys(toolCallsMap).length > 0 ? Object.values(toolCallsMap) : undefined;
 
       // Fallback: if model output tool calls as plain text instead of structured calls
@@ -303,7 +308,7 @@ export class OpenAilikeProvider extends BaseProvider {
 
     const data = response.json;
     let text: string = data.choices?.[0]?.message?.content || "";
-    let tool_calls: any[] | undefined = data.choices?.[0]?.message?.tool_calls;
+    let tool_calls: ToolCall[] | undefined = data.choices?.[0]?.message?.tool_calls;
 
     // Fallback: if model output tool calls as plain text instead of structured calls
     if (!tool_calls && toolNames.length > 0) {

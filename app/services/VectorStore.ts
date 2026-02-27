@@ -188,8 +188,7 @@ export class VectorStore {
   async clear(): Promise<void> {
     const file = this.app.vault.getFileByPath(this.indexPath);
     if (file && file instanceof TFile) {
-      // eslint-disable-next-line obsidianmd/prefer-file-manager-trash-file -- index.json is internal generated data, not user content
-      await this.app.vault.delete(file);
+      await this.app.fileManager.trashFile(file);
     }
     this.index = null;
   }

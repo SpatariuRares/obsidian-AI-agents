@@ -1,5 +1,5 @@
 import { App, Notice, Setting, TextAreaComponent } from "obsidian";
-import { ParsedAgent, AgentConfig, AgentStrategy } from "@app/types/AgentTypes";
+import { ParsedAgent, AgentConfig, AgentStrategy, AgentType } from "@app/types/AgentTypes";
 import { DEFAULT_CONFIG } from "@app/services/AgentConfig";
 import { AgentWriter } from "@app/utils/AgentWriter";
 import { AgentRegistry } from "@app/services/AgentRegistry";
@@ -179,7 +179,7 @@ export class AgentEditor {
       });
       dropdown.setValue(this.config.type);
       dropdown.onChange((value) => {
-        this.config.type = value as any;
+        this.config.type = value as AgentType;
       });
     });
 
@@ -355,7 +355,13 @@ export class AgentEditor {
     createActionFooter(this.containerEl, {
       buttons: [
         { text: t("editor.cancelBtn"), onClick: () => this.onCancel() },
-        { text: t("editor.saveBtn"), variant: "primary", onClick: () => this.handleSave() },
+        {
+          text: t("editor.saveBtn"),
+          variant: "primary",
+          onClick: () => {
+            void this.handleSave();
+          },
+        },
       ],
       cls: "ai-agents-chat__editor-actions",
     });
@@ -392,8 +398,8 @@ export class AgentEditor {
       .setName(t("editor.ragEmbeddingModel"))
       .setDesc(t("editor.ragEmbeddingModelDesc"))
       .addText((text) => {
-        // eslint-disable-next-line i18next/no-literal-string, obsidianmd/ui/sentence-case -- model identifier
-        text.setPlaceholder("nomic-embed-text");
+        // eslint-disable-next-line i18next/no-literal-string -- technical AI model name, not a translated UI string
+        text.setPlaceholder("Nomic-embed-text");
         text.setValue(this.config.rag_embedding_model || "");
         text.onChange((value) => {
           this.config.rag_embedding_model = value || undefined;

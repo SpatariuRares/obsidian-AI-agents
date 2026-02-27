@@ -137,14 +137,15 @@ function makeChunk(filePath: string, headingPath: string, content: string): Docu
 
 /**
  * Generate a stable, alphanumeric ID from filePath and headingPath.
- * Uses btoa and strips non-alphanumeric chars, truncated to 32 chars.
+ * Uses TextEncoder + btoa to safely handle Unicode, truncated to 32 chars.
  */
 export function generateChunkId(filePath: string, headingPath: string): string {
   const raw = `${filePath}::${headingPath}`;
-  // btoa may not be available in all environments; use a simple hash fallback
   let encoded: string;
   try {
-    encoded = btoa(unescape(encodeURIComponent(raw)));
+    const bytes = new TextEncoder().encode(raw);
+    const binary = Array.from(bytes, (b) => String.fromCharCode(b)).join("");
+    encoded = btoa(binary);
   } catch {
     // Fallback: simple character code sum-based hash
     encoded = Array.from(raw)

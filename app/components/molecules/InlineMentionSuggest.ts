@@ -320,6 +320,7 @@ export class InlineMentionSuggest {
     this.inputEl.selectionEnd = newCursorPos;
 
     // Dispatch input event so auto-resize and other listeners react
+    // eslint-disable-next-line i18next/no-literal-string -- DOM native event name, not user-facing text
     this.inputEl.dispatchEvent(new Event("input", { bubbles: true }));
 
     this.dismiss();

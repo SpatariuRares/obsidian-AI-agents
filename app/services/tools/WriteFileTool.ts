@@ -27,13 +27,10 @@ export const WriteFileTool: BaseTool = {
   },
 
   async execute(app: App, config: AgentConfig, args: Record<string, unknown>): Promise<unknown> {
-    await FileOperations.writeFile(
-      app,
-      config,
-      args.path as string,
-      args.content as string,
-      (args.mode as "overwrite" | "append" | "prepend") || "overwrite",
-    );
-    return { success: true, message: `File wrote successfully to ${args.path}` };
+    const path = args.path as string;
+    const content = args.content as string;
+    const mode = (args.mode as "overwrite" | "append" | "prepend") || "overwrite";
+    await FileOperations.writeFile(app, config, path, content, mode);
+    return { success: true, message: `File wrote successfully to ${path}` };
   },
 };

@@ -21,7 +21,7 @@ export class AIAgentsStatusBar {
 
     // Listen for updates instead of polling
     this.plugin.registerEvent(
-      this.plugin.app.workspace.on("ai-agents:update" as any, () => {
+      this.plugin.app.workspace.on("ai-agents:update" as never, () => {
         this.update();
       }),
     );

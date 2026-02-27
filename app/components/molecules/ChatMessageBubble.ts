@@ -133,7 +133,9 @@ export class ChatMessageBubble {
           e.preventDefault();
           saveEdit();
         } else if (e.key === "Escape") {
-          exitEditMode().catch(() => { /* no-op */ });
+          exitEditMode().catch(() => {
+            /* no-op */
+          });
         }
       });
 
@@ -157,7 +159,9 @@ export class ChatMessageBubble {
       createIcon(cancelBtn, { icon: "x" });
       cancelBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        exitEditMode().catch(() => { /* no-op */ });
+        exitEditMode().catch(() => {
+          /* no-op */
+        });
       });
 
       textarea.focus();
@@ -165,7 +169,7 @@ export class ChatMessageBubble {
     };
 
     const saveEdit = () => {
-      const textarea = contentEl.querySelector("textarea") as HTMLTextAreaElement | null;
+      const textarea = contentEl.querySelector("textarea");
       const newContent = textarea?.value.trim() ?? "";
       // onEdit triggers a full renderMessages cycle — don't restore manually.
       if (newContent && onEdit && msgIndex !== undefined) {
@@ -221,12 +225,20 @@ export class ChatMessageBubble {
     const body = details.createDiv({ cls: "ai-agents-chat__tool-body" });
 
     if (toolArgs && Object.keys(toolArgs).length > 0) {
-      createText(body, { tag: "div", text: t("chat.toolInput"), cls: "ai-agents-chat__tool-section-label" });
+      createText(body, {
+        tag: "div",
+        text: t("chat.toolInput"),
+        cls: "ai-agents-chat__tool-section-label",
+      });
       const argsBlock = body.createEl("pre", { cls: "ai-agents-chat__tool-code" });
       argsBlock.createEl("code", { text: JSON.stringify(toolArgs, null, 2) });
     }
 
-    createText(body, { tag: "div", text: t("chat.toolOutput"), cls: "ai-agents-chat__tool-section-label" });
+    createText(body, {
+      tag: "div",
+      text: t("chat.toolOutput"),
+      cls: "ai-agents-chat__tool-section-label",
+    });
     const resultBlock = body.createEl("pre", { cls: "ai-agents-chat__tool-code" });
     try {
       const parsed = JSON.parse(msg.content);
