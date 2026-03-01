@@ -20,7 +20,6 @@ function makeApp(): App {
   app.vault.createFolder = jest.fn().mockResolvedValue(undefined);
   app.vault.create = jest.fn().mockResolvedValue(new TFile());
   app.vault.modify = jest.fn().mockResolvedValue(undefined);
-  app.fileManager.trashFile = jest.fn().mockResolvedValue(undefined);
   return app;
 }
 

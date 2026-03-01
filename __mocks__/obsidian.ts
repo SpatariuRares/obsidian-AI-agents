@@ -39,6 +39,9 @@ export class App {
   metadataCache = {
     getTags: jest.fn().mockReturnValue({}),
   };
+  fileManager = {
+    trashFile: jest.fn().mockResolvedValue(undefined),
+  };
 }
 
 /** Stub for WorkspaceLeaf. */

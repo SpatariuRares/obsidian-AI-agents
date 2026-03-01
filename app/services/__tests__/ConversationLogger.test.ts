@@ -1,5 +1,5 @@
 import { ConversationLogger } from "../ConversationLogger";
-import { App, TFile } from "obsidian";
+import { App, TFile, TFolder } from "obsidian";
 import { ParsedAgent, ChatMessage } from "@app/types/AgentTypes";
 
 describe("ConversationLogger", () => {
@@ -124,12 +124,11 @@ describe("ConversationLogger", () => {
 
       const file2 = new TFile("agents/test/logs/Session2.md", "agents/test/logs");
       file2.extension = "md";
-      file2.stat = { ctime: 150, mtime: 100, size: 0, type: "file" };
+      file2.stat = { ctime: 150, mtime: 100, size: 0, type: "file" } as any;
 
-      const mockFolder = {
-        hasOwnProperty: () => true,
-        children: [file1, file2],
-      };
+      const mockFolder = new TFolder("agents/test/logs");
+      mockFolder.children = [file1, file2];
+
       mockVault.getAbstractFileByPath.mockReturnValue(mockFolder);
       mockMetadataCache.getFileCache.mockReturnValue({
         frontmatter: { title: "Custom Title", date: "2024-01-01" },
